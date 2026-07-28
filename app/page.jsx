@@ -70,12 +70,20 @@ const ACADEMIC_MILESTONES = [
 ];
 
 const GOODS = [
-  { id: "bike", name: "二手自行车", icon: "🚲", base: 95, note: "罢工和好天气时走俏" },
-  { id: "heater", name: "电暖器", icon: "♨️", base: 70, note: "寒潮时价格暴涨" },
-  { id: "ticket", name: "Deutschlandticket", icon: "🎫", base: 49, note: "政策变化会影响价格" },
-  { id: "phone", name: "旧手机", icon: "📱", base: 120, note: "办线上手续的刚需" },
-  { id: "furniture", name: "宜家小桌", icon: "🪑", base: 45, note: "开学季需求上升" },
-  { id: "printer", name: "家用打印机", icon: "🖨️", base: 85, note: "任何手续都可能需要它" }
+  { id: "bike", name: "二手自行车", icon: "🚲", base: 95, note: "罢工和好天气时走俏", risk:2 },
+  { id: "heater", name: "电暖器", icon: "♨️", base: 70, note: "寒潮时价格暴涨", risk:2 },
+  { id: "ticket", name: "来路不明的 Deutschlandticket", icon: "🎫", base: 49, note: "便宜，但查票和实名制都不是摆设", risk:32 },
+  { id: "phone", name: "翻新旧手机", icon: "📱", base: 120, note: "办线上手续的刚需", risk:8 },
+  { id: "furniture", name: "宜家小桌", icon: "🪑", base: 45, note: "开学季需求上升", risk:1 },
+  { id: "printer", name: "家用打印机", icon: "🖨️", base: 85, note: "任何手续都可能需要它", risk:4 },
+  { id: "shoes", name: "高仿名牌鞋", icon: "👟", base: 135, note: "利润高，Abmahnung 也很贵", risk:55 },
+  { id: "sticks", name: "破解电视棒", icon: "📺", base: 90, note: "畅销，但平台与权利人都可能来信", risk:68 }
+];
+
+const MARKETS = [
+  {id:"campus",icon:"🎓",name:"校园与学生宿舍",note:"教材季、搬家季的价格变化最明显",goods:["bike","furniture","printer","heater"]},
+  {id:"kleinanzeigen",icon:"💻",name:"Kleinanzeigen",note:"选择多、成交快，也会留下完整的平台记录",goods:["phone","bike","printer","shoes","sticks"]},
+  {id:"flohmarkt",icon:"⛺",name:"周末跳蚤市场",note:"现金交易灵活，但不是每件货都有凭证",goods:["heater","furniture","phone","ticket","shoes"]}
 ];
 
 const HUSTLE_GOODS = [
@@ -101,14 +109,14 @@ const STOCKS = [
 ];
 
 const NEWS = [
-  { text:"新学期开学，大批新生正在购买教材和 WG 生活用品。",mods:{},ventureMods:{books:1.28,wgkit:1.25,printerset:1.16,moving:1.14} },
-  { text:"考试季临近，图书馆座位和打印店同时告急。",mods:{},ventureMods:{books:1.3,printerset:1.32,lunchbox:1.1} },
-  { text:"学生宿舍集中换房，搬家纸箱和廉价厨具需求上涨。",mods:{},ventureMods:{moving:1.34,wgkit:1.3} },
-  { text:"周末大型跳蚤市场开张，二手商品供应突然增加。",mods:{},ventureMods:{phones:.86,shoes:.88,moving:.9,wgkit:.92} },
-  { text:"校园国际文化节即将举行，餐食和运动用品更受欢迎。",mods:{},ventureMods:{lunchbox:1.32,shoes:1.16} },
-  { text:"市政府将更多手续转到线上，旧手机和打印设备需求上升。",mods:{},ventureMods:{phones:1.26,printerset:1.2} },
-  { text:"消费者中心警告假货和破解设备，平台开始集中清查。",mods:{},ventureMods:{shoes:.62,sticks:.58} },
-  { text:"假期开始，校园人流下降，毕业生正在集中清理家具。",mods:{},ventureMods:{books:.76,lunchbox:.78,moving:1.16,wgkit:.88} }
+  { text:"新学期开学，大批新生正在购买教材和 WG 生活用品。",mods:{bike:1.14,furniture:1.3,printer:1.18},ventureMods:{books:1.28,wgkit:1.25,printerset:1.16,moving:1.14} },
+  { text:"考试季临近，图书馆座位和打印店同时告急。",mods:{printer:1.38,phone:1.1},ventureMods:{books:1.3,printerset:1.32,lunchbox:1.1} },
+  { text:"学生宿舍集中换房，搬家纸箱、家具和电暖器需求上涨。",mods:{furniture:1.34,heater:1.18},ventureMods:{moving:1.34,wgkit:1.3} },
+  { text:"周末大型跳蚤市场开张，二手商品供应突然增加。",mods:{bike:.82,phone:.86,furniture:.78},ventureMods:{phones:.86,shoes:.88,moving:.9,wgkit:.92} },
+  { text:"校园国际文化节即将举行，运动用品和二手手机更受欢迎。",mods:{bike:1.12,phone:1.2,shoes:1.15},ventureMods:{lunchbox:1.32,shoes:1.16} },
+  { text:"市政府将更多手续转到线上，旧手机和打印设备需求上升。",mods:{phone:1.3,printer:1.27},ventureMods:{phones:1.26,printerset:1.2} },
+  { text:"消费者中心警告假货和破解设备，平台开始集中清查。",mods:{shoes:.62,sticks:.55,ticket:.76},ventureMods:{shoes:.62,sticks:.58} },
+  { text:"假期开始，校园人流下降，毕业生正在集中清理家具。",mods:{furniture:.7,bike:.82,printer:.86},ventureMods:{books:.76,lunchbox:.78,moving:1.16,wgkit:.88} }
 ];
 const DE_NEWS = [
   "Semesterstart: Neue Studierende suchen Lehrbücher und WG-Ausstattung.",
@@ -300,15 +308,6 @@ const ACTIONS = [
   { id:"tutorial", icon:"🧑‍🎓", name:"参加辅导课和学习小组", sub:"推进学业 · 练德语 · 认识同学", run:()=>({study:9,german:3,reputation:4,energy:-10,stress:1,money:-8}) },
   { id:"sport", icon:"🏐", name:"参加大学体育课", sub:"恢复健康 · 减轻压力 · 轻度消耗精力", run:()=>({health:11,stress:-9,reputation:5,energy:-6,money:-18}) },
   { id:"mealprep", icon:"🍲", name:"在 WG 集体做饭", sub:"省生活费 · 恢复精力 · 增进室友情", run:()=>({money:-24,health:6,stress:-6,reputation:7,energy:3}) },
-  { id:"business", icon:"🧺", name:"经营本周推荐商品", sub:"读消息、进货和销售都在这一周完成 · 结果有波动", run:s=>{
-    const ranked=[...HUSTLE_GOODS].sort((a,b)=>ventureMarketFactor(s.newsIndex,b.id)-ventureMarketFactor(s.newsIndex,a.id));
-    const good=ranked[0],factor=ventureMarketFactor(s.newsIndex,good.id);
-    const capital=Math.min(180,Math.max(60,Math.floor((s.money-250)/25)*25));
-    const roll=((s.totalWeek+1)*31+good.risk*7+Math.round(s.money))%100;
-    const success=roll<Math.max(30,Math.min(76,48+(factor-1)*75-good.risk*.18));
-    const profit=success?Math.round(capital*(good.margin*.38)*factor):-Math.round(capital*(.1+good.risk/420));
-    return {money:profit,energy:-7,stress:success?-3:7,reputation:success?3:-1};
-  } },
   { id:"doctor", icon:"🩺", name:"照顾身体", sub:"花钱治疗 · 恢复健康", run:()=>({money:-95,health:18,energy:8,stress:-5}) }
 ];
 
@@ -411,6 +410,32 @@ function Stat({label,value,type="bar",bad=false,onClick,hint}) {
   return onClick?<button type="button" className="v2-stat stat-button" onClick={onClick}>{content}</button>:<div className="v2-stat">{content}</div>;
 }
 
+function WeeklyMarket({state,lang,prices,onVisit,onTrade}){
+  const chosen=state.marketVisitWeek===state.totalWeek?MARKETS.find(m=>m.id===state.marketLocation):null;
+  const totalQty=Object.values(state.inventory||{}).reduce((sum,n)=>sum+n,0);
+  return <section className="weekly-market">
+    <div className="weekly-market-head"><div><small>WOCHENMARKT</small><h3>{lang==="de"?"Handel vor der Wochenaktion":"先逛市场，再安排本周生活"}</h3></div><span>{lang==="de"?`Lager ${totalQty}/${state.capacity}`:`储物 ${totalQty}/${state.capacity}`}</span></div>
+    {!chosen?<><p>{lang==="de"?"Wähle diese Woche genau einen Markt. Danach kannst du hier kaufen und verkaufen; erst die Wochenaktion lässt die Preise weiterlaufen.":"本周只能选择一个市场。进入后可以自由买卖；完成下面的本周行动后，价格才会刷新。"}</p><div className="market-places">{MARKETS.map(m=><button key={m.id} onClick={()=>onVisit(m.id)}><i>{m.icon}</i><b>{m.name}</b><small>{m.note}</small></button>)}</div></>:
+    <><div className="chosen-market"><span>{chosen.icon}</span><div><small>{lang==="de"?"DIESER MARKT IST FÜR DIESE WOCHE FEST":"本周市场已锁定"}</small><b>{chosen.name}</b></div><em>{lang==="de"?"Neue Auswahl nächste Woche":"下周可重新选择"}</em></div><div className="weekly-goods">{GOODS.filter(g=>chosen.goods.includes(g.id)).map(g=>{
+      const qty=state.inventory?.[g.id]||0,totalCost=state.inventoryCost?.[g.id]||0,avg=qty?totalCost/qty:0;
+      const buy=prices[g.id],sell=Math.max(1,Math.round(buy*.9));
+      const old=seededPrice(g,Math.max(0,state.totalWeek-1),NEWS[Math.floor(Math.max(0,state.totalWeek-1)/4)%NEWS.length]);
+      const direction=buy>old*1.05?"↑":buy<old*.95?"↓":"→";
+      const maxBuy=Math.max(0,Math.min(state.capacity-totalQty,Math.floor((state.money-200)/buy)));
+      const potential=qty?Math.round((sell-avg)*qty):0;
+      return <article key={g.id} className={g.risk>=30?"risky":""}><header><i>{g.icon}</i><div><b>{g.name}</b><small>{g.note}</small></div><em>{direction} {lang==="de"?"Vorwoche":"较上周"}</em></header><div className="quote-row"><span>{lang==="de"?"Kaufen":"买入价"}<b>{buy}€</b></span><span>{lang==="de"?"Verkaufen":"卖出价"}<b>{sell}€</b></span><span>{lang==="de"?"Bestand / Ø":"库存 / 均价"}<b>{qty} / {qty?`${Math.round(avg)}€`:"—"}</b></span><span className={potential>=0?"profit":"loss"}>{lang==="de"?"Möglicher Gewinn":"当前潜在盈亏"}<b>{qty?`${potential>=0?"+":""}${potential}€`:"—"}</b></span></div>{g.risk>=30&&<div className="risk-line">⚠ {lang==="de"?`Kontrollrisiko ${g.risk}/100`:`查处风险 ${g.risk}/100`}</div>}<div className="quantity-trade"><button disabled={maxBuy<1} onClick={()=>onTrade(g,"buy",1)}>+1 {lang==="de"?"kaufen":"买入"}</button><button disabled={maxBuy<2} onClick={()=>onTrade(g,"buy",maxBuy)}>{lang==="de"?"Max kaufen":"尽量买"}</button><button disabled={qty<1} onClick={()=>onTrade(g,"sell",1)}>-1 {lang==="de"?"verkaufen":"卖出"}</button><button disabled={qty<1} onClick={()=>onTrade(g,"sell",qty)}>{lang==="de"?"Alles verkaufen":"全部卖"}</button></div></article>
+    })}</div></>}
+  </section>;
+}
+
+function TradeLedger({state,lang,prices}){
+  const holdings=GOODS.filter(g=>(state.inventory?.[g.id]||0)>0);
+  return <section className="trade-ledger-panel"><div className="panel-title"><div><small>HANDELSBUCH</small><h2>{lang==="de"?"Lager und Handelsbuch":"库存与交易账本"}</h2></div><span>{lang==="de"?"Kaufpreis → heutiger Verkaufswert":"成本 → 当前卖出价值"}</span></div><p className="market-tip">{lang==="de"?"Gehandelt wird direkt vor der Wochenaktion. Hier siehst du nur Bestand, Einstandspreise und abgeschlossene Geschäfte.":"买卖入口已经放进“本周行动”。这里专门查看库存成本、当前潜在盈亏和最近成交记录。"}</p>
+    <div className="holding-grid">{holdings.length?holdings.map(g=>{const qty=state.inventory[g.id],avg=(state.inventoryCost[g.id]||0)/qty,sell=Math.round(prices[g.id]*.9),profit=Math.round((sell-avg)*qty);return <article key={g.id}><i>{g.icon}</i><div><b>{g.name}</b><small>{qty} 件 · 均价 {Math.round(avg)}€ · 当前卖价 {sell}€</small></div><em className={profit>=0?"profit":"loss"}>{profit>=0?"+":""}{profit}€</em></article>}):<div className="empty">{lang==="de"?"Noch kein Bestand. Wähle unter „Wochenaktion“ zuerst einen Markt.":"目前没有库存。请先在“本周行动”里选择本周市场。"}</div>}</div>
+    <div className="trade-history"><div className="subhead"><b>{lang==="de"?"Letzte Geschäfte":"最近成交"}</b><span>{lang==="de"?"Neue Einträge zuerst":"最新在前"}</span></div>{(state.tradeLedger||[]).length?(state.tradeLedger||[]).slice(0,12).map((entry,index)=><p key={index}><span>{entry.mode==="buy"?"买入":"卖出"} {entry.good}<small>{MARKETS.find(m=>m.id===entry.market)?.name||"市场"} · {entry.qty} 件 × {entry.unitPrice}€</small></span><b>{entry.mode==="sell"&&entry.result!==null?`${entry.result>=0?"+":""}${entry.result}€`:`-${entry.qty*entry.unitPrice}€`}</b></p>):<div className="empty">{lang==="de"?"Noch keine Geschäfte.":"还没有成交记录。"}</div>}</div>
+  </section>;
+}
+
 export default function Home() {
   const [lang,setLang]=useState("zh");
   useEffect(()=>{
@@ -470,12 +495,11 @@ export default function Home() {
   }
 
   const news=state?NEWS[state.newsIndex%NEWS.length]:NEWS[0];
-  const recommendedGoods=state?[...HUSTLE_GOODS].sort((a,b)=>ventureMarketFactor(state.newsIndex,b.id)-ventureMarketFactor(state.newsIndex,a.id)).slice(0,3):[];
   const prices=useMemo(()=>state?Object.fromEntries(GOODS.map(g=>[g.id,seededPrice(g,state.totalWeek,news)])): {},[state?.totalWeek,state?.newsIndex]);
   const stockPrices=useMemo(()=>state?Object.fromEntries(STOCKS.map(s=>[s.id,stockPrice(s,state.totalWeek)])): {},[state?.totalWeek]);
 
   function start(profile){
-    setState({...profile,profileId:profile.id,month:1,week:1,totalWeek:0,jobId:"shift",inventory:{},inventoryCost:{},stocks:{},stockCost:{},activeVenture:null,ventureLedger:[],packs:0,flags:{},seen:[],journal:[],newsIndex:0,capacity:6,businessRuns:0,lastDebtPaymentMonth:0,academicWarnings:0});
+    setState({...profile,profileId:profile.id,month:1,week:1,totalWeek:0,jobId:"shift",inventory:{},inventoryCost:{},tradeLedger:[],marketVisitWeek:-1,marketLocation:null,stocks:{},stockCost:{},activeVenture:null,ventureLedger:[],packs:0,flags:{},seen:[],journal:[],newsIndex:0,capacity:6,businessRuns:0,lastDebtPaymentMonth:0,academicWarnings:0});
     setScreen("arrival"); setTab("actions"); setModal(null);
   }
 
@@ -509,9 +533,7 @@ export default function Home() {
     next=applyEffect(next,{energy:4});
     let log=lang==="de"?`Monat ${state.month}, Woche ${state.week}: ${deText(action.name)}`:`第 ${state.month} 月第 ${state.week} 周：${action.name}`;
     let nextWeek=state.week+1, nextMonth=state.month, newsIndex=state.newsIndex;
-    let monthSummary=action.id==="business"
-      ?`你根据“本周消息”经营了 ${recommendedGoods[0]?.name||"校园商品"}，净结果 ${actionEffect.money>=0?"+":""}${actionEffect.money}€。消息只改变胜算，并不保证赚钱。`
-      :"";
+    let monthSummary="";
     if(nextWeek>4){
       nextWeek=1; nextMonth+=1; newsIndex+=1;
       const living=780;
@@ -528,6 +550,18 @@ export default function Home() {
       next={...next,academicWarnings:(next.academicWarnings||0)+(passed?0:1),journal:[`${milestone.title}：学业 ${next.study}/${milestone.required}，${passed?"进度达标":"进度不足，收到书面警告"}`,...next.journal].slice(0,20)};
       const academicSummary=passed?`${milestone.title}通过，学校确认学业进度正常。`:`${milestone.title}未通过：扣除补办费用并增加压力，学业需达到 ${milestone.required}。`;
       monthSummary=`${monthSummary} ${academicSummary}`.trim();
+    }
+    const riskyGoods=GOODS.filter(g=>g.risk>=30&&(next.inventory?.[g.id]||0)>0);
+    if(riskyGoods.length){
+      const exposure=riskyGoods.reduce((sum,g)=>sum+g.risk*(next.inventory[g.id]||0),0);
+      const inspectionRoll=(next.totalWeek*29+Math.round(next.money)+next.papers*3)%100;
+      if(inspectionRoll<Math.min(42,Math.round(exposure/8))){
+        const seized=riskyGoods.reduce((sum,g)=>sum+(next.inventory[g.id]||0),0);
+        const inventory={...next.inventory},inventoryCost={...next.inventoryCost};
+        riskyGoods.forEach(g=>{inventory[g.id]=0;inventoryCost[g.id]=0;});
+        next=applyEffect({...next,inventory,inventoryCost},{money:-75,stress:14,papers:-6,reputation:-5});
+        monthSummary=`${monthSummary} 平台审核与市场监管同时出现：${seized} 件高风险库存被扣，并收到 75€ 处理费用。`.trim();
+      }
     }
     if(next.activeVenture&&next.totalWeek>=next.activeVenture.readyWeek){
       const resolved=resolveVenture(next);
@@ -572,20 +606,29 @@ export default function Home() {
     setModal({type:"result",choice:{label:"提交完整材料包快速处理",result:"你拿出了原件、复印件、回执、Aktenzeichen 和按日期排列的往来信件。工作人员短暂沉默后，事情居然办下来了。"},event,timeLabel:modal?.timeLabel,prepared:true});
   }
 
-  function trade(good,mode){
-    const qty=state.inventory[good.id]||0;
-    const totalCost=state.inventoryCost[good.id]||0;
+  function visitMarket(marketId){
+    if(state.marketVisitWeek===state.totalWeek&&state.marketLocation!==marketId){setToast("本周已经去过一个市场，下周才能换地方。");return;}
+    setState({...state,marketVisitWeek:state.totalWeek,marketLocation:marketId});
+  }
+
+  function trade(good,mode,requested=1){
+    const qty=state.inventory?.[good.id]||0;
+    const totalCost=state.inventoryCost?.[good.id]||0;
     const avgCost=qty>0?totalCost/qty:0;
     const totalQty=Object.values(state.inventory).reduce((a,b)=>a+b,0);
-    if(mode==="buy"&&(state.money<prices[good.id]||totalQty>=state.capacity)){setToast(totalQty>=state.capacity?"储物空间满了。":"钱不够。");return;}
+    const unitPrice=mode==="buy"?prices[good.id]:Math.max(1,Math.round(prices[good.id]*.9));
+    const reserveLimit=Math.max(0,Math.floor((state.money-200)/unitPrice));
+    const amount=mode==="buy"?Math.max(0,Math.min(requested,state.capacity-totalQty,reserveLimit)):Math.max(0,Math.min(requested,qty));
+    if(mode==="buy"&&amount<1){setToast(totalQty>=state.capacity?"储物空间满了。":"至少要留下 200€ 生活备用金。");return;}
     if(mode==="sell"&&qty<=0){setToast("你没有这件东西。");return;}
-    const inventory={...state.inventory,[good.id]:qty+(mode==="buy"?1:-1)};
-    const inventoryCost={...state.inventoryCost,[good.id]:mode==="buy"?totalCost+prices[good.id]:Math.max(0,totalCost-avgCost)};
-    setState({...state,money:state.money+(mode==="buy"?-prices[good.id]:prices[good.id]),inventory,inventoryCost});
-    const realized=Math.round(prices[good.id]-avgCost);
+    const inventory={...state.inventory,[good.id]:qty+(mode==="buy"?amount:-amount)};
+    const inventoryCost={...state.inventoryCost,[good.id]:mode==="buy"?totalCost+unitPrice*amount:Math.max(0,totalCost-avgCost*amount)};
+    const realized=Math.round((unitPrice-avgCost)*amount);
+    const entry={week:state.totalWeek,market:state.marketLocation,good:good.name,mode,qty:amount,unitPrice,result:mode==="sell"?realized:null};
+    setState({...state,money:state.money+(mode==="buy"?-unitPrice*amount:unitPrice*amount),inventory,inventoryCost,tradeLedger:[entry,...(state.tradeLedger||[])].slice(0,30)});
     setToast(mode==="buy"
-      ?`买入 ${good.name}：成本 ${prices[good.id]}€`
-      :`卖出 ${good.name}：收入 ${prices[good.id]}€，实际${realized>=0?"赚":"亏"} ${Math.abs(realized)}€`);
+      ?`买入 ${amount} 件 ${good.name}：共 ${unitPrice*amount}€`
+      :`卖出 ${amount} 件 ${good.name}：收入 ${unitPrice*amount}€，实际${realized>=0?"赚":"亏"} ${Math.abs(realized)}€`);
   }
 
   function payDebt(){
@@ -714,11 +757,13 @@ export default function Home() {
     </section>
     <div className="academic-strip"><b>🎓 学业检查</b><span>第16周需 40 · 第32周需 65 · 期末建议 85</span><small>达到60解锁 HiWi，并降低大学事件压力</small><em>👁 {visitCount===null?"—":visitCount}</em></div>
     <div className="ticker"><b>本周消息</b><span>{lang==="de"?DE_NEWS[state.newsIndex]:news.text}</span></div>
-    <div className="time-rule"><b>时间规则</b><span>⏳ 本周行动＝推进 1 周</span><span>{lang==="de"?"○ Handelsprojekt starten/abschließen und Jobwechsel kosten keine Zeit":"○ 开始/结算经营批次、换职业＝不耗时间"}</span></div>
+    <div className="time-rule"><b>时间规则</b><span>⏳ 本周行动＝推进 1 周</span><span>{lang==="de"?"○ Ein Marktbesuch sowie Kauf, Verkauf und Jobwechsel kosten keine Zeit":"○ 每周访问一个市场；买卖与换职业不额外耗时"}</span></div>
     <nav className="tabs">{[["actions","本周行动"],["market","副业账本"],["career","职业设定"],["journal","记录"],["guestbook","留言板"]].map(([id,label])=><button className={tab===id?"active":""} key={id} onClick={()=>setTab(id)}>{label}</button>)}</nav>
     </div>
 
     <section className="v2-panel">
+      {tab==="actions"&&<WeeklyMarket state={state} lang={lang} prices={prices} onVisit={visitMarket} onTrade={trade}/>}
+      {tab==="market"&&<TradeLedger state={state} lang={lang} prices={prices}/>}
       {tab==="guestbook"&&<><div className="panel-title"><div><small>GÄSTEBUCH</small><h2>{lang==="de"?"Gästebuch":"访客留言板"}</h2></div><span>👁 {visitCount===null?"—":visitCount} {lang==="de"?"Besuche":"次访问"}</span></div>
         <form className="guestbook-form" onSubmit={submitGuestbook}><label><span>{lang==="de"?"Name":"昵称"}</span><input maxLength="24" value={guestbookForm.nickname} onChange={event=>setGuestbookForm({...guestbookForm,nickname:event.target.value})} placeholder={lang==="de"?"Maximal 24 Zeichen":"最多24个字"}/></label><label><span>{lang==="de"?"Nachricht":"留言"}</span><textarea maxLength="300" rows="4" value={guestbookForm.message} onChange={event=>setGuestbookForm({...guestbookForm,message:event.target.value})} placeholder={lang==="de"?"Was möchtest du anderen Studierenden sagen?":"想对其他留学生或作者说些什么？"}/><small>{guestbookForm.message.length}/300</small></label><button disabled={guestbookLoading}>{guestbookLoading?(lang==="de"?"Wird gespeichert…":"正在提交…"):(lang==="de"?"Nachricht hinterlassen":"提交留言")}</button>{guestbookError&&<p className="guestbook-error">{guestbookError}</p>}</form>
         <div className="guestbook-list">{guestbookLoading&&!messages.length?<div className="empty">{lang==="de"?"Gästebuch wird geladen…":"正在读取留言…"}</div>:messages.length?messages.map(item=><article key={item.id}><header><b>{item.nickname}</b><time>{new Date(item.created_at).toLocaleDateString(lang==="de"?"de-DE":"zh-CN")}</time></header><p>{item.message}</p></article>):!guestbookError&&<div className="empty">{lang==="de"?"Noch keine Einträge. Schreib den ersten.":"还没有留言，来写下第一条吧。"}</div>}</div>
