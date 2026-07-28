@@ -159,7 +159,7 @@ footer{display:flex;justify-content:space-between;padding:16px 24px;font-size:9p
 .sticky-status .ticker span{font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sticky-status .time-rule{flex-wrap:nowrap;padding:5px 10px;gap:6px;overflow-x:auto;scrollbar-width:none}
 .sticky-status .time-rule::-webkit-scrollbar{display:none}.sticky-status .time-rule b,.sticky-status .time-rule span{font-size:7px;white-space:nowrap}
-.sticky-status .tabs{padding:4px 8px 0;gap:2px}.sticky-status .tabs button{min-height:34px;padding:5px 2px;font-size:9px}
+.sticky-status .tabs{height:auto;min-height:0;padding:2px 8px 0;gap:2px}.sticky-status .tabs button{min-height:30px;padding:3px 2px;font-size:9px}
 
 @media (min-width:800px){
   .sticky-status .v2-head{height:64px;padding:9px 22px}.sticky-status .v2-head small{font-size:9px}.sticky-status .v2-head b{font-size:20px}
@@ -168,7 +168,7 @@ footer{display:flex;justify-content:space-between;padding:16px 24px;font-size:9p
   .sticky-status .ability-stats>div{padding:6px 12px}.sticky-status .ability-stats span{font-size:9px}.sticky-status .ability-stats b{font-size:15px}.sticky-status .ability-stats small{font-size:8px}
   .sticky-status .ticker{min-height:34px;padding:6px 22px}.sticky-status .ticker b{font-size:9px}.sticky-status .ticker span{font-size:10px}
   .sticky-status .time-rule{padding:6px 22px}.sticky-status .time-rule b,.sticky-status .time-rule span{font-size:8px}
-  .sticky-status .tabs{padding:5px 18px 0}.sticky-status .tabs button{min-height:38px;padding:6px;font-size:11px}
+  .sticky-status .tabs{height:auto;min-height:0;padding:3px 18px 0}.sticky-status .tabs button{min-height:34px;padding:4px;font-size:11px}
 }
 
 /* Student journey cinematics */
