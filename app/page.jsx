@@ -423,7 +423,7 @@ export default function Home() {
     <section className="ability-stats" aria-label="能力与行政资源">
       <div title="行动会消耗精力；低于 18 时不能工作或接零工"><span>⚡ 精力</span><b>{state.energy}</b><small>{state.energy<18?"无法工作":state.energy<35?"需要休息":"可正常行动"}</small></div>
       <div title="提高周薪、解锁职业，并降低事件压力"><span>🗣️ 德语</span><b>{state.german}</b><small>工资 +{languageBonus}€</small></div>
-      <div title="代表社会关系；45 点后可能触发稳定岗位机会"><span>🤝 人脉</span><b>{state.reputation}</b><small>{state.reputation>=45?"可触发晋升":"45 解锁机会"}</small></div>
+      <div title="代表社会关系；达到 45 后，随机事件中可能出现稳定岗位的晋升机会"><span>🤝 人脉</span><b>{state.reputation}</b><small>{state.reputation>=45?"可能触发晋升事件":"45 后可能触发晋升"}</small></div>
       <div title="代表行政记录完整度；高级职业要求档案达标"><span>🗂️ 档案</span><b>{state.papers}</b><small>解锁职业</small></div>
       <div title="在官僚事件中消耗一份，可显著降低损失"><span>📦 材料包</span><b>{state.packs}</b><small>事件减损</small></div>
     </section>
