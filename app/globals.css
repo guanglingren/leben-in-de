@@ -66,3 +66,44 @@ footer{display:flex;justify-content:space-between;padding:16px 24px;font-size:9p
 .paper-tasks{display:grid;gap:8px;margin:14px 0}.paper-tasks button{border:1px solid #aaa397;border-left:4px solid var(--yellow);background:#faf8f2;padding:11px;text-align:left;cursor:pointer}.paper-tasks button:hover{border-color:var(--ink);box-shadow:3px 3px 0 var(--yellow)}.paper-tasks b,.paper-tasks span,.paper-tasks em{display:block}.paper-tasks b{font-size:11px}.paper-tasks span{font-size:8px;color:var(--muted);margin-top:4px}.paper-tasks em{font-size:7px;color:var(--red);font-style:normal;margin-top:5px}.secondary{width:100%;border:1px solid var(--ink);background:transparent;padding:10px;font-size:9px;cursor:pointer}.holding-period{display:flex;justify-content:space-between;align-items:center;background:#e8dfc6;border-left:4px solid var(--yellow);padding:9px 10px;margin:12px 0 4px;font-size:10px;font-weight:800}.holding-period small{font-size:7px;color:var(--muted);font-weight:400}
 @media (min-width:700px){.v2-game{min-height:calc(100vh - 56px);border-radius:3px}.modal-backdrop{align-items:center}}
 @media (max-width:360px){.v2-panel{margin-inline:7px;padding-inline:11px}.action-grid{gap:6px}.action-grid button{padding:8px}.good{grid-template-columns:28px 1fr auto 52px}.tabs{padding-inline:7px}}
+
+/* Version 4 — readable type and persistent secondary resources */
+.ability-stats{display:grid;grid-template-columns:repeat(5,minmax(92px,1fr));gap:1px;background:#aaa397;border-bottom:1px solid #aaa397;overflow-x:auto;scrollbar-width:thin}
+.ability-stats>div{background:#e9e4d9;padding:9px 10px;min-width:92px}
+.ability-stats span,.ability-stats b,.ability-stats small{display:block}
+.ability-stats span{font-size:10px;color:#555d58;white-space:nowrap}
+.ability-stats b{font-size:15px;margin-top:2px}
+.ability-stats small{font-size:9px;color:var(--red);margin-top:2px;white-space:nowrap}
+.stat-guide{background:#e7e0d2;border-left:4px solid var(--yellow);padding:11px 12px;margin:13px 0}
+.stat-guide b{display:block;font-size:12px;margin-bottom:5px}
+.stat-guide p{font-size:10px;line-height:1.7;color:var(--muted);margin:0}
+.stat-guide p span{color:var(--ink);font-weight:800}
+
+.v2-head small{font-size:10px}.v2-head b{font-size:20px}.deadline b{font-size:17px}
+.v2-stat>span{font-size:10px}.v2-stat>b{font-size:14px}
+.ticker b{font-size:10px}.ticker span{font-size:11px}
+.time-rule b,.time-rule span{font-size:9px}
+.tabs button{font-size:11px;padding-block:11px}
+.panel-title small,.panel-title>span{font-size:10px}.panel-title h2{font-size:29px}
+.current-job small{font-size:9px}.current-job b{font-size:13px}.current-job strong,.current-job button{font-size:11px}
+.action-grid b{font-size:14px}.action-grid small{font-size:10px}.action-grid button>em{font-size:8px}
+.month-cost b{font-size:11px}.month-cost span,.market-tip,.career-help{font-size:10px}
+.market-section-title span,.subhead>span{font-size:9px}.subhead>b{font-size:12px}
+.good b{font-size:13px}.good small,.good em,.good>strong small,.stock>strong small{font-size:9px}.trade-buttons button{font-size:11px}
+.venture-goods b,.channel-row b,.stock b{font-size:11px}.venture-goods small,.channel-row small,.stock small{font-size:9px}
+.capital-box b,.capital-box>button,.active-venture>button{font-size:11px}.capital-box>small,.cost-preview span,.active-venture div small{font-size:9px}.cost-preview b{font-size:12px}.active-venture>span{font-size:10px}
+.jobs b{font-size:13px}.jobs small,.jobs em,.debt-box small,.debt-box p,.debt-box button{font-size:10px}
+.language-bonus span{font-size:9px}.language-bonus b{font-size:12px}
+.journal p{font-size:11px}.modal-top span,.modal-top b{font-size:10px}.event-modal>p{font-size:14px}.modal-choices b,.paper-tasks b{font-size:13px}.modal-choices span,.paper-tasks span{font-size:10px}.paper-tasks em{font-size:9px}
+.time-passed,.holding-period{font-size:12px}.time-passed small,.holding-period small{font-size:9px}.secondary{font-size:11px}
+
+@media (max-width:420px){
+  .ability-stats{grid-template-columns:repeat(3,1fr);overflow:visible}
+  .ability-stats>div{min-width:0}
+  .v2-panel{margin-inline:8px;padding-inline:13px}
+  .action-grid{grid-template-columns:1fr}
+  .action-grid button{min-height:76px}
+  .good{grid-template-columns:31px 1fr auto}.good .trade-buttons{grid-column:2/-1}.trade-buttons button{flex:1}
+  .stock{grid-template-columns:25px 1fr auto}.stock>div{grid-column:2/-1}.stock button{flex:1;padding:7px}
+  .time-rule span:last-child{margin-left:0}
+}
