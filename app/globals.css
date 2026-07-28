@@ -178,8 +178,9 @@ footer{display:flex;justify-content:space-between;padding:16px 24px;font-size:9p
 .academic-overview{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;align-items:center;background:#e5dfd2;border-left:4px solid var(--yellow);padding:9px 11px;margin-bottom:13px}
 .academic-overview b{font-size:11px}.academic-overview span{font-size:10px;font-weight:800}.academic-overview small{grid-column:1/-1;font-size:9px;color:var(--muted)}
 .debt-box button:disabled{background:#aaa49a;cursor:not-allowed}
+.academic-strip{display:flex;align-items:center;gap:8px;min-height:27px;padding:4px 10px;background:#e5dfd2;border-bottom:1px solid #bdb6a8;white-space:nowrap;overflow-x:auto;scrollbar-width:none}
+.academic-strip::-webkit-scrollbar{display:none}.academic-strip b{font-size:8px}.academic-strip span{font-size:8px;font-weight:800}.academic-strip small{font-size:7px;color:var(--muted)}
 .week-flow{display:none}
-.academic-overview+.panel-title small{display:none}
 .current-period em{display:block;font-style:normal;font-size:7px;color:#aeb8b3;margin-top:2px;white-space:nowrap}
 .header-weeks{display:flex;gap:2px;margin-top:3px;justify-content:flex-end}
 .header-weeks i{display:grid;place-items:center;width:17px;height:12px;background:#46504c;color:#cbd1ce;font-style:normal;font-size:7px}

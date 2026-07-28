@@ -345,6 +345,7 @@ Object.assign(DE_UI,{
   "进度不足，收到书面警告":"Fortschritt zu niedrig, schriftliche Warnung",
   "学校确认学业进度正常。":"Die Hochschule bestätigt einen ausreichenden Studienfortschritt.",
   "未通过：扣除补办费用并增加压力，学业需达到 ":"nicht bestanden: zusätzliche Gebühren und Stress; erforderlich sind "
+  ,"达到60解锁 HiWi，并降低大学事件压力":"Ab 60: HiWi-Job und weniger Stress bei Uni-Ereignissen"
 });
 
 function deText(value){
@@ -627,13 +628,13 @@ export default function Home() {
       <div title="在官僚事件中消耗一份，可显著降低损失"><span>📦 材料包</span><b>{state.packs}</b><small>事件减损</small></div>
       <div title="代表课程、作业与考试的总体进展"><span>🎓 学业</span><b>{state.study}</b><small>课程进度</small></div>
     </section>
+    <div className="academic-strip"><b>🎓 学业检查</b><span>第16周需 40 · 第32周需 65 · 期末建议 85</span><small>达到60解锁 HiWi，并降低大学事件压力</small></div>
     <div className="ticker"><b>本周消息</b><span>{lang==="de"?DE_NEWS[state.newsIndex]:news.text}</span></div>
     <div className="time-rule"><b>时间规则</b><span>⏳ 本周行动＝推进 1 周</span><span>{lang==="de"?"○ Handelsprojekt starten/abschließen und Jobwechsel kosten keine Zeit":"○ 开始/结算经营批次、换职业＝不耗时间"}</span></div>
     <nav className="tabs">{[["actions","本周行动"],["market","交易投资"],["career","职业设定"],["journal","记录"]].map(([id,label])=><button className={tab===id?"active":""} key={id} onClick={()=>setTab(id)}>{label}</button>)}</nav>
     </div>
 
     <section className="v2-panel">
-      {tab==="actions"&&<div className="academic-overview"><b>🎓 学业检查</b><span>第16周需 40 · 第32周需 65 · 期末建议 85</span><small>达到60可解锁 HiWi，并降低大学相关事件压力。</small></div>}
       {tab==="actions"&&<><div className="panel-title"><div><small>WOCHE {state.totalWeek+1}</small><h2>这一周怎么过？</h2></div><span>每次只能选 1 项</span></div><div className="week-flow"><div className="week-node current"><small>现在</small><b>{lang==="de"?`Monat ${state.month} · Woche ${state.week}`:<>第 {state.month} 月 · 第 {state.week} 周</>}</b></div><div className="flow-arrow"><span>选择行动</span><b>→</b><small>消耗整整一周</small></div><div className="week-node next"><small>行动结束</small><b>{nextPeriod}</b></div><div className="month-weeks"><span>本月进度</span>{[1,2,3,4].map(w=><i key={w} className={w<state.week?"done":w===state.week?"active":""}><b>{w}</b><small>{lang==="de"?"Wo.":"周"}</small></i>)}</div></div><div className="current-job"><span>{currentJob.icon}</span><div><small>当前本职工作</small><b>{currentJob.name}</b></div><strong>{lang==="de"?`Wochenlohn ${currentWage}€`:`本周工资 ${currentWage}€`}</strong><button onClick={()=>setTab("career")}>更换职业</button></div><div className="stat-guide"><b>这些数值会怎样影响生活？</b><p><span>⚡ 精力</span>低于 18 不能工作或接零工；<span>🤝 人脉</span>达到 45 可能出现稳定岗位；<span>🗂️ 档案</span>与德语共同解锁职业；<span>📦 材料包</span>可在官僚事件中抵消约 55% 的主要损失。</p></div><div className="action-grid">{ACTIONS.map(a=>{const effect=a.planner?null:a.run(state);return <button key={a.id} onClick={()=>a.planner?setModal({type:"paperPlanner"}):doAction(a)} disabled={(a.id==="work"||a.id==="gig")&&state.energy<18}><i>{a.icon}</i><span><b>{a.name}</b><small>{a.id==="work"?`${currentJob.name} · 按当前工资结算`:a.sub}</small>{effect?<EffectBadges effect={effect} lang={lang}/>:<EffectBadges lang={lang} effect={{packs:1,papers:1,energy:-1,stress:1,money:1}}/>}</span><em>⏳ 推进1周</em></button>})}</div><div className="month-cost"><b>月末还会自动结算</b><span>{lang==="de"?"Nach Woche 4 beginnt ein neuer Monat: 780 € Lebenshaltungskosten und 3,5 % Schuldzinsen. Ereignisse verbrauchen keine zusätzliche Woche.":"第 4 周行动结束后进入下个月，并扣除生活费 780€、增加债务利息 3.5%。随机事件发生在已经消耗的这一周内，不会额外再走一周。"}</span></div></>}
 
       {tab==="market"&&<><div className="panel-title"><div><small>NEBENGEWERBE</small><h2>经营批次</h2></div><span>买货和结算不额外耗时</span></div><p className="market-tip">选择商品、销售渠道和投入金额，开始一批经营；然后通过“本周行动”推进至少一周，再回来查看能否赚钱。投入成本、回收金额和净利润都会保留在账本里。</p>
