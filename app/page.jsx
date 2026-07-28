@@ -1,14 +1,14 @@
 import React, { useMemo, useState } from "react";
 
 const PROFILES = [
-  { id: "resident", icon: "🧍", name: "城市普通居民", detail: "租房 · 基础工作 · 德语 B1 · 一叠未分类的信", money: 1900, debt: 1200, health: 80, stress: 28, energy: 78, german: 46, papers: 35, reputation: 25, wage: 470 }
+  { id: "student", icon: "🎓", name: "外国大学生", detail: "刚下飞机 · 德语 B1 · 学籍待激活 · 一叠陌生的信", money: 1900, debt: 1200, health: 80, stress: 28, energy: 78, german: 46, papers: 35, reputation: 25, study:22, wage: 470 }
 ];
 
 const JOBS = [
-  { id: "shift", name: "轮班工作", wage: 470, energy: -22, health: -4, stress: 6, requirement: 0, paperRequirement:0, icon: "🏭" },
+  { id: "shift", name: "仓库夜班", wage: 470, energy: -22, health: -4, stress: 6, requirement: 0, paperRequirement:0, icon: "📦" },
   { id: "delivery", name: "外卖接单", wage: 340, energy: -20, health: -6, stress: 4, requirement: 0, paperRequirement:0, icon: "🚲" },
-  { id: "office", name: "办公室临时工", wage: 560, energy: -17, health: -2, stress: 7, requirement: 55, paperRequirement:45, icon: "🖨️" },
-  { id: "agency", name: "社区翻译", wage: 640, energy: -16, health: -1, stress: 5, requirement: 75, paperRequirement:60, icon: "🗣️" }
+  { id: "office", name: "大学办公室助理", wage: 560, energy: -17, health: -2, stress: 7, requirement: 55, paperRequirement:45, icon: "🏫" },
+  { id: "agency", name: "学生事务翻译", wage: 640, energy: -16, health: -1, stress: 5, requirement: 75, paperRequirement:60, icon: "🗣️" }
 ];
 
 const GOODS = [
@@ -50,6 +50,26 @@ const NEWS = [
 ];
 
 const BASE_EVENTS = [
+  { id:"seminar", title:"研讨课分组名单里没有你的名字", office:"UNIVERSITÄT", text:"教授说名单由考试办公室导入，考试办公室说课程平台才是正式名单，课程平台显示你已成功注册。", choices:[
+    { label:"带着三张截图去找教授", effect:{energy:-8,stress:5,study:8,papers:5}, result:"教授手写把你加进名单，并提醒手写名单不具备系统效力。" },
+    { label:"先旁听并继续发邮件", effect:{energy:-5,stress:8,study:5,german:2}, result:"你听懂了课程，也收到自动回复：请勿重复发送同一问题。" }
+  ]},
+  { id:"examreg", title:"考试报名在截止日提前两分钟关闭", office:"PRÜFUNGSAMT", text:"网页写着 23:59，服务器采用的似乎是另一个时区。办公室建议你下学期再考。", choices:[
+    { label:"提交 Härtefallantrag", effect:{papers:14,energy:-15,stress:10,study:4}, result:"申请被受理。是否获准将在考试之后通知。" },
+    { label:"接受延期，先准备下一门", effect:{stress:4,study:10,health:2}, result:"你的学习计划向后顺延，但至少这周没有继续刷新网页。" }
+  ]},
+  { id:"mensa", title:"食堂卡有余额，但系统说卡不存在", office:"MENSA", text:"充值机认识你的钱，收银机不认识你的卡。柜台建议先吃饭再去另一校区申请退款。", choices:[
+    { label:"重新买一份午餐", effect:{money:-18,health:3,stress:3}, result:"两份午餐里有一份存在于系统，另一份存在于你手里。" },
+    { label:"排队办理余额迁移", effect:{energy:-9,papers:6,stress:6}, result:"余额将在旧卡注销后迁移，而注销旧卡需要先证明新卡有效。" }
+  ]},
+  { id:"bibliothek", title:"图书馆催还一本你从未借过的书", office:"BIBLIOTHEK", text:"借阅记录完整，唯独签名和你的名字不一致。系统因此认为签名可能是你写错了。", choices:[
+    { label:"申请查看借阅凭证", effect:{energy:-10,papers:9,stress:6,study:-2}, result:"凭证将在数据保护审查后提供，催款在此期间继续。" },
+    { label:"先赔钱解除账号冻结", effect:{money:-65,stress:-4,study:6}, result:"账号恢复了。那本书第二天被别人还了回来。" }
+  ]},
+  { id:"groupwork", title:"小组作业截止前，队友突然集体失联", office:"SEMINAR", text:"群聊最后一条消息是“我今晚会上传”。学习平台上只有你创建的空文件夹。", choices:[
+    { label:"一个人熬夜完成", effect:{study:13,energy:-18,health:-5,stress:12}, result:"作业交上去了，封面上四个人的名字一样整齐。" },
+    { label:"给老师说明情况", effect:{german:3,reputation:-3,stress:7,study:4}, result:"老师建议你们先在小组内部培养跨文化沟通能力。" }
+  ]},
   { id:"name-typo", title:"姓氏少了一个字母", office:"BÜRGERAMT", text:"新证件上的姓拼错了。柜台承认是录入错误，但修改错误需要重新提交出生证明。", when:s=>!s.flags.typo, choices:[
     { label:"重新预约并提交原件", effect:{energy:-10,stress:7,papers:10}, flag:"typo", result:"你抢到了六周后的预约。错误暂时成为了合法记录。" },
     { label:"现场等主管盖章", effect:{energy:-18,stress:12,papers:16}, flag:"typoFixed", result:"等了两小时，主管盖了一个刚才据说不存在的章。" }
@@ -201,6 +221,7 @@ const ACTIONS = [
   { id:"gig", icon:"🚲", name:"接一次临时零工", sub:"不改变本职 · 德语越好收入越高", run:s=>({money:190+Math.round(s.german*.9),energy:-19,health:-6,stress:7}) },
   { id:"paper", icon:"🏛️", name:"处理积压手续", sub:"选择一项具体行政任务", planner:true },
   { id:"learn", icon:"📚", name:"学德语", sub:"解锁好工作 · 费脑", run:()=>({german:9,energy:-12,stress:2,money:-25}) },
+  { id:"study", icon:"🎓", name:"准备课程和考试", sub:"推进学业 · 消耗精力", run:()=>({study:11,energy:-15,stress:5,money:-12}) },
   { id:"rest", icon:"🛋️", name:"在家休息", sub:"恢复健康和精力", run:()=>({energy:25,health:8,stress:-10,money:-18}) },
   { id:"drink", icon:"🍺", name:"去酒吧喝酒", sub:"压力大降 · 伤身烧钱", run:()=>({money:-48,stress:-18,health:-7,energy:-3,reputation:4}) },
   { id:"social", icon:"🤝", name:"参加社区活动", sub:"积累人脉 · 小额花费", run:()=>({money:-22,energy:-8,stress:-7,reputation:11,german:3}) },
@@ -214,8 +235,8 @@ const PAPER_TASKS = [
 ];
 
 const clamp = n => Math.max(0, Math.min(100, Math.round(n)));
-const effectNames = {money:"资金",debt:"债务",energy:"精力",health:"健康",stress:"压力",german:"德语",papers:"档案",packs:"材料包",reputation:"人脉"};
-const effectIcons = {money:"💶",debt:"🏦",energy:"⚡",health:"❤️",stress:"🧠",german:"🗣️",papers:"🗂️",packs:"📦",reputation:"🤝"};
+const effectNames = {money:"资金",debt:"债务",energy:"精力",health:"健康",stress:"压力",german:"德语",papers:"档案",packs:"材料包",reputation:"人脉",study:"学业"};
+const effectIcons = {money:"💶",debt:"🏦",energy:"⚡",health:"❤️",stress:"🧠",german:"🗣️",papers:"🗂️",packs:"📦",reputation:"🤝",study:"🎓"};
 const periodLabel = s => s.month>12?"年度结束":`第 ${s.month} 月 · 第 ${s.week} 周`;
 
 function EffectBadges({effect}) {
@@ -254,7 +275,7 @@ export default function Home() {
 
   function start(profile){
     setState({...profile,profileId:profile.id,month:1,week:1,totalWeek:0,jobId:"shift",inventory:{},inventoryCost:{},stocks:{},stockCost:{},activeVenture:null,ventureLedger:[],packs:0,flags:{},seen:[],journal:[],newsIndex:0,capacity:6,businessRuns:0});
-    setScreen("game"); setTab("actions"); setModal(null);
+    setScreen("arrival"); setTab("actions"); setModal(null);
   }
 
   function applyEffect(base,effect={}){
@@ -410,12 +431,14 @@ export default function Home() {
       :`卖出 ${stock.ticker}：成交 ${price}€，实际${realized>=0?"赚":"亏"} ${Math.abs(realized)}€`);
   }
 
-  if(screen==="intro")return <main className="landing v2-intro"><div className="flagline"/><nav><span className="brand">DEUTSCHLAND<br/><b>浮生记</b></span><span className="version">NEUE FASSUNG · V3</span></nav><section className="hero"><div className="kicker">12 MONATE · 48 WOCHEN · KEIN EINFACHER WEG</div><h1>活下去，<br/><em>并且保持体面。</em></h1><p>你是一名普通的城市居民：有一份基础工作、一间租来的房子、一笔债务，以及一叠不敢扔的信。以后走哪条路，由每一周的选择决定。</p><div className="starting-file"><span>🧍</span><div><b>城市普通居民</b><small>现金 1900€ · 债务 1200€ · 德语 B1 · 健康尚可</small></div></div><div className="loop-preview"><span>行动一周</span><i>→</i><span>承担后果</span><i>→</i><span>熬过月末</span></div><button className="primary" onClick={()=>start(PROFILES[0])}>领取普通居民档案 <span>→</span></button></section><footer><span>无需职业选择</span><span>人生路线由行动形成</span></footer></main>;
+  if(screen==="intro")return <main className="landing v2-intro"><div className="flagline"/><nav><span className="brand">DEUTSCHLAND<br/><b>浮生记</b></span><span className="version">STUDENTENLEBEN · V4</span></nav><section className="hero"><div className="kicker">12 MONATE · 48 WOCHEN · STUDIEREN & ÜBERLEBEN</div><h1>来到德国，<br/><em>从第一周开始。</em></h1><p>你是一名刚抵达德国的外国大学生：学籍尚待激活、房间是临时的、德语勉强够用，还必须靠打工维持生活。课程、考试、签证和每一封信，都可能改变这一年。</p><div className="starting-file"><span>🎓</span><div><b>外国大学生</b><small>现金 1900€ · 债务 1200€ · 德语 B1 · 学业刚起步</small></div></div><div className="loop-preview"><span>学习与打工</span><i>→</i><span>处理生活</span><i>→</i><span>熬过 48 周</span></div><button className="primary" onClick={()=>start(PROFILES[0])}>登上飞往德国的航班 <span>✈</span></button></section><footer><span>无需预选专业</span><span>留德生活由每周选择形成</span></footer></main>;
+
+  if(screen==="arrival")return <main className="cinematic arrival-scene"><div className="sky"><span className="cloud c1">☁</span><span className="cloud c2">☁</span><span className="flying-plane">✈</span><div className="germany-line"><i/><i/><i/></div></div><section><small>ANKUNFT · WOCHE 1</small><h1>Willkommen<br/>in Deutschland</h1><p>飞机落地。行李转盘还没动，你已经收到大学、保险公司和市政厅的三封邮件。</p><button className="primary" onClick={()=>setScreen("game")}>开始德国生活 <span>→</span></button></section></main>;
 
   if(screen==="end"){
     const won=state.month>12&&state.health>0&&state.stress<100&&state.money>0;
     const net=Math.round(state.money-state.debt+Object.entries(state.inventory).reduce((sum,[id,q])=>sum+(prices[id]||0)*q,0));
-    return <main className="paper-page end-page"><div className="end-stamp">{won?"年度结算":"生活中断"}</div><h2>{won?"你熬过了一年。":state.health<=0?"身体先撑不住了":state.stress>=100?"压力突破了极限":"账户见底了"}</h2><p>{won?"你没有战胜这个系统，但学会了保存每封信、每张截图和每个 Aktenzeichen。下一局可以尝试另一条生存路线。":"失败并不总来自一次错误选择，更多时候来自许多看似还能承受的小损耗。"}</p><div className="score"><span>净资产<b>{net}€</b></span><span>剩余健康<b>{state.health}</b></span><span>处理事件<b>{state.seen.length}</b></span></div><button className="primary" onClick={()=>start(PROFILES[0])}>重新开始这一年 <span>↻</span></button></main>;
+    return <main className={`cinematic departure-scene ${won?"continue":"farewell"}`}><div className="departure-sky"><div className="city-silhouette">▥ ▥ ▰ ▥ ▰ ▥</div><span className="departure-plane">✈</span></div><section><small>{won?"48 WOCHEN GESCHAFFT":"ABFLUG"}</small><h1>{won?"Das Leben geht weiter":"Tschüss Deutschland"}</h1><p>{won?"你坚持了 48 周。课程还没有结束，信箱也不会清空，但德国生活已经从陌生的规则变成了你继续前行的一部分。":state.health<=0?"身体先撑不住了。":state.stress>=100?"压力突破了极限。":"账户见底，留德生活暂时在这里结束。"}</p><div className="score"><span>净资产<b>{net}€</b></span><span>学业进度<b>{state.study}</b></span><span>处理事件<b>{state.seen.length}</b></span></div><button className="primary" onClick={()=>start(PROFILES[0])}>重新登机 <span>↻</span></button></section></main>;
   }
 
   const totalInventory=Object.values(state.inventory).reduce((a,b)=>a+b,0);
@@ -425,13 +448,14 @@ export default function Home() {
   const nextPeriod=state.week===4?`第 ${state.month+1} 月 · 第 1 周`:`第 ${state.month} 月 · 第 ${state.week+1} 周`;
   return <main className="v2-game">
     <header className="v2-head"><div><small>LEBENSAKTE · {state.name}</small><b>第 {state.month} 月 · 第 {state.week} 周</b></div><div className="deadline"><small>年度进度</small><b>{Math.min(state.totalWeek,48)}/48</b></div></header>
-    <section className="v2-stats"><Stat label="现金" value={state.money} type="money"/><Stat label="债务" value={state.debt} type="money"/><Stat label="健康" value={state.health}/><Stat label="压力" value={state.stress} bad/></section>
+    <section className="v2-stats"><Stat label="现金" value={state.money} type="money"/><Stat label="债务" value={state.debt} type="money"/><Stat label="❤️ 健康" value={state.health}/><Stat label="🧠 压力" value={state.stress} bad/></section>
     <section className="ability-stats" aria-label="能力与行政资源">
       <div title="行动会消耗精力；低于 18 时不能工作或接零工"><span>⚡ 精力</span><b>{state.energy}</b><small>{state.energy<18?"无法工作":state.energy<35?"需要休息":"可正常行动"}</small></div>
       <div title="提高周薪、解锁职业，并降低事件压力"><span>🗣️ 德语</span><b>{state.german}</b><small>工资 +{languageBonus}€</small></div>
       <div title="代表社会关系；达到 45 后，随机事件中可能出现稳定岗位的晋升机会"><span>🤝 人脉</span><b>{state.reputation}</b><small>{state.reputation>=45?"可能触发晋升事件":"45 后可能触发晋升"}</small></div>
       <div title="代表行政记录完整度；高级职业要求档案达标"><span>🗂️ 档案</span><b>{state.papers}</b><small>解锁职业</small></div>
       <div title="在官僚事件中消耗一份，可显著降低损失"><span>📦 材料包</span><b>{state.packs}</b><small>事件减损</small></div>
+      <div title="代表课程、作业与考试的总体进展"><span>🎓 学业</span><b>{state.study}</b><small>课程进度</small></div>
     </section>
     <div className="ticker"><b>本周消息</b><span>{news.text}</span></div>
     <div className="time-rule"><b>时间规则</b><span>⏳ 本周行动＝推进 1 周</span><span>○ 商品、股票、经营批次、换职业＝不耗时间</span></div>
