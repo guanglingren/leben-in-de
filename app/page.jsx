@@ -406,8 +406,9 @@ function stockPrice(stock, week) {
   return Math.max(8,Math.round(stock.base*trend*wave*bureaucracy));
 }
 
-function Stat({label,value,type="bar",bad=false}) {
-  return <div className="v2-stat"><span>{label}</span><b>{type==="money"?`${Math.round(value)} €`:Math.round(value)}</b>{type==="bar"&&<i><em style={{width:`${clamp(value)}%`}} className={bad?"danger":""}/></i>}</div>;
+function Stat({label,value,type="bar",bad=false,onClick,hint}) {
+  const content=<><span>{label}</span><b>{type==="money"?`${Math.round(value)} €`:Math.round(value)}</b>{hint&&<small>{hint}</small>}{type==="bar"&&<i><em style={{width:`${clamp(value)}%`}} className={bad?"danger":""}/></i>}</>;
+  return onClick?<button type="button" className="v2-stat stat-button" onClick={onClick}>{content}</button>:<div className="v2-stat">{content}</div>;
 }
 
 export default function Home() {
@@ -592,6 +593,7 @@ export default function Home() {
     const amount=Math.min(250,state.money-200,state.debt);
     if(amount<=0){setToast("至少要留下 200€ 生活费。");return;}
     setState({...state,money:state.money-amount,debt:state.debt-amount,lastDebtPaymentMonth:state.month});
+    setModal(null);
     setToast(`本月偿还债务 ${amount}€`);
   }
 
@@ -701,7 +703,7 @@ export default function Home() {
   return <Localize lang={lang}><main className="v2-game">
     <div className="sticky-status">
     <header className="v2-head"><div className="current-period"><small>LEBENSAKTE · {lang==="de"?"Internationaler Student":state.name}</small><b>{lang==="de"?`Monat ${state.month} · Woche ${state.week}`:`第 ${state.month} 月 · 第 ${state.week} 周`}</b><em>{lang==="de"?"Nächste Aktion":"下次行动"} → {nextPeriod}</em></div><div className="head-tools"><div className="deadline"><small>{lang==="de"?"Jahresfortschritt":"年度进度"}</small><b>{Math.min(state.totalWeek,48)}/48</b><div className="header-weeks" aria-label={lang==="de"?"Monatsfortschritt":"本月进度"}>{[1,2,3,4].map(w=><i key={w} className={w<state.week?"done":w===state.week?"active":""}>{w}</i>)}</div></div><div className="lang-switch compact"><button className={lang==="zh"?"active":""} onClick={()=>setLang("zh")}>{lang==="de"?"ZH":"中"}</button><button className={lang==="de"?"active":""} onClick={()=>setLang("de")}>DE</button></div></div></header>
-    <section className="v2-stats"><Stat label={lang==="de"?"Geld":"现金"} value={state.money} type="money"/><Stat label={lang==="de"?"Schulden":"债务"} value={state.debt} type="money"/><Stat label={lang==="de"?"❤️ Gesundheit":"❤️ 健康"} value={state.health}/><Stat label={lang==="de"?"🧠 Stress":"🧠 压力"} value={state.stress} bad/></section>
+    <section className="v2-stats"><Stat label={lang==="de"?"Geld":"现金"} value={state.money} type="money"/><Stat label={lang==="de"?"Schulden":"债务"} value={state.debt} type="money" onClick={()=>setModal({type:"debtPay"})} hint={state.debt<=0?(lang==="de"?"Abbezahlt":"已还清"):(lang==="de"?"Zum Tilgen antippen":"点击还款")}/><Stat label={lang==="de"?"❤️ Gesundheit":"❤️ 健康"} value={state.health}/><Stat label={lang==="de"?"🧠 Stress":"🧠 压力"} value={state.stress} bad/></section>
     <section className="ability-stats" aria-label="能力与行政资源">
       <div title="行动会消耗精力；低于 18 时不能工作或接零工"><span>⚡ 精力</span><b>{state.energy}</b><small>{state.energy<18?"无法工作":state.energy<35?"需要休息":"可正常行动"}</small></div>
       <div title="提高周薪、解锁职业，并降低事件压力"><span>🗣️ 德语</span><b>{state.german}</b><small>{lang==="de"?"Lohn":"工资"} +{languageBonus}€</small></div>
@@ -736,7 +738,8 @@ export default function Home() {
     </section>
 
     {toast&&<button className="toast" onClick={()=>setToast("")}>{toast}<span>×</span></button>}
-    {modal&&<div className="modal-backdrop"><article className="event-modal">
+    {modal?.type==="debtPay"&&<div className="modal-backdrop"><article className="event-modal debt-modal"><div className="modal-top"><span>SCHULDEN</span><b>{lang==="de"?"Schulden tilgen":"偿还债务"}</b></div><h2>{Math.round(state.debt)} €</h2><p>{lang==="de"?"Einmal pro Monat kannst du bis zu 250 € tilgen. Mindestens 200 € müssen für den Alltag auf dem Konto bleiben.":"每月可以还款一次，最多偿还 250€；账户必须至少保留 200€ 生活备用金。"}</p><div className="debt-preview"><span>{lang==="de"?"Verfügbares Geld":"当前现金"}<b>{Math.round(state.money)}€</b></span><span>{lang==="de"?"Tilgung jetzt":"本次可还"}<b>{Math.max(0,Math.round(Math.min(250,state.money-200,state.debt)))}€</b></span></div><button className="primary" onClick={payDebt} disabled={state.lastDebtPaymentMonth===state.month||state.debt<=0||state.money<=200}>{state.debt<=0?(lang==="de"?"Schulden abbezahlt":"债务已还清"):state.lastDebtPaymentMonth===state.month?(lang==="de"?"Diesen Monat bereits getilgt":"本月已经还款"):state.money<=200?(lang==="de"?"Nicht genug Reserve":"现金不足，需保留 200€"):(lang==="de"?"Jetzt tilgen":"立即还款")} <span>→</span></button><button className="secondary" onClick={()=>setModal(null)}>{lang==="de"?"Schließen":"暂不还款"}</button></article></div>}
+    {modal&&modal.type!=="debtPay"&&<div className="modal-backdrop"><article className="event-modal">
       {modal.type==="paperPlanner"?<><div className="modal-top"><span>BEHÖRDENPLAN</span><b>行政事务</b></div><h2>这周具体跑什么手续？</h2><p>选择一项后才会推进一周。它们会留下档案、材料包或追回的钱，不再只是“忙了一周”。</p><div className="paper-tasks">{PAPER_TASKS.map(task=><button key={task.id} onClick={()=>doPaperTask(task)}><b>{task.icon} {task.name}</b><span>{task.sub}</span><em>{Object.entries(task.effect).map(([k,v])=>`${effectNames[k]} ${v>0?"+":""}${v}`).join(" · ")}</em></button>)}</div><button className="secondary" onClick={()=>setModal(null)}>先不跑手续</button></>:modal.type==="event"?<><div className="modal-top"><span>{modal.event.office}</span><b>随机事项</b></div><div className="time-passed">{modal.timeLabel}<small>{modal.actionName}已经用掉一周</small></div><h2>{modal.event.title}</h2><p>{modal.event.text}</p><div className="modal-choices">{modal.event.choices.map(c=><button key={c.label} onClick={()=>chooseEvent(c,modal.event)}><b>{c.label}</b><span>{Object.entries(c.effect||{}).map(([k,v])=>`${effectNames[k]} ${v>0?"+":""}${v}`).join(" · ")}</span></button>)}<button className="prepared-choice" disabled={state.packs<1} onClick={()=>choosePrepared(modal.event)}><b>📦 提交完整材料包快速处理</b><span>消耗 1 份材料包 · 本次主要损失降低约 55%{state.packs<1?" · 当前不足":""}</span></button></div></>:modal.type==="weekResult"?<><div className="modal-top"><span>WOCHENABSCHLUSS</span><b>周结算</b></div><div className="time-passed large">{modal.timeLabel}<small>时间已经推进</small></div><h2>这一周结束了</h2><p>{modal.actionName}已经完成。{modal.monthSummary||"新的市场价格和生活状态已经更新。"}</p><button className="primary" onClick={()=>setModal(null)}>进入新的一周 <span>→</span></button></>:modal.type==="ventureResult"?<><div className="modal-top"><span>NEBENGEWERBE</span><b>经营结算</b></div><div className="holding-period">持有 {modal.ledger.heldWeeks} 周后结算<small>开始和结算本身均不耗时间</small></div><h2>{modal.title}</h2><p>{modal.result}</p><div className="venture-result-numbers"><span>总投入<b>{modal.ledger.invested}€</b><small>本金 {modal.ledger.capital}€ + 渠道 {modal.ledger.fee}€</small></span><span>回收金额<b>{modal.ledger.returned}€</b><small>实际回到账户的价值</small></span><span>净利润<b className={modal.ledger.profit>=0?"profit":"loss"}>{modal.ledger.profit>=0?"+":""}{modal.ledger.profit}€</b><small>回收 − 总投入</small></span></div><button className="primary" onClick={()=>setModal(null)}>完成结算 <span>→</span></button></>:<><div className="modal-top"><span>AUSWIRKUNG</span><b>处理结果</b></div>{modal.timeLabel&&<div className="time-passed">{modal.timeLabel}<small>事件发生在已经消耗的这一周</small></div>}<h2>{modal.choice.label}</h2><p>{modal.choice.result}</p>{modal.languageRelief>0&&<div className="language-relief">🗣️ 德语能力令本次压力额外减少 {modal.languageRelief} 点</div>}<button className="primary" onClick={()=>setModal(null)}>进入新的一周 <span>→</span></button></>}
     </article></div>}
   </main></Localize>;
