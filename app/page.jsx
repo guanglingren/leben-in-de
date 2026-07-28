@@ -5,10 +5,10 @@ const PROFILES = [
 ];
 
 const JOBS = [
-  { id: "shift", name: "轮班工作", wage: 470, energy: -22, health: -4, stress: 6, requirement: 0, icon: "🏭" },
-  { id: "delivery", name: "外卖接单", wage: 340, energy: -20, health: -6, stress: 4, requirement: 0, icon: "🚲" },
-  { id: "office", name: "办公室临时工", wage: 560, energy: -17, health: -2, stress: 7, requirement: 55, icon: "🖨️" },
-  { id: "agency", name: "社区翻译", wage: 640, energy: -16, health: -1, stress: 5, requirement: 75, icon: "🗣️" }
+  { id: "shift", name: "轮班工作", wage: 470, energy: -22, health: -4, stress: 6, requirement: 0, paperRequirement:0, icon: "🏭" },
+  { id: "delivery", name: "外卖接单", wage: 340, energy: -20, health: -6, stress: 4, requirement: 0, paperRequirement:0, icon: "🚲" },
+  { id: "office", name: "办公室临时工", wage: 560, energy: -17, health: -2, stress: 7, requirement: 55, paperRequirement:45, icon: "🖨️" },
+  { id: "agency", name: "社区翻译", wage: 640, energy: -16, health: -1, stress: 5, requirement: 75, paperRequirement:60, icon: "🗣️" }
 ];
 
 const GOODS = [
@@ -197,9 +197,9 @@ const BASE_EVENTS = [
 ];
 
 const ACTIONS = [
-  { id:"work", icon:"💼", name:"做本职工作", sub:"按当前职业结算工资", run:s=>{const job=JOBS.find(j=>j.id===s.jobId)||JOBS[0]; return {money:job.wage+(s.flags.promotion?70:0),energy:job.energy,health:job.health,stress:job.stress,reputation:3};}},
-  { id:"gig", icon:"🚲", name:"接一次临时零工", sub:"额外赚 230€ · 不改变本职", run:()=>({money:230,energy:-19,health:-6,stress:7}) },
-  { id:"paper", icon:"🏛️", name:"跑手续", sub:"推进档案 · 消耗整天", run:()=>({papers:14,energy:-12,stress:6}) },
+  { id:"work", icon:"💼", name:"做本职工作", sub:"按当前职业结算工资", run:s=>{const job=JOBS.find(j=>j.id===s.jobId)||JOBS[0];const languageBonus=Math.min(80,Math.max(0,s.german-40)*2);return {money:job.wage+languageBonus+(s.flags.promotion?70:0),energy:job.energy,health:job.health,stress:job.stress,reputation:3};}},
+  { id:"gig", icon:"🚲", name:"接一次临时零工", sub:"不改变本职 · 德语越好收入越高", run:s=>({money:190+Math.round(s.german*.9),energy:-19,health:-6,stress:7}) },
+  { id:"paper", icon:"🏛️", name:"整理并跑手续", sub:"提高档案完整度 · 解锁省事选项", run:()=>({papers:16,german:1,energy:-12,stress:5}) },
   { id:"learn", icon:"📚", name:"学德语", sub:"解锁好工作 · 费脑", run:()=>({german:9,energy:-12,stress:2,money:-25}) },
   { id:"rest", icon:"🛋️", name:"在家休息", sub:"恢复健康和精力", run:()=>({energy:25,health:8,stress:-10,money:-18}) },
   { id:"drink", icon:"🍺", name:"去酒吧喝酒", sub:"压力大降 · 伤身烧钱", run:()=>({money:-48,stress:-18,health:-7,energy:-3,reputation:4}) },
@@ -209,6 +209,7 @@ const ACTIONS = [
 
 const clamp = n => Math.max(0, Math.min(100, Math.round(n)));
 const effectNames = {money:"资金",debt:"债务",energy:"精力",health:"健康",stress:"压力",german:"德语",papers:"手续",reputation:"人脉"};
+const periodLabel = s => s.month>12?"年度结束":`第 ${s.month} 月 · 第 ${s.week} 周`;
 
 function seededPrice(good, week, news) {
   const wave = .78 + ((Math.sin((week + 1) * (good.base + 7) * .113) + 1) / 2) * .48;
@@ -263,27 +264,49 @@ export default function Home() {
     let next=applyEffect(state,action.run(state));
     let log=`第 ${state.month} 月第 ${state.week} 周：${action.name}`;
     let nextWeek=state.week+1, nextMonth=state.month, newsIndex=state.newsIndex;
+    let monthSummary="";
     if(nextWeek>4){
       nextWeek=1; nextMonth+=1; newsIndex+=1;
       const living=780;
       const interest=Math.ceil(next.debt*.035);
       next=applyEffect(next,{money:-living,debt:interest,stress:next.money<living?12:1,energy:8});
       log+=`；月末扣除生活费 ${living}€，债务利息 ${interest}€`;
+      monthSummary=`月末已扣生活费 ${living}€，债务增加利息 ${interest}€。`;
     }
     next={...next,week:nextWeek,month:nextMonth,totalWeek:state.totalWeek+1,newsIndex,journal:[log,...state.journal].slice(0,20)};
     const ended=next.health<=0||next.stress>=100||next.money<=0||next.month>12;
     setState(next);
     if(ended){setScreen("end");return;}
     const event=(next.totalWeek%2===0||next.stress>68)?drawEvent(next):null;
-    if(event)setModal({type:"event",event});
-    else setToast(`${action.name}完成。本周过去了。`);
+    const timeLabel=`${periodLabel(state)} → ${periodLabel(next)}`;
+    if(event)setModal({type:"event",event,timeLabel,actionName:action.name,monthSummary});
+    else setModal({type:"weekResult",actionName:action.name,timeLabel,monthSummary});
   }
 
   function chooseEvent(choice,event){
-    let next=applyEffect(state,choice.effect);
+    const languageRelief=state.german>=75?4:state.german>=60?2:0;
+    const adjusted={...choice.effect};
+    if(adjusted.stress>0)adjusted.stress=Math.max(0,adjusted.stress-languageRelief);
+    let next=applyEffect(state,adjusted);
     if(choice.flag)next={...next,flags:{...next.flags,[choice.flag]:true}};
     next={...next,seen:[...next.seen,event.id],journal:[`${event.office}：${event.title}｜${choice.label}`,...next.journal].slice(0,20)};
-    setState(next); setModal({type:"result",choice,event});
+    const timeLabel=modal?.timeLabel;
+    setState(next); setModal({type:"result",choice,event,timeLabel,languageRelief});
+  }
+
+  function choosePrepared(event){
+    if(state.papers<15){setToast("档案完整度不足 15。先用一周整理并跑手续。");return;}
+    const choice=event.choices[0];
+    const reduced={...choice.effect,papers:-15};
+    Object.entries(reduced).forEach(([key,value])=>{
+      const harmful=(["money","energy","health"].includes(key)&&value<0)||(key==="stress"&&value>0);
+      if(harmful)reduced[key]=Math.round(value*.45);
+    });
+    let next=applyEffect(state,reduced);
+    if(choice.flag)next={...next,flags:{...next.flags,[choice.flag]:true}};
+    next={...next,seen:[...next.seen,event.id],journal:[`${event.office}：${event.title}｜提交完整档案快速处理`,...next.journal].slice(0,20)};
+    setState(next);
+    setModal({type:"result",choice:{label:"提交完整档案快速处理",result:"你拿出了原件、复印件、回执、Aktenzeichen 和按日期排列的往来信件。工作人员短暂沉默后，事情居然办下来了。"},event,timeLabel:modal?.timeLabel,prepared:true});
   }
 
   function trade(good,mode){
@@ -310,7 +333,7 @@ export default function Home() {
   }
 
   function switchJob(job){
-    if(state.german<job.requirement){setToast(`需要德语能力 ${job.requirement}`);return;}
+    if(state.german<job.requirement||state.papers<job.paperRequirement){setToast(`需要德语 ${job.requirement}、档案完整度 ${job.paperRequirement}`);return;}
     setState({...state,jobId:job.id});setToast(`下周开始做：${job.name}`);
   }
 
@@ -339,7 +362,8 @@ export default function Home() {
     doAction({id:"venture",name:`经营副业：${good.name}`,run:()=>effect});
     const ledgerEntry={week:state.totalWeek+1,good:good.name,channel:channel.name,capital:amount,fee:channel.cost,invested:totalInvestment,returned,profit:returned-totalInvestment,caught};
     setState(s=>s?{...s,businessRuns:(s.businessRuns||0)+1,ventureLedger:[ledgerEntry,...(s.ventureLedger||[])].slice(0,8)}:s);
-    setModal({type:"ventureResult",title:caught?"副业翻车了":"这周生意不错",result,effect,ledger:ledgerEntry});
+    const nextPeriod=state.week===4?{...state,month:state.month+1,week:1}:{...state,week:state.week+1};
+    setModal({type:"ventureResult",title:caught?"副业翻车了":"这周生意不错",result,effect,ledger:ledgerEntry,timeLabel:`${periodLabel(state)} → ${periodLabel(nextPeriod)}`});
   }
 
   function tradeStock(stock,mode){
@@ -367,34 +391,36 @@ export default function Home() {
 
   const totalInventory=Object.values(state.inventory).reduce((a,b)=>a+b,0);
   const currentJob=JOBS.find(j=>j.id===state.jobId)||JOBS[0];
-  const currentWage=currentJob.wage+(state.flags.promotion?70:0);
+  const languageBonus=Math.min(80,Math.max(0,state.german-40)*2);
+  const currentWage=currentJob.wage+languageBonus+(state.flags.promotion?70:0);
   return <main className="v2-game">
     <header className="v2-head"><div><small>LEBENSAKTE · {state.name}</small><b>第 {state.month} 月 · 第 {state.week} 周</b></div><div className="deadline"><small>年度进度</small><b>{Math.min(state.totalWeek,48)}/48</b></div></header>
     <section className="v2-stats"><Stat label="现金" value={state.money} type="money"/><Stat label="债务" value={state.debt} type="money"/><Stat label="健康" value={state.health}/><Stat label="压力" value={state.stress} bad/></section>
     <div className="ticker"><b>本周消息</b><span>{news.text}</span></div>
+    <div className="time-rule"><b>时间规则</b><span>⏳ 工作、生活行动、副业经营＝推进 1 周</span><span>○ 商品/股票买卖、换职业＝不耗时间</span></div>
     <nav className="tabs five-tabs">{[["actions","本周行动"],["market","买卖"],["venture","副业投资"],["career","职业设定"],["journal","记录"]].map(([id,label])=><button className={tab===id?"active":""} key={id} onClick={()=>setTab(id)}>{label}</button>)}</nav>
 
     <section className="v2-panel">
-      {tab==="actions"&&<><div className="panel-title"><div><small>WOCHE {state.totalWeek+1}</small><h2>这一周怎么过？</h2></div><span>选择后推进 1 周</span></div><div className="current-job"><span>{currentJob.icon}</span><div><small>当前本职工作</small><b>{currentJob.name}</b></div><strong>本周工资 {currentWage}€</strong><button onClick={()=>setTab("career")}>更换职业</button></div><div className="resource-row"><span>⚡ 精力 {state.energy}</span><span>🗣️ 德语 {state.german}</span><span>🤝 人脉 {state.reputation}</span><span>📄 手续 {state.papers}</span></div><div className="action-grid">{ACTIONS.map(a=><button key={a.id} onClick={()=>doAction(a)} disabled={(a.id==="work"||a.id==="gig")&&state.energy<18}><i>{a.icon}</i><span><b>{a.name}</b><small>{a.id==="work"?`${currentJob.name} · 收入 ${currentWage}€`:a.sub}</small></span></button>)}</div><div className="month-cost"><b>关系说明</b><span>“做本职工作”按上方职业结算；“临时零工”是额外接单，不会改变你的本职。</span></div></>}
+      {tab==="actions"&&<><div className="panel-title"><div><small>WOCHE {state.totalWeek+1}</small><h2>这一周怎么过？</h2></div><span>每次只能选 1 项</span></div><div className="current-job"><span>{currentJob.icon}</span><div><small>当前本职工作</small><b>{currentJob.name}</b></div><strong>本周工资 {currentWage}€</strong><button onClick={()=>setTab("career")}>更换职业</button></div><div className="resource-row"><span>⚡ 精力 {state.energy}</span><span>🗣️ 德语 {state.german}</span><span>🤝 人脉 {state.reputation}</span><span>🗂️ 档案完整度 {state.papers}</span></div><div className="action-grid">{ACTIONS.map(a=><button key={a.id} onClick={()=>doAction(a)} disabled={(a.id==="work"||a.id==="gig")&&state.energy<18}><i>{a.icon}</i><span><b>{a.name}</b><small>{a.id==="work"?`${currentJob.name} · 收入 ${currentWage}€`:a.sub}</small></span><em>⏳ 1周</em></button>)}</div><div className="month-cost"><b>档案有什么用？</b><span>跑手续提高档案完整度。遇到事件时可消耗 15 点提交完整材料，大幅降低金钱、健康、精力和压力损失；部分职业也要求档案达标。</span></div></>}
 
       {tab==="market"&&<><div className="panel-title"><div><small>FLOHMARKT</small><h2>低买高卖</h2></div><span>储物 {totalInventory}/{state.capacity}</span></div><p className="market-tip">交易本身不推进时间；“均价”是你当前持仓的平均买入成本，“浮盈亏”按当前卖价计算。</p><div className="goods">{GOODS.map(g=>{const qty=state.inventory[g.id]||0;const avg=qty?Math.round((state.inventoryCost[g.id]||0)/qty):0;const pnl=qty?prices[g.id]-avg:0;return <div className="good" key={g.id}><span className="good-icon">{g.icon}</span><div><b>{g.name}</b><small>{g.note}</small><em>持有 {qty} · {qty?`均价 ${avg}€ · 每件${pnl>=0?"浮盈":"浮亏"} ${Math.abs(pnl)}€`:"尚未买入"}</em></div><strong><small>当前卖价</small>{prices[g.id]}€</strong><div className="trade-buttons"><button onClick={()=>trade(g,"buy")}>买</button><button onClick={()=>trade(g,"sell")}>卖</button></div></div>})}</div></>}
 
       {tab==="venture"&&<><div className="panel-title"><div><small>NEBENGEWERBE & BÖRSE</small><h2>拿本金冒险</h2></div><span>已经营 {state.businessRuns||0} 周</span></div>
         <div className="venture-block"><div className="subhead"><b>① 选择要卖的东西</b><span>利润越高，风险通常越大</span></div><div className="venture-goods">{HUSTLE_GOODS.map(g=><button key={g.id} className={ventureGood===g.id?"selected":""} onClick={()=>setVentureGood(g.id)}><i>{g.icon}</i><b>{g.name}</b><small>预期毛利 {Math.round(g.margin*100)}% · 风险 {g.risk}</small></button>)}</div>
         <div className="subhead"><b>② 选择销售渠道</b></div><div className="channel-row">{CHANNELS.map(c=><button key={c.id} className={ventureChannel===c.id?"selected":""} onClick={()=>setVentureChannel(c.id)}><i>{c.icon}</i><span><b>{c.name}</b><small>{c.note}</small></span></button>)}</div>
-        <div className="capital-box"><div><b>③ 本周投入本金</b><strong>{ventureAmount} €</strong></div><input aria-label="投入本金" type="range" min="50" max={Math.max(50,Math.min(800,state.money-250))} step="50" value={Math.min(ventureAmount,Math.max(50,state.money-250))} onChange={e=>setVentureAmount(Number(e.target.value))}/><div className="cost-preview"><span>商品本金<b>{ventureAmount}€</b></span><span>渠道费用<b>{CHANNELS.find(c=>c.id===ventureChannel)?.cost||0}€</b></span><span>本周总投入<b>{ventureAmount+(CHANNELS.find(c=>c.id===ventureChannel)?.cost||0)}€</b></span></div><small>结算时会分别显示总投入、回收金额和净利润。经营一次推进一周。</small><button onClick={runVenture}>投入 {ventureAmount+(CHANNELS.find(c=>c.id===ventureChannel)?.cost||0)}€ 开始经营 <span>→</span></button></div>
+        <div className="capital-box"><div><b>③ 本周投入本金</b><strong>{ventureAmount} €</strong></div><input aria-label="投入本金" type="range" min="50" max={Math.max(50,Math.min(800,state.money-250))} step="50" value={Math.min(ventureAmount,Math.max(50,state.money-250))} onChange={e=>setVentureAmount(Number(e.target.value))}/><div className="cost-preview"><span>商品本金<b>{ventureAmount}€</b></span><span>渠道费用<b>{CHANNELS.find(c=>c.id===ventureChannel)?.cost||0}€</b></span><span>本周总投入<b>{ventureAmount+(CHANNELS.find(c=>c.id===ventureChannel)?.cost||0)}€</b></span></div><small>副业经营属于本周行动。若刚做完本职再经营，时间会再推进一周。</small><button onClick={runVenture}>⏳ 投入 {ventureAmount+(CHANNELS.find(c=>c.id===ventureChannel)?.cost||0)}€ 经营 1 周 <span>→</span></button></div>
         {(state.ventureLedger||[]).length>0&&<div className="venture-ledger"><div className="subhead"><b>最近经营账本</b><span>投入 → 回收 → 净结果</span></div>{state.ventureLedger.slice(0,3).map((l,i)=><p key={i}><span>{l.good}<small>{l.channel}</small></span><b>{l.invested}€ → {l.returned}€</b><em className={l.profit>=0?"profit":"loss"}>{l.profit>=0?"+":""}{l.profit}€</em></p>)}</div>}</div>
         <div className="stock-block"><div className="subhead"><b>虚构证券市场</b><span>均价与浮盈亏实时显示</span></div>{STOCKS.map(s=>{const held=state.stocks[s.id]||0;const avg=held?Math.round((state.stockCost[s.id]||0)/held):0;const pnl=held?(stockPrices[s.id]-avg)*held:0;return <div className="stock" key={s.id}><i>{s.icon}</i><span><b>{s.ticker} · {s.name}</b><small>{held?`持有 ${held} 股 · 均价 ${avg}€ · ${pnl>=0?"浮盈":"浮亏"} ${Math.abs(pnl)}€`:"未持有 · 买入后记录成本"}</small></span><strong><small>现价</small>{stockPrices[s.id]}€</strong><div><button onClick={()=>tradeStock(s,"buy")}>买</button><button onClick={()=>tradeStock(s,"sell")}>卖</button></div></div>})}</div>
       </>}
 
-      {tab==="career"&&<><div className="panel-title"><div><small>HAUPTBERUF & SCHULDEN</small><h2>设定本职工作</h2></div><span>德语 {state.german}</span></div><p className="career-help">这里选择你的长期本职。选择本身不消耗一周；回到“本周行动”点击“做本职工作”，才会领取对应工资并推进时间。</p><div className="jobs">{JOBS.map(j=><button key={j.id} className={state.jobId===j.id?"selected":""} onClick={()=>switchJob(j)}><i>{j.icon}</i><span><b>{j.name}</b><small>每周工资 {j.wage}€ · 精力 {j.energy} · 健康 {j.health}{j.requirement?` · 需要德语 ${j.requirement}`:""}</small></span><em>{state.jobId===j.id?"当前本职":state.german>=j.requirement?"设为本职":"未解锁"}</em></button>)}</div><div className="debt-box"><span><small>私人债务</small><b>{Math.round(state.debt)} €</b></span><p>每月增长 3.5%。还清后，你才真正拥有选择。</p><button onClick={payDebt}>偿还最多 250€</button></div></>}
+      {tab==="career"&&<><div className="panel-title"><div><small>HAUPTBERUF & SCHULDEN</small><h2>设定本职工作</h2></div><span>德语 {state.german} · 档案 {state.papers}</span></div><p className="career-help">换职业不消耗时间。德语不仅解锁职业：超过 40 后，每点德语为本职周薪增加 2€，最多加 80€；德语 60/75 还会分别减少事件压力 2/4 点。</p><div className="language-bonus"><span>当前语言工资加成<b>+{languageBonus}€ / 周</b></span><span>当前事件减压<b>-{state.german>=75?4:state.german>=60?2:0} 压力</b></span></div><div className="jobs">{JOBS.map(j=>{const unlocked=state.german>=j.requirement&&state.papers>=j.paperRequirement;return <button key={j.id} className={state.jobId===j.id?"selected":""} onClick={()=>switchJob(j)}><i>{j.icon}</i><span><b>{j.name}</b><small>基础周薪 {j.wage}€ · 精力 {j.energy} · 健康 {j.health}{j.requirement?` · 德语 ${j.requirement} · 档案 ${j.paperRequirement}`:""}</small></span><em>{state.jobId===j.id?"当前本职":unlocked?"设为本职":"未解锁"}</em></button>})}</div><div className="debt-box"><span><small>私人债务</small><b>{Math.round(state.debt)} €</b></span><p>每月增长 3.5%。还清后，你才真正拥有选择。</p><button onClick={payDebt}>偿还最多 250€</button></div></>}
 
       {tab==="journal"&&<><div className="panel-title"><div><small>VERLAUF</small><h2>生活记录</h2></div><span>{state.seen.length} 个事件</span></div><div className="journal">{state.journal.length?state.journal.map((j,i)=><p key={i}><i>{String(state.journal.length-i).padStart(2,"0")}</i>{j}</p>):<div className="empty">你的档案目前还很薄。系统会设法改变这一点。</div>}</div></>}
     </section>
 
     {toast&&<button className="toast" onClick={()=>setToast("")}>{toast}<span>×</span></button>}
     {modal&&<div className="modal-backdrop"><article className="event-modal">
-      {modal.type==="event"?<><div className="modal-top"><span>{modal.event.office}</span><b>随机事项</b></div><h2>{modal.event.title}</h2><p>{modal.event.text}</p><div className="modal-choices">{modal.event.choices.map(c=><button key={c.label} onClick={()=>chooseEvent(c,modal.event)}><b>{c.label}</b><span>{Object.entries(c.effect||{}).map(([k,v])=>`${effectNames[k]} ${v>0?"+":""}${v}`).join(" · ")}</span></button>)}</div></>:modal.type==="ventureResult"?<><div className="modal-top"><span>NEBENGEWERBE</span><b>经营结算</b></div><h2>{modal.title}</h2><p>{modal.result}</p><div className="venture-result-numbers"><span>总投入<b>{modal.ledger.invested}€</b><small>本金 {modal.ledger.capital}€ + 渠道 {modal.ledger.fee}€</small></span><span>回收金额<b>{modal.ledger.returned}€</b><small>实际回到账户的价值</small></span><span>净利润<b className={modal.ledger.profit>=0?"profit":"loss"}>{modal.ledger.profit>=0?"+":""}{modal.ledger.profit}€</b><small>回收 − 总投入</small></span></div><button className="primary" onClick={()=>setModal(null)}>记入经营账本 <span>→</span></button></>:<><div className="modal-top"><span>AUSWIRKUNG</span><b>处理结果</b></div><h2>{modal.choice.label}</h2><p>{modal.choice.result}</p><button className="primary" onClick={()=>setModal(null)}>继续生活 <span>→</span></button></>}
+      {modal.type==="event"?<><div className="modal-top"><span>{modal.event.office}</span><b>随机事项</b></div><div className="time-passed">{modal.timeLabel}<small>{modal.actionName}已经用掉一周</small></div><h2>{modal.event.title}</h2><p>{modal.event.text}</p><div className="modal-choices">{modal.event.choices.map(c=><button key={c.label} onClick={()=>chooseEvent(c,modal.event)}><b>{c.label}</b><span>{Object.entries(c.effect||{}).map(([k,v])=>`${effectNames[k]} ${v>0?"+":""}${v}`).join(" · ")}</span></button>)}<button className="prepared-choice" disabled={state.papers<15} onClick={()=>choosePrepared(modal.event)}><b>🗂️ 提交完整档案快速处理</b><span>消耗 15 档案完整度 · 本次主要损失降低约 55%{state.papers<15?" · 当前不足":""}</span></button></div></>:modal.type==="weekResult"?<><div className="modal-top"><span>WOCHENABSCHLUSS</span><b>周结算</b></div><div className="time-passed large">{modal.timeLabel}<small>时间已经推进</small></div><h2>这一周结束了</h2><p>{modal.actionName}已经完成。{modal.monthSummary||"新的市场价格和生活状态已经更新。"}</p><button className="primary" onClick={()=>setModal(null)}>进入新的一周 <span>→</span></button></>:modal.type==="ventureResult"?<><div className="modal-top"><span>NEBENGEWERBE</span><b>经营结算</b></div><div className="time-passed">{modal.timeLabel}<small>副业经营消耗 1 周</small></div><h2>{modal.title}</h2><p>{modal.result}</p><div className="venture-result-numbers"><span>总投入<b>{modal.ledger.invested}€</b><small>本金 {modal.ledger.capital}€ + 渠道 {modal.ledger.fee}€</small></span><span>回收金额<b>{modal.ledger.returned}€</b><small>实际回到账户的价值</small></span><span>净利润<b className={modal.ledger.profit>=0?"profit":"loss"}>{modal.ledger.profit>=0?"+":""}{modal.ledger.profit}€</b><small>回收 − 总投入</small></span></div><button className="primary" onClick={()=>setModal(null)}>进入新的一周 <span>→</span></button></>:<><div className="modal-top"><span>AUSWIRKUNG</span><b>处理结果</b></div>{modal.timeLabel&&<div className="time-passed">{modal.timeLabel}<small>事件发生在已经消耗的这一周</small></div>}<h2>{modal.choice.label}</h2><p>{modal.choice.result}</p>{modal.languageRelief>0&&<div className="language-relief">🗣️ 德语能力令本次压力额外减少 {modal.languageRelief} 点</div>}<button className="primary" onClick={()=>setModal(null)}>进入新的一周 <span>→</span></button></>}
     </article></div>}
   </main>;
 }
