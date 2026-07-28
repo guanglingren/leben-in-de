@@ -199,7 +199,7 @@ const BASE_EVENTS = [
 const ACTIONS = [
   { id:"work", icon:"💼", name:"做本职工作", sub:"按当前职业结算工资", run:s=>{const job=JOBS.find(j=>j.id===s.jobId)||JOBS[0];const languageBonus=Math.min(80,Math.max(0,s.german-40)*2);return {money:job.wage+languageBonus+(s.flags.promotion?70:0),energy:job.energy,health:job.health,stress:job.stress,reputation:3};}},
   { id:"gig", icon:"🚲", name:"接一次临时零工", sub:"不改变本职 · 德语越好收入越高", run:s=>({money:190+Math.round(s.german*.9),energy:-19,health:-6,stress:7}) },
-  { id:"paper", icon:"🏛️", name:"整理并跑手续", sub:"提高档案完整度 · 解锁省事选项", run:()=>({papers:16,german:1,energy:-12,stress:5}) },
+  { id:"paper", icon:"🏛️", name:"处理积压手续", sub:"选择一项具体行政任务", planner:true },
   { id:"learn", icon:"📚", name:"学德语", sub:"解锁好工作 · 费脑", run:()=>({german:9,energy:-12,stress:2,money:-25}) },
   { id:"rest", icon:"🛋️", name:"在家休息", sub:"恢复健康和精力", run:()=>({energy:25,health:8,stress:-10,money:-18}) },
   { id:"drink", icon:"🍺", name:"去酒吧喝酒", sub:"压力大降 · 伤身烧钱", run:()=>({money:-48,stress:-18,health:-7,energy:-3,reputation:4}) },
@@ -207,8 +207,14 @@ const ACTIONS = [
   { id:"doctor", icon:"🩺", name:"照顾身体", sub:"花钱治疗 · 恢复健康", run:()=>({money:-95,health:18,energy:8,stress:-5}) }
 ];
 
+const PAPER_TASKS = [
+  { id:"folder", icon:"🗂️", name:"整理标准材料包", sub:"获得 1 份可在事件中消耗的完整材料包", effect:{packs:1,papers:8,german:1,energy:-10,stress:3} },
+  { id:"termin", icon:"📅", name:"抢一次 Behörden-Termin", sub:"预约、复印、排队，把档案推进一大截", effect:{packs:1,papers:14,energy:-14,stress:6} },
+  { id:"refund", icon:"🧾", name:"核对旧账并申请退费", sub:"翻出一笔重复扣款，同时补全往来记录", effect:{money:90,papers:7,energy:-12,stress:4} }
+];
+
 const clamp = n => Math.max(0, Math.min(100, Math.round(n)));
-const effectNames = {money:"资金",debt:"债务",energy:"精力",health:"健康",stress:"压力",german:"德语",papers:"手续",reputation:"人脉"};
+const effectNames = {money:"资金",debt:"债务",energy:"精力",health:"健康",stress:"压力",german:"德语",papers:"档案",packs:"材料包",reputation:"人脉"};
 const periodLabel = s => s.month>12?"年度结束":`第 ${s.month} 月 · 第 ${s.week} 周`;
 
 function seededPrice(good, week, news) {
@@ -242,7 +248,7 @@ export default function Home() {
   const stockPrices=useMemo(()=>state?Object.fromEntries(STOCKS.map(s=>[s.id,stockPrice(s,state.totalWeek)])): {},[state?.totalWeek]);
 
   function start(profile){
-    setState({...profile,profileId:profile.id,month:1,week:1,totalWeek:0,jobId:"shift",inventory:{},inventoryCost:{},stocks:{},stockCost:{},ventureLedger:[],flags:{},seen:[],journal:[],newsIndex:0,capacity:6,businessRuns:0});
+    setState({...profile,profileId:profile.id,month:1,week:1,totalWeek:0,jobId:"shift",inventory:{},inventoryCost:{},stocks:{},stockCost:{},activeVenture:null,ventureLedger:[],packs:0,flags:{},seen:[],journal:[],newsIndex:0,capacity:6,businessRuns:0});
     setScreen("game"); setTab("actions"); setModal(null);
   }
 
@@ -259,8 +265,8 @@ export default function Home() {
     return eligible[index];
   }
 
-  function doAction(action){
-    if(modal)return;
+  function doAction(action,force=false){
+    if(modal&&!force)return;
     let next=applyEffect(state,action.run(state));
     let log=`第 ${state.month} 月第 ${state.week} 周：${action.name}`;
     let nextWeek=state.week+1, nextMonth=state.month, newsIndex=state.newsIndex;
@@ -295,9 +301,9 @@ export default function Home() {
   }
 
   function choosePrepared(event){
-    if(state.papers<15){setToast("档案完整度不足 15。先用一周整理并跑手续。");return;}
+    if(state.packs<1){setToast("没有完整材料包。先用一周处理积压手续。");return;}
     const choice=event.choices[0];
-    const reduced={...choice.effect,papers:-15};
+    const reduced={...choice.effect,packs:-1};
     Object.entries(reduced).forEach(([key,value])=>{
       const harmful=(["money","energy","health"].includes(key)&&value<0)||(key==="stress"&&value>0);
       if(harmful)reduced[key]=Math.round(value*.45);
@@ -306,7 +312,7 @@ export default function Home() {
     if(choice.flag)next={...next,flags:{...next.flags,[choice.flag]:true}};
     next={...next,seen:[...next.seen,event.id],journal:[`${event.office}：${event.title}｜提交完整档案快速处理`,...next.journal].slice(0,20)};
     setState(next);
-    setModal({type:"result",choice:{label:"提交完整档案快速处理",result:"你拿出了原件、复印件、回执、Aktenzeichen 和按日期排列的往来信件。工作人员短暂沉默后，事情居然办下来了。"},event,timeLabel:modal?.timeLabel,prepared:true});
+    setModal({type:"result",choice:{label:"提交完整材料包快速处理",result:"你拿出了原件、复印件、回执、Aktenzeichen 和按日期排列的往来信件。工作人员短暂沉默后，事情居然办下来了。"},event,timeLabel:modal?.timeLabel,prepared:true});
   }
 
   function trade(good,mode){
@@ -337,33 +343,51 @@ export default function Home() {
     setState({...state,jobId:job.id});setToast(`下周开始做：${job.name}`);
   }
 
-  function runVenture(){
+  function startVenture(){
+    if(state.activeVenture){setToast("已有一个经营批次在进行中。先推进时间并结算。");return;}
     const good=HUSTLE_GOODS.find(g=>g.id===ventureGood);
     const channel=CHANNELS.find(c=>c.id===ventureChannel);
     const amount=Math.min(Math.max(50,ventureAmount),Math.max(50,state.money-250));
     if(state.money<amount+channel.cost+200){setToast("至少要留下 200€ 生活费，并支付渠道成本。");return;}
-    const signal=(state.totalWeek*37+amount+good.risk*3+(channel.id==="ebay"?19:7))%100;
+    const totalInvestment=amount+channel.cost;
+    const activeVenture={goodId:good.id,goodName:good.name,channelId:channel.id,channelName:channel.name,capital:amount,fee:channel.cost,invested:totalInvestment,startWeek:state.totalWeek,readyWeek:state.totalWeek+1};
+    setState({...state,money:state.money-totalInvestment,activeVenture,journal:[`第 ${state.month} 月第 ${state.week} 周：投入 ${totalInvestment}€ 开始经营 ${good.name}`,...state.journal].slice(0,20)});
+    setToast(`经营批次已开始。至少推进 1 周后才能结算。`);
+  }
+
+  function settleVenture(){
+    const batch=state.activeVenture;
+    if(!batch){setToast("当前没有等待结算的经营批次。");return;}
+    if(state.totalWeek<batch.readyWeek){setToast(`还需推进 ${batch.readyWeek-state.totalWeek} 周才能结算。`);return;}
+    const good=HUSTLE_GOODS.find(g=>g.id===batch.goodId);
+    const channel=CHANNELS.find(c=>c.id===batch.channelId);
+    const amount=batch.capital;
+    const signal=(batch.startWeek*37+amount+good.risk*3+(channel.id==="ebay"?19:7))%100;
     const caught=signal<Math.max(2,good.risk+channel.risk);
     const demand=.78+((state.totalWeek*13+good.id.length*11)%48)/100;
     const salesGain=Math.round(amount*(good.margin+channel.bonus)*demand);
-    const totalInvestment=amount+channel.cost;
     let profit=salesGain-channel.cost;
     let returned=amount+salesGain;
-    let effect={money:profit,energy:channel.id==="flohmarkt"?-15:-8,stress:good.risk>40?8:3,reputation:good.risk<20?4:-2};
+    let consequence={stress:good.risk>40?8:3,reputation:good.risk<20?4:-2};
     let result=`你投入 ${amount}€，本周销售后净赚 ${profit}€。`;
     if(caught){
       const fine=Math.round(90+amount*(good.risk/65));
-      effect={...effect,money:profit-fine,stress:18,papers:-8,reputation:-10};
+      consequence={stress:18,papers:-8,reputation:-10};
       returned=Math.max(0,returned-fine);
       result=channel.id==="ebay"
         ?`平台冻结了交易，并收到权利人投诉。扣除退款与罚款 ${fine}€ 后，本周净结果为 ${profit-fine}€。`
         :`市场巡查要求出示进货凭证。货物被扣并产生 ${fine}€ 损失，本周净结果为 ${profit-fine}€。`;
     }
-    doAction({id:"venture",name:`经营副业：${good.name}`,run:()=>effect});
-    const ledgerEntry={week:state.totalWeek+1,good:good.name,channel:channel.name,capital:amount,fee:channel.cost,invested:totalInvestment,returned,profit:returned-totalInvestment,caught};
-    setState(s=>s?{...s,businessRuns:(s.businessRuns||0)+1,ventureLedger:[ledgerEntry,...(s.ventureLedger||[])].slice(0,8)}:s);
-    const nextPeriod=state.week===4?{...state,month:state.month+1,week:1}:{...state,week:state.week+1};
-    setModal({type:"ventureResult",title:caught?"副业翻车了":"这周生意不错",result,effect,ledger:ledgerEntry,timeLabel:`${periodLabel(state)} → ${periodLabel(nextPeriod)}`});
+    const ledgerEntry={week:state.totalWeek,good:good.name,channel:channel.name,capital:amount,fee:channel.cost,invested:batch.invested,returned,profit:returned-batch.invested,caught,heldWeeks:state.totalWeek-batch.startWeek};
+    let next=applyEffect(state,{...consequence,money:returned});
+    next={...next,activeVenture:null,businessRuns:(next.businessRuns||0)+1,ventureLedger:[ledgerEntry,...(next.ventureLedger||[])].slice(0,8),journal:[`经营结算：${good.name}，净结果 ${ledgerEntry.profit>=0?"+":""}${ledgerEntry.profit}€`,...next.journal].slice(0,20)};
+    setState(next);
+    setModal({type:"ventureResult",title:caught?"副业翻车了":"这批货卖完了",result,ledger:ledgerEntry});
+  }
+
+  function doPaperTask(task){
+    setModal(null);
+    doAction({id:`paper-${task.id}`,name:task.name,run:()=>task.effect},true);
   }
 
   function tradeStock(stock,mode){
@@ -397,18 +421,18 @@ export default function Home() {
     <header className="v2-head"><div><small>LEBENSAKTE · {state.name}</small><b>第 {state.month} 月 · 第 {state.week} 周</b></div><div className="deadline"><small>年度进度</small><b>{Math.min(state.totalWeek,48)}/48</b></div></header>
     <section className="v2-stats"><Stat label="现金" value={state.money} type="money"/><Stat label="债务" value={state.debt} type="money"/><Stat label="健康" value={state.health}/><Stat label="压力" value={state.stress} bad/></section>
     <div className="ticker"><b>本周消息</b><span>{news.text}</span></div>
-    <div className="time-rule"><b>时间规则</b><span>⏳ 工作、生活行动、副业经营＝推进 1 周</span><span>○ 商品/股票买卖、换职业＝不耗时间</span></div>
-    <nav className="tabs five-tabs">{[["actions","本周行动"],["market","买卖"],["venture","副业投资"],["career","职业设定"],["journal","记录"]].map(([id,label])=><button className={tab===id?"active":""} key={id} onClick={()=>setTab(id)}>{label}</button>)}</nav>
+    <div className="time-rule"><b>时间规则</b><span>⏳ 本周行动＝推进 1 周</span><span>○ 商品、股票、经营批次、换职业＝不耗时间</span></div>
+    <nav className="tabs">{[["actions","本周行动"],["market","交易投资"],["career","职业设定"],["journal","记录"]].map(([id,label])=><button className={tab===id?"active":""} key={id} onClick={()=>setTab(id)}>{label}</button>)}</nav>
 
     <section className="v2-panel">
-      {tab==="actions"&&<><div className="panel-title"><div><small>WOCHE {state.totalWeek+1}</small><h2>这一周怎么过？</h2></div><span>每次只能选 1 项</span></div><div className="current-job"><span>{currentJob.icon}</span><div><small>当前本职工作</small><b>{currentJob.name}</b></div><strong>本周工资 {currentWage}€</strong><button onClick={()=>setTab("career")}>更换职业</button></div><div className="resource-row"><span>⚡ 精力 {state.energy}</span><span>🗣️ 德语 {state.german}</span><span>🤝 人脉 {state.reputation}</span><span>🗂️ 档案完整度 {state.papers}</span></div><div className="action-grid">{ACTIONS.map(a=><button key={a.id} onClick={()=>doAction(a)} disabled={(a.id==="work"||a.id==="gig")&&state.energy<18}><i>{a.icon}</i><span><b>{a.name}</b><small>{a.id==="work"?`${currentJob.name} · 收入 ${currentWage}€`:a.sub}</small></span><em>⏳ 1周</em></button>)}</div><div className="month-cost"><b>档案有什么用？</b><span>跑手续提高档案完整度。遇到事件时可消耗 15 点提交完整材料，大幅降低金钱、健康、精力和压力损失；部分职业也要求档案达标。</span></div></>}
+      {tab==="actions"&&<><div className="panel-title"><div><small>WOCHE {state.totalWeek+1}</small><h2>这一周怎么过？</h2></div><span>每次只能选 1 项</span></div><div className="current-job"><span>{currentJob.icon}</span><div><small>当前本职工作</small><b>{currentJob.name}</b></div><strong>本周工资 {currentWage}€</strong><button onClick={()=>setTab("career")}>更换职业</button></div><div className="resource-row"><span>⚡ 精力 {state.energy}</span><span>🗣️ 德语 {state.german}</span><span>🤝 人脉 {state.reputation}</span><span>🗂️ 档案 {state.papers}</span><span>📦 材料包 {state.packs}</span></div><div className="action-grid">{ACTIONS.map(a=><button key={a.id} onClick={()=>a.planner?setModal({type:"paperPlanner"}):doAction(a)} disabled={(a.id==="work"||a.id==="gig")&&state.energy<18}><i>{a.icon}</i><span><b>{a.name}</b><small>{a.id==="work"?`${currentJob.name} · 收入 ${currentWage}€`:a.sub}</small></span><em>⏳ 1周</em></button>)}</div><div className="month-cost"><b>处理手续不再是“空过一周”</b><span>你可以整理材料、抢预约或追旧账。材料包能在官僚事件中直接消耗，显著降低损失；档案值则用于解锁更好的职业。</span></div></>}
 
-      {tab==="market"&&<><div className="panel-title"><div><small>FLOHMARKT</small><h2>低买高卖</h2></div><span>储物 {totalInventory}/{state.capacity}</span></div><p className="market-tip">交易本身不推进时间；“均价”是你当前持仓的平均买入成本，“浮盈亏”按当前卖价计算。</p><div className="goods">{GOODS.map(g=>{const qty=state.inventory[g.id]||0;const avg=qty?Math.round((state.inventoryCost[g.id]||0)/qty):0;const pnl=qty?prices[g.id]-avg:0;return <div className="good" key={g.id}><span className="good-icon">{g.icon}</span><div><b>{g.name}</b><small>{g.note}</small><em>持有 {qty} · {qty?`均价 ${avg}€ · 每件${pnl>=0?"浮盈":"浮亏"} ${Math.abs(pnl)}€`:"尚未买入"}</em></div><strong><small>当前卖价</small>{prices[g.id]}€</strong><div className="trade-buttons"><button onClick={()=>trade(g,"buy")}>买</button><button onClick={()=>trade(g,"sell")}>卖</button></div></div>})}</div></>}
-
-      {tab==="venture"&&<><div className="panel-title"><div><small>NEBENGEWERBE & BÖRSE</small><h2>拿本金冒险</h2></div><span>已经营 {state.businessRuns||0} 周</span></div>
+      {tab==="market"&&<><div className="panel-title"><div><small>HANDEL & ANLAGE</small><h2>交易与投资</h2></div><span>所有操作不直接耗时</span></div><p className="market-tip">先买入或开一个经营批次，再用“本周行动”推进时间。价格和经营结果会随着周数变化。</p>
+        <div className="market-section-title"><b>即时买卖</b><span>储物 {totalInventory}/{state.capacity}</span></div><div className="goods">{GOODS.map(g=>{const qty=state.inventory[g.id]||0;const avg=qty?Math.round((state.inventoryCost[g.id]||0)/qty):0;const pnl=qty?prices[g.id]-avg:0;return <div className="good" key={g.id}><span className="good-icon">{g.icon}</span><div><b>{g.name}</b><small>{g.note}</small><em>持有 {qty} · {qty?`均价 ${avg}€ · 每件${pnl>=0?"浮盈":"浮亏"} ${Math.abs(pnl)}€`:"尚未买入"}</em></div><strong><small>当前卖价</small>{prices[g.id]}€</strong><div className="trade-buttons"><button onClick={()=>trade(g,"buy")}>买</button><button onClick={()=>trade(g,"sell")}>卖</button></div></div>})}</div>
+        <div className="market-section-title"><b>经营批次</b><span>开始与结算均不耗时</span></div>
         <div className="venture-block"><div className="subhead"><b>① 选择要卖的东西</b><span>利润越高，风险通常越大</span></div><div className="venture-goods">{HUSTLE_GOODS.map(g=><button key={g.id} className={ventureGood===g.id?"selected":""} onClick={()=>setVentureGood(g.id)}><i>{g.icon}</i><b>{g.name}</b><small>预期毛利 {Math.round(g.margin*100)}% · 风险 {g.risk}</small></button>)}</div>
         <div className="subhead"><b>② 选择销售渠道</b></div><div className="channel-row">{CHANNELS.map(c=><button key={c.id} className={ventureChannel===c.id?"selected":""} onClick={()=>setVentureChannel(c.id)}><i>{c.icon}</i><span><b>{c.name}</b><small>{c.note}</small></span></button>)}</div>
-        <div className="capital-box"><div><b>③ 本周投入本金</b><strong>{ventureAmount} €</strong></div><input aria-label="投入本金" type="range" min="50" max={Math.max(50,Math.min(800,state.money-250))} step="50" value={Math.min(ventureAmount,Math.max(50,state.money-250))} onChange={e=>setVentureAmount(Number(e.target.value))}/><div className="cost-preview"><span>商品本金<b>{ventureAmount}€</b></span><span>渠道费用<b>{CHANNELS.find(c=>c.id===ventureChannel)?.cost||0}€</b></span><span>本周总投入<b>{ventureAmount+(CHANNELS.find(c=>c.id===ventureChannel)?.cost||0)}€</b></span></div><small>副业经营属于本周行动。若刚做完本职再经营，时间会再推进一周。</small><button onClick={runVenture}>⏳ 投入 {ventureAmount+(CHANNELS.find(c=>c.id===ventureChannel)?.cost||0)}€ 经营 1 周 <span>→</span></button></div>
+        {state.activeVenture?<div className="active-venture"><div><small>进行中的经营批次</small><b>{state.activeVenture.goodName} · {state.activeVenture.channelName}</b></div><span>已投入 <b>{state.activeVenture.invested}€</b></span><span>{state.totalWeek>=state.activeVenture.readyWeek?"现在可以结算":"还需推进 1 周"}</span><button onClick={settleVenture} disabled={state.totalWeek<state.activeVenture.readyWeek}>{state.totalWeek>=state.activeVenture.readyWeek?"查看行情并结算":"等待时间推进"}</button></div>:<div className="capital-box"><div><b>③ 开始经营批次</b><strong>{ventureAmount} €</strong></div><input aria-label="投入本金" type="range" min="50" max={Math.max(50,Math.min(800,state.money-250))} step="50" value={Math.min(ventureAmount,Math.max(50,state.money-250))} onChange={e=>setVentureAmount(Number(e.target.value))}/><div className="cost-preview"><span>商品本金<b>{ventureAmount}€</b></span><span>渠道费用<b>{CHANNELS.find(c=>c.id===ventureChannel)?.cost||0}€</b></span><span>总投入<b>{ventureAmount+(CHANNELS.find(c=>c.id===ventureChannel)?.cost||0)}€</b></span></div><small>开始批次不耗时间，但资金会立刻锁定；至少推进一周后才能结算。</small><button onClick={startVenture}>投入 {ventureAmount+(CHANNELS.find(c=>c.id===ventureChannel)?.cost||0)}€ 开始批次 <span>→</span></button></div>}
         {(state.ventureLedger||[]).length>0&&<div className="venture-ledger"><div className="subhead"><b>最近经营账本</b><span>投入 → 回收 → 净结果</span></div>{state.ventureLedger.slice(0,3).map((l,i)=><p key={i}><span>{l.good}<small>{l.channel}</small></span><b>{l.invested}€ → {l.returned}€</b><em className={l.profit>=0?"profit":"loss"}>{l.profit>=0?"+":""}{l.profit}€</em></p>)}</div>}</div>
         <div className="stock-block"><div className="subhead"><b>虚构证券市场</b><span>均价与浮盈亏实时显示</span></div>{STOCKS.map(s=>{const held=state.stocks[s.id]||0;const avg=held?Math.round((state.stockCost[s.id]||0)/held):0;const pnl=held?(stockPrices[s.id]-avg)*held:0;return <div className="stock" key={s.id}><i>{s.icon}</i><span><b>{s.ticker} · {s.name}</b><small>{held?`持有 ${held} 股 · 均价 ${avg}€ · ${pnl>=0?"浮盈":"浮亏"} ${Math.abs(pnl)}€`:"未持有 · 买入后记录成本"}</small></span><strong><small>现价</small>{stockPrices[s.id]}€</strong><div><button onClick={()=>tradeStock(s,"buy")}>买</button><button onClick={()=>tradeStock(s,"sell")}>卖</button></div></div>})}</div>
       </>}
@@ -420,7 +444,7 @@ export default function Home() {
 
     {toast&&<button className="toast" onClick={()=>setToast("")}>{toast}<span>×</span></button>}
     {modal&&<div className="modal-backdrop"><article className="event-modal">
-      {modal.type==="event"?<><div className="modal-top"><span>{modal.event.office}</span><b>随机事项</b></div><div className="time-passed">{modal.timeLabel}<small>{modal.actionName}已经用掉一周</small></div><h2>{modal.event.title}</h2><p>{modal.event.text}</p><div className="modal-choices">{modal.event.choices.map(c=><button key={c.label} onClick={()=>chooseEvent(c,modal.event)}><b>{c.label}</b><span>{Object.entries(c.effect||{}).map(([k,v])=>`${effectNames[k]} ${v>0?"+":""}${v}`).join(" · ")}</span></button>)}<button className="prepared-choice" disabled={state.papers<15} onClick={()=>choosePrepared(modal.event)}><b>🗂️ 提交完整档案快速处理</b><span>消耗 15 档案完整度 · 本次主要损失降低约 55%{state.papers<15?" · 当前不足":""}</span></button></div></>:modal.type==="weekResult"?<><div className="modal-top"><span>WOCHENABSCHLUSS</span><b>周结算</b></div><div className="time-passed large">{modal.timeLabel}<small>时间已经推进</small></div><h2>这一周结束了</h2><p>{modal.actionName}已经完成。{modal.monthSummary||"新的市场价格和生活状态已经更新。"}</p><button className="primary" onClick={()=>setModal(null)}>进入新的一周 <span>→</span></button></>:modal.type==="ventureResult"?<><div className="modal-top"><span>NEBENGEWERBE</span><b>经营结算</b></div><div className="time-passed">{modal.timeLabel}<small>副业经营消耗 1 周</small></div><h2>{modal.title}</h2><p>{modal.result}</p><div className="venture-result-numbers"><span>总投入<b>{modal.ledger.invested}€</b><small>本金 {modal.ledger.capital}€ + 渠道 {modal.ledger.fee}€</small></span><span>回收金额<b>{modal.ledger.returned}€</b><small>实际回到账户的价值</small></span><span>净利润<b className={modal.ledger.profit>=0?"profit":"loss"}>{modal.ledger.profit>=0?"+":""}{modal.ledger.profit}€</b><small>回收 − 总投入</small></span></div><button className="primary" onClick={()=>setModal(null)}>进入新的一周 <span>→</span></button></>:<><div className="modal-top"><span>AUSWIRKUNG</span><b>处理结果</b></div>{modal.timeLabel&&<div className="time-passed">{modal.timeLabel}<small>事件发生在已经消耗的这一周</small></div>}<h2>{modal.choice.label}</h2><p>{modal.choice.result}</p>{modal.languageRelief>0&&<div className="language-relief">🗣️ 德语能力令本次压力额外减少 {modal.languageRelief} 点</div>}<button className="primary" onClick={()=>setModal(null)}>进入新的一周 <span>→</span></button></>}
+      {modal.type==="paperPlanner"?<><div className="modal-top"><span>BEHÖRDENPLAN</span><b>行政事务</b></div><h2>这周具体跑什么手续？</h2><p>选择一项后才会推进一周。它们会留下档案、材料包或追回的钱，不再只是“忙了一周”。</p><div className="paper-tasks">{PAPER_TASKS.map(task=><button key={task.id} onClick={()=>doPaperTask(task)}><b>{task.icon} {task.name}</b><span>{task.sub}</span><em>{Object.entries(task.effect).map(([k,v])=>`${effectNames[k]} ${v>0?"+":""}${v}`).join(" · ")}</em></button>)}</div><button className="secondary" onClick={()=>setModal(null)}>先不跑手续</button></>:modal.type==="event"?<><div className="modal-top"><span>{modal.event.office}</span><b>随机事项</b></div><div className="time-passed">{modal.timeLabel}<small>{modal.actionName}已经用掉一周</small></div><h2>{modal.event.title}</h2><p>{modal.event.text}</p><div className="modal-choices">{modal.event.choices.map(c=><button key={c.label} onClick={()=>chooseEvent(c,modal.event)}><b>{c.label}</b><span>{Object.entries(c.effect||{}).map(([k,v])=>`${effectNames[k]} ${v>0?"+":""}${v}`).join(" · ")}</span></button>)}<button className="prepared-choice" disabled={state.packs<1} onClick={()=>choosePrepared(modal.event)}><b>📦 提交完整材料包快速处理</b><span>消耗 1 份材料包 · 本次主要损失降低约 55%{state.packs<1?" · 当前不足":""}</span></button></div></>:modal.type==="weekResult"?<><div className="modal-top"><span>WOCHENABSCHLUSS</span><b>周结算</b></div><div className="time-passed large">{modal.timeLabel}<small>时间已经推进</small></div><h2>这一周结束了</h2><p>{modal.actionName}已经完成。{modal.monthSummary||"新的市场价格和生活状态已经更新。"}</p><button className="primary" onClick={()=>setModal(null)}>进入新的一周 <span>→</span></button></>:modal.type==="ventureResult"?<><div className="modal-top"><span>NEBENGEWERBE</span><b>经营结算</b></div><div className="holding-period">持有 {modal.ledger.heldWeeks} 周后结算<small>开始和结算本身均不耗时间</small></div><h2>{modal.title}</h2><p>{modal.result}</p><div className="venture-result-numbers"><span>总投入<b>{modal.ledger.invested}€</b><small>本金 {modal.ledger.capital}€ + 渠道 {modal.ledger.fee}€</small></span><span>回收金额<b>{modal.ledger.returned}€</b><small>实际回到账户的价值</small></span><span>净利润<b className={modal.ledger.profit>=0?"profit":"loss"}>{modal.ledger.profit>=0?"+":""}{modal.ledger.profit}€</b><small>回收 − 总投入</small></span></div><button className="primary" onClick={()=>setModal(null)}>完成结算 <span>→</span></button></>:<><div className="modal-top"><span>AUSWIRKUNG</span><b>处理结果</b></div>{modal.timeLabel&&<div className="time-passed">{modal.timeLabel}<small>事件发生在已经消耗的这一周</small></div>}<h2>{modal.choice.label}</h2><p>{modal.choice.result}</p>{modal.languageRelief>0&&<div className="language-relief">🗣️ 德语能力令本次压力额外减少 {modal.languageRelief} 点</div>}<button className="primary" onClick={()=>setModal(null)}>进入新的一周 <span>→</span></button></>}
     </article></div>}
   </main>;
 }
