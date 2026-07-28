@@ -197,8 +197,8 @@ const BASE_EVENTS = [
 ];
 
 const ACTIONS = [
-  { id:"work", icon:"💼", name:"去上班", sub:"稳定收入 · 消耗身体", run:s=>{const job=JOBS.find(j=>j.id===s.jobId)||JOBS[0]; return {money:job.wage+(s.flags.promotion?70:0),energy:job.energy,health:job.health,stress:job.stress,reputation:3};}},
-  { id:"gig", icon:"🚲", name:"接临时零工", sub:"快速赚钱 · 没有保障", run:()=>({money:230,energy:-19,health:-6,stress:7}) },
+  { id:"work", icon:"💼", name:"做本职工作", sub:"按当前职业结算工资", run:s=>{const job=JOBS.find(j=>j.id===s.jobId)||JOBS[0]; return {money:job.wage+(s.flags.promotion?70:0),energy:job.energy,health:job.health,stress:job.stress,reputation:3};}},
+  { id:"gig", icon:"🚲", name:"接一次临时零工", sub:"额外赚 230€ · 不改变本职", run:()=>({money:230,energy:-19,health:-6,stress:7}) },
   { id:"paper", icon:"🏛️", name:"跑手续", sub:"推进档案 · 消耗整天", run:()=>({papers:14,energy:-12,stress:6}) },
   { id:"learn", icon:"📚", name:"学德语", sub:"解锁好工作 · 费脑", run:()=>({german:9,energy:-12,stress:2,money:-25}) },
   { id:"rest", icon:"🛋️", name:"在家休息", sub:"恢复健康和精力", run:()=>({energy:25,health:8,stress:-10,money:-18}) },
@@ -349,14 +349,16 @@ export default function Home() {
   }
 
   const totalInventory=Object.values(state.inventory).reduce((a,b)=>a+b,0);
+  const currentJob=JOBS.find(j=>j.id===state.jobId)||JOBS[0];
+  const currentWage=currentJob.wage+(state.flags.promotion?70:0);
   return <main className="v2-game">
     <header className="v2-head"><div><small>LEBENSAKTE · {state.name}</small><b>第 {state.month} 月 · 第 {state.week} 周</b></div><div className="deadline"><small>年度进度</small><b>{Math.min(state.totalWeek,48)}/48</b></div></header>
     <section className="v2-stats"><Stat label="现金" value={state.money} type="money"/><Stat label="债务" value={state.debt} type="money"/><Stat label="健康" value={state.health}/><Stat label="压力" value={state.stress} bad/></section>
     <div className="ticker"><b>本周消息</b><span>{news.text}</span></div>
-    <nav className="tabs five-tabs">{[["actions","本周行动"],["market","买卖"],["venture","副业投资"],["career","工作"],["journal","记录"]].map(([id,label])=><button className={tab===id?"active":""} key={id} onClick={()=>setTab(id)}>{label}</button>)}</nav>
+    <nav className="tabs five-tabs">{[["actions","本周行动"],["market","买卖"],["venture","副业投资"],["career","职业设定"],["journal","记录"]].map(([id,label])=><button className={tab===id?"active":""} key={id} onClick={()=>setTab(id)}>{label}</button>)}</nav>
 
     <section className="v2-panel">
-      {tab==="actions"&&<><div className="panel-title"><div><small>WOCHE {state.totalWeek+1}</small><h2>这一周怎么过？</h2></div><span>选择后推进 1 周</span></div><div className="resource-row"><span>⚡ 精力 {state.energy}</span><span>🗣️ 德语 {state.german}</span><span>🤝 人脉 {state.reputation}</span><span>📄 手续 {state.papers}</span></div><div className="action-grid">{ACTIONS.map(a=><button key={a.id} onClick={()=>doAction(a)} disabled={(a.id==="work"||a.id==="gig")&&state.energy<18}><i>{a.icon}</i><span><b>{a.name}</b><small>{a.sub}</small></span></button>)}</div><div className="month-cost"><b>月末账单</b><span>每 4 次行动扣除生活费，并给债务计息 3.5%</span></div></>}
+      {tab==="actions"&&<><div className="panel-title"><div><small>WOCHE {state.totalWeek+1}</small><h2>这一周怎么过？</h2></div><span>选择后推进 1 周</span></div><div className="current-job"><span>{currentJob.icon}</span><div><small>当前本职工作</small><b>{currentJob.name}</b></div><strong>本周工资 {currentWage}€</strong><button onClick={()=>setTab("career")}>更换职业</button></div><div className="resource-row"><span>⚡ 精力 {state.energy}</span><span>🗣️ 德语 {state.german}</span><span>🤝 人脉 {state.reputation}</span><span>📄 手续 {state.papers}</span></div><div className="action-grid">{ACTIONS.map(a=><button key={a.id} onClick={()=>doAction(a)} disabled={(a.id==="work"||a.id==="gig")&&state.energy<18}><i>{a.icon}</i><span><b>{a.name}</b><small>{a.id==="work"?`${currentJob.name} · 收入 ${currentWage}€`:a.sub}</small></span></button>)}</div><div className="month-cost"><b>关系说明</b><span>“做本职工作”按上方职业结算；“临时零工”是额外接单，不会改变你的本职。</span></div></>}
 
       {tab==="market"&&<><div className="panel-title"><div><small>FLOHMARKT</small><h2>低买高卖</h2></div><span>储物 {totalInventory}/{state.capacity}</span></div><p className="market-tip">交易本身不推进时间；价格会在每周行动后变化。新闻可能是机会，也可能只是传闻。</p><div className="goods">{GOODS.map(g=><div className="good" key={g.id}><span className="good-icon">{g.icon}</span><div><b>{g.name}</b><small>{g.note}</small><em>持有 {state.inventory[g.id]||0}</em></div><strong>{prices[g.id]}€</strong><div className="trade-buttons"><button onClick={()=>trade(g,"buy")}>买</button><button onClick={()=>trade(g,"sell")}>卖</button></div></div>)}</div></>}
 
@@ -367,7 +369,7 @@ export default function Home() {
         <div className="stock-block"><div className="subhead"><b>虚构证券市场</b><span>非现实投资建议 · 每周价格变化</span></div>{STOCKS.map(s=><div className="stock" key={s.id}><i>{s.icon}</i><span><b>{s.ticker} · {s.name}</b><small>{s.note} · 持有 {state.stocks[s.id]||0} 股</small></span><strong>{stockPrices[s.id]}€</strong><div><button onClick={()=>tradeStock(s,"buy")}>买</button><button onClick={()=>tradeStock(s,"sell")}>卖</button></div></div>)}</div>
       </>}
 
-      {tab==="career"&&<><div className="panel-title"><div><small>ARBEIT & SCHULDEN</small><h2>工作档案</h2></div><span>德语 {state.german}</span></div><div className="jobs">{JOBS.map(j=><button key={j.id} className={state.jobId===j.id?"selected":""} onClick={()=>switchJob(j)}><i>{j.icon}</i><span><b>{j.name}</b><small>每周 {j.wage}€ · 精力 {j.energy} · 健康 {j.health}{j.requirement?` · 德语 ${j.requirement}`:""}</small></span><em>{state.jobId===j.id?"当前":state.german>=j.requirement?"选择":"未解锁"}</em></button>)}</div><div className="debt-box"><span><small>私人债务</small><b>{Math.round(state.debt)} €</b></span><p>每月增长 3.5%。还清后，你才真正拥有选择。</p><button onClick={payDebt}>偿还最多 250€</button></div></>}
+      {tab==="career"&&<><div className="panel-title"><div><small>HAUPTBERUF & SCHULDEN</small><h2>设定本职工作</h2></div><span>德语 {state.german}</span></div><p className="career-help">这里选择你的长期本职。选择本身不消耗一周；回到“本周行动”点击“做本职工作”，才会领取对应工资并推进时间。</p><div className="jobs">{JOBS.map(j=><button key={j.id} className={state.jobId===j.id?"selected":""} onClick={()=>switchJob(j)}><i>{j.icon}</i><span><b>{j.name}</b><small>每周工资 {j.wage}€ · 精力 {j.energy} · 健康 {j.health}{j.requirement?` · 需要德语 ${j.requirement}`:""}</small></span><em>{state.jobId===j.id?"当前本职":state.german>=j.requirement?"设为本职":"未解锁"}</em></button>)}</div><div className="debt-box"><span><small>私人债务</small><b>{Math.round(state.debt)} €</b></span><p>每月增长 3.5%。还清后，你才真正拥有选择。</p><button onClick={payDebt}>偿还最多 250€</button></div></>}
 
       {tab==="journal"&&<><div className="panel-title"><div><small>VERLAUF</small><h2>生活记录</h2></div><span>{state.seen.length} 个事件</span></div><div className="journal">{state.journal.length?state.journal.map((j,i)=><p key={i}><i>{String(state.journal.length-i).padStart(2,"0")}</i>{j}</p>):<div className="empty">你的档案目前还很薄。系统会设法改变这一点。</div>}</div></>}
     </section>
