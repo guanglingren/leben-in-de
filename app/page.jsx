@@ -1,16 +1,14 @@
 import React, { useMemo, useState } from "react";
 
 const PROFILES = [
-  { id: "worker", icon: "🧰", name: "工薪家庭", detail: "仓库分拣员 · 长租房 · 德语 B2", money: 2100, debt: 1200, health: 78, stress: 25, energy: 76, german: 62, papers: 55, reputation: 35, wage: 420 },
-  { id: "newcomer", icon: "🧳", name: "新移民", detail: "餐馆帮工 · 临时居留 · 德语 A2", money: 1550, debt: 1800, health: 82, stress: 34, energy: 82, german: 28, papers: 20, reputation: 18, wage: 330 },
-  { id: "single", icon: "🛒", name: "单亲家长", detail: "超市兼职 · 一个孩子 · 等待补贴", money: 1350, debt: 950, health: 72, stress: 43, energy: 62, german: 70, papers: 38, reputation: 30, wage: 290 }
+  { id: "resident", icon: "🧍", name: "城市普通居民", detail: "租房 · 基础工作 · 德语 B1 · 一叠未分类的信", money: 1900, debt: 1200, health: 80, stress: 28, energy: 78, german: 46, papers: 35, reputation: 25, wage: 470 }
 ];
 
 const JOBS = [
-  { id: "shift", name: "轮班工作", wage: 420, energy: -24, health: -5, stress: 9, requirement: 0, icon: "🏭" },
-  { id: "delivery", name: "外卖接单", wage: 300, energy: -20, health: -7, stress: 5, requirement: 0, icon: "🚲" },
-  { id: "office", name: "办公室临时工", wage: 510, energy: -18, health: -2, stress: 10, requirement: 55, icon: "🖨️" },
-  { id: "agency", name: "社区翻译", wage: 580, energy: -17, health: -1, stress: 7, requirement: 75, icon: "🗣️" }
+  { id: "shift", name: "轮班工作", wage: 470, energy: -22, health: -4, stress: 6, requirement: 0, icon: "🏭" },
+  { id: "delivery", name: "外卖接单", wage: 340, energy: -20, health: -6, stress: 4, requirement: 0, icon: "🚲" },
+  { id: "office", name: "办公室临时工", wage: 560, energy: -17, health: -2, stress: 7, requirement: 55, icon: "🖨️" },
+  { id: "agency", name: "社区翻译", wage: 640, energy: -16, health: -1, stress: 5, requirement: 75, icon: "🗣️" }
 ];
 
 const GOODS = [
@@ -147,6 +145,54 @@ const BASE_EVENTS = [
   { id:"refund", title:"一次意外顺利的退款", office:"FINANZAMT", text:"税务局主动更正了旧计算，并把钱打进账户。信件只有一页，你反复读了三遍。", choices:[
     { label:"把钱用于还债", effect:{money:240,debt:-240,stress:-7}, result:"债务明显下降，你第一次觉得终点不是虚构的。" },
     { label:"留作紧急备用金", effect:{money:410,stress:-3}, result:"账户数字让你稍微安心，但债务仍在计息。" }
+  ]},
+  { id:"fax", title:"电子签名无效，传真件有效", office:"AMT FÜR DIGITALISIERUNG", text:"你上传了带电子签名的 PDF。负责数字化的部门回复：请打印、签字，再传真回来。", choices:[
+    { label:"去文具店发传真", effect:{money:-18,energy:-7,papers:10,stress:5}, result:"传真成功。确认函将通过平信寄出。" },
+    { label:"把规定打印出来一起寄", effect:{money:-8,energy:-11,papers:13,stress:8}, result:"三周后收到答复：你的信已被扫描成 PDF。" }
+  ]},
+  { id:"termin-for-termin", title:"这个 Termin 只用于预约另一个 Termin", office:"BÜRGERBÜRO", text:"你准时到达窗口，却得知今天的预约只用于身份核验。真正办事需要现场领取新的预约号码。", choices:[
+    { label:"礼貌地领取新号码", effect:{energy:-9,stress:8,papers:7}, result:"新预约在八周后，地点是同一栋楼同一个窗口。" },
+    { label:"问能否今天顺便办完", effect:{energy:-14,stress:12,reputation:-2}, result:"工作人员认真解释了为什么“顺便”不是行政法概念。" }
+  ]},
+  { id:"pfandbon", title:"价值 8.25 欧元的 Pfandbon 消失了", office:"SUPERMARKT", text:"你退了整袋瓶子，机器打印的小票却从口袋里失踪。它突然显得比现金更像现金。", choices:[
+    { label:"沿原路寻找小票", effect:{energy:-7,stress:4,money:8}, result:"你在面包柜旁找到了它，并像保护护照一样攥紧。" },
+    { label:"接受命运，再买一袋饮料", effect:{money:-16,stress:-3}, result:"你获得了新的瓶子，也获得了未来的 Pfand。" }
+  ]},
+  { id:"cash-card", title:"一家店只收现金，隔壁只收卡", office:"EINZELHANDEL", text:"面包店的刷卡机“今天坏了”；旁边的咖啡馆为保持无现金理念拒收你刚取出的 50 欧元。", choices:[
+    { label:"再去找一台 ATM", effect:{money:-6,energy:-5,stress:5}, result:"ATM 收了手续费，面包店又表示不收 50 欧元大钞。" },
+    { label:"今天不消费了", effect:{money:12,health:-2,stress:3}, result:"你省了钱，也错过了午饭。" }
+  ]},
+  { id:"ruhezeit", title:"星期日，你的吸尘器引发了外交危机", office:"HAUSORDNUNG", text:"你下午两点吸尘。楼下邻居立刻按门铃，并带来一份标有 Ruhezeit 的 Hausordnung。", choices:[
+    { label:"立即停止并道歉", effect:{stress:5,reputation:3,energy:-3}, result:"邻居接受道歉，并补充讲解玻璃瓶应该在哪些时段投放。" },
+    { label:"指出规则没禁止吸尘", effect:{stress:9,reputation:-8,papers:4}, result:"第二天公告栏出现了一份专门禁止吸尘的新补充规定。" }
+  ]},
+  { id:"arzt-urlaub", title:"医生正在休假，代班医生也在休假", office:"HAUSARZT", text:"诊所门口贴着代班地址。你赶到代班诊所，门上贴着另一张纸，指向第一家诊所。", choices:[
+    { label:"回家喝茶观察", effect:{health:-5,stress:3,energy:-5}, result:"你完成了一次医疗系统闭环旅行。" },
+    { label:"去急诊排队", effect:{energy:-14,health:8,stress:7}, result:"五小时后医生确认：这确实不是急症。" }
+  ]},
+  { id:"briefankundigung", title:"你收到一封信，通知另一封信将要寄来", office:"VERSICHERUNG", text:"第一页说明正式决定将在单独信件中发送；第二页说明不要就本通知提出异议。", choices:[
+    { label:"建立一个新文件夹保存", effect:{money:-6,papers:8,stress:4}, result:"文件夹标签是：尚未收到但必须保存。" },
+    { label:"先放到那叠信上面", effect:{stress:7,papers:-4}, result:"三周后正式决定到了，但你找不到预告信要求保留的编号。" }
+  ]},
+  { id:"biomuell", title:"你的 Bio 垃圾袋不够 Bio", office:"ABFALLBERATUNG", text:"市政网站推荐可降解垃圾袋，垃圾公司却贴出通知说处理设备无法识别这种袋子。", choices:[
+    { label:"改用报纸包厨余", effect:{energy:-4,papers:3,reputation:4}, result:"报纸写着本市正在推进无纸化。" },
+    { label:"买官方认可的纸袋", effect:{money:-12,stress:3}, result:"纸袋在你走到垃圾房前已经漏了。" }
+  ]},
+  { id:"paketshop", title:"包裹店营业，但负责包裹的人不在", office:"PAKETSHOP", text:"便利店开着，老板也在，但“会操作包裹系统的同事”今天不上班。", choices:[
+    { label:"明天再来", effect:{energy:-5,stress:4}, result:"明天系统维护，后天是周日。" },
+    { label:"现场研究机器", effect:{energy:-9,reputation:5,papers:3}, result:"你帮老板重启了设备，并免费做了十分钟 IT 支持。" }
+  ]},
+  { id:"tuv", title:"TÜV 认为警示灯亮着；车认为没有", office:"TÜV", text:"检测时仪表盘短暂亮灯。复检时灯灭了，但复检需要证明第一次的问题已经维修。", choices:[
+    { label:"请修理厂出具证明", effect:{money:-95,papers:9,stress:4}, result:"修理厂证明他们没有修任何东西，因为东西没有坏。" },
+    { label:"预约再次检测", effect:{money:-42,energy:-8,stress:7}, result:"新预约一个月后。检测员建议你开车时不要让灯再亮。" }
+  ]},
+  { id:"internet", title:"网速问题只能通过在线客服解决", office:"INTERNETANBIETER", text:"网络断了。电话语音要求你登录在线客服；在线客服要求你连接家庭 Wi-Fi 完成线路检测。", choices:[
+    { label:"用手机流量开热点", effect:{money:-24,energy:-8,stress:6}, result:"检测结果显示：你的互联网连接不可用。" },
+    { label:"拔掉路由器等十秒", effect:{energy:-3,stress:-2}, result:"它居然好了。客服随后发来满意度调查。" }
+  ]},
+  { id:"brot", title:"你只是想买面包，却被问了七个问题", office:"BÄCKEREI", text:"全麦、裸麦、混合麦；切片或整条；薄片或厚片；是否需要袋子；现金还是 Girocard。队伍安静地等着你。", choices:[
+    { label:"说：和前面那位一样", effect:{money:-6,stress:-4,reputation:2}, result:"你得到了一种不知道名字但非常可靠的面包。" },
+    { label:"认真逐项选择", effect:{money:-8,energy:-3,german:3}, result:"你完成了本周最顺利的一次行政程序。" }
   ]}
 ];
 
@@ -154,8 +200,8 @@ const ACTIONS = [
   { id:"work", icon:"💼", name:"去上班", sub:"稳定收入 · 消耗身体", run:s=>{const job=JOBS.find(j=>j.id===s.jobId)||JOBS[0]; return {money:job.wage+(s.flags.promotion?70:0),energy:job.energy,health:job.health,stress:job.stress,reputation:3};}},
   { id:"gig", icon:"🚲", name:"接临时零工", sub:"快速赚钱 · 没有保障", run:()=>({money:230,energy:-19,health:-6,stress:7}) },
   { id:"paper", icon:"🏛️", name:"跑手续", sub:"推进档案 · 消耗整天", run:()=>({papers:14,energy:-12,stress:6}) },
-  { id:"learn", icon:"📚", name:"学德语", sub:"解锁好工作 · 费脑", run:()=>({german:9,energy:-13,stress:4,money:-25}) },
-  { id:"rest", icon:"🛋️", name:"在家休息", sub:"恢复健康和精力", run:()=>({energy:23,health:8,stress:-8,money:-18}) },
+  { id:"learn", icon:"📚", name:"学德语", sub:"解锁好工作 · 费脑", run:()=>({german:9,energy:-12,stress:2,money:-25}) },
+  { id:"rest", icon:"🛋️", name:"在家休息", sub:"恢复健康和精力", run:()=>({energy:25,health:8,stress:-10,money:-18}) },
   { id:"drink", icon:"🍺", name:"去酒吧喝酒", sub:"压力大降 · 伤身烧钱", run:()=>({money:-48,stress:-18,health:-7,energy:-3,reputation:4}) },
   { id:"social", icon:"🤝", name:"参加社区活动", sub:"积累人脉 · 小额花费", run:()=>({money:-22,energy:-8,stress:-7,reputation:11,german:3}) },
   { id:"doctor", icon:"🩺", name:"照顾身体", sub:"花钱治疗 · 恢复健康", run:()=>({money:-95,health:18,energy:8,stress:-5}) }
@@ -219,9 +265,9 @@ export default function Home() {
     let nextWeek=state.week+1, nextMonth=state.month, newsIndex=state.newsIndex;
     if(nextWeek>4){
       nextWeek=1; nextMonth+=1; newsIndex+=1;
-      const living=state.profileId==="single"?980:state.profileId==="newcomer"?860:920;
+      const living=780;
       const interest=Math.ceil(next.debt*.035);
-      next=applyEffect(next,{money:-living,debt:interest,stress:next.money<living?12:2,energy:5});
+      next=applyEffect(next,{money:-living,debt:interest,stress:next.money<living?12:1,energy:8});
       log+=`；月末扣除生活费 ${living}€，债务利息 ${interest}€`;
     }
     next={...next,week:nextWeek,month:nextMonth,totalWeek:state.totalWeek+1,newsIndex,journal:[log,...state.journal].slice(0,20)};
@@ -294,14 +340,12 @@ export default function Home() {
     setToast(`${mode==="buy"?"买入":"卖出"} 1 股 ${stock.ticker}，成交价 ${price}€`);
   }
 
-  if(screen==="intro")return <main className="landing v2-intro"><div className="flagline"/><nav><span className="brand">DEUTSCHLAND<br/><b>浮生记</b></span><span className="version">NEUE FASSUNG · V2</span></nav><section className="hero"><div className="kicker">12 MONATE · 48 WOCHEN · KEIN EINFACHER WEG</div><h1>活下去，<br/><em>并且保持体面。</em></h1><p>工作会赚钱，也会磨损身体。喝酒能暂时减压，却要付出健康和现金。学习、交朋友、跑手续、在跳蚤市场低买高卖——每一周都由你决定。</p><div className="loop-preview"><span>行动一周</span><i>→</i><span>承担后果</span><i>→</i><span>熬过月末</span></div><button className="primary" onClick={()=>setScreen("profiles")}>开始十二个月的生活 <span>→</span></button></section><footer><span>每月 4 次行动</span><span>事件牌堆不连续重复</span></footer></main>;
-
-  if(screen==="profiles")return <main className="paper-page"><button className="back" onClick={()=>setScreen("intro")}>← 返回</button><header className="section-head"><small>LEBENSAKTE AUSWÄHLEN</small><h2>你靠什么开始？</h2><p>身份会改变收入、固定支出和专属事件。</p></header><div className="profiles">{PROFILES.map(p=><button className="profile-card" key={p.id} onClick={()=>start(p)}><span className="avatar">{p.icon}</span><span><b>{p.name}</b><small>{p.detail}<br/>现金 {p.money}€ · 债务 {p.debt}€</small></span><i>→</i></button>)}</div></main>;
+  if(screen==="intro")return <main className="landing v2-intro"><div className="flagline"/><nav><span className="brand">DEUTSCHLAND<br/><b>浮生记</b></span><span className="version">NEUE FASSUNG · V3</span></nav><section className="hero"><div className="kicker">12 MONATE · 48 WOCHEN · KEIN EINFACHER WEG</div><h1>活下去，<br/><em>并且保持体面。</em></h1><p>你是一名普通的城市居民：有一份基础工作、一间租来的房子、一笔债务，以及一叠不敢扔的信。以后走哪条路，由每一周的选择决定。</p><div className="starting-file"><span>🧍</span><div><b>城市普通居民</b><small>现金 1900€ · 债务 1200€ · 德语 B1 · 健康尚可</small></div></div><div className="loop-preview"><span>行动一周</span><i>→</i><span>承担后果</span><i>→</i><span>熬过月末</span></div><button className="primary" onClick={()=>start(PROFILES[0])}>领取普通居民档案 <span>→</span></button></section><footer><span>无需职业选择</span><span>人生路线由行动形成</span></footer></main>;
 
   if(screen==="end"){
     const won=state.month>12&&state.health>0&&state.stress<100&&state.money>0;
     const net=Math.round(state.money-state.debt+Object.entries(state.inventory).reduce((sum,[id,q])=>sum+(prices[id]||0)*q,0));
-    return <main className="paper-page end-page"><div className="end-stamp">{won?"年度结算":"生活中断"}</div><h2>{won?"你熬过了一年。":state.health<=0?"身体先撑不住了":state.stress>=100?"压力突破了极限":"账户见底了"}</h2><p>{won?"你没有战胜这个系统，但学会了保存每封信、每张截图和每个 Aktenzeichen。下一局可以尝试另一条生存路线。":"失败并不总来自一次错误选择，更多时候来自许多看似还能承受的小损耗。"}</p><div className="score"><span>净资产<b>{net}€</b></span><span>剩余健康<b>{state.health}</b></span><span>处理事件<b>{state.seen.length}</b></span></div><button className="primary" onClick={()=>setScreen("profiles")}>换个身份再来 <span>↻</span></button></main>;
+    return <main className="paper-page end-page"><div className="end-stamp">{won?"年度结算":"生活中断"}</div><h2>{won?"你熬过了一年。":state.health<=0?"身体先撑不住了":state.stress>=100?"压力突破了极限":"账户见底了"}</h2><p>{won?"你没有战胜这个系统，但学会了保存每封信、每张截图和每个 Aktenzeichen。下一局可以尝试另一条生存路线。":"失败并不总来自一次错误选择，更多时候来自许多看似还能承受的小损耗。"}</p><div className="score"><span>净资产<b>{net}€</b></span><span>剩余健康<b>{state.health}</b></span><span>处理事件<b>{state.seen.length}</b></span></div><button className="primary" onClick={()=>start(PROFILES[0])}>重新开始这一年 <span>↻</span></button></main>;
   }
 
   const totalInventory=Object.values(state.inventory).reduce((a,b)=>a+b,0);
