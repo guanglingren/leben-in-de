@@ -200,7 +200,7 @@ const BASE_EVENTS = [
     { label:"减少工作自己照看", effect:{money:-220,stress:-5,energy:-5}, flag:"kita", result:"雇主同意减少工时，但不保证以后恢复。" },
     { label:"申请紧急名额", effect:{energy:-16,stress:9,papers:18}, flag:"kita", result:"表格要求雇主证明你必须工作；雇主要求幼儿园证明没有名额。" }
   ]},
-  { id:"permit", title:"许可卡在另一张许可上", office:"AUSLÄNDERBEHÖRDE", text:"新合同要外管局批准；外管局要雇主确认职位；雇主则要你先出示有效许可。", when:s=>s.profileId==="newcomer"&&!s.flags.permit, choices:[
+  { id:"permit", title:"学生工作许可卡在另一张许可上", office:"AUSLÄNDERBEHÖRDE", text:"新学生工合同要外管局确认；外管局要雇主确认职位；雇主则要你先出示已经批准的工作许可。", when:s=>s.profileId==="student"&&!s.flags.permit, choices:[
     { label:"反复抄送双方邮件", effect:{energy:-15,stress:11,papers:18}, flag:"permit", result:"第七封邮件后，有人终于把两个附件放进同一份档案。" },
     { label:"申请过渡证明", effect:{money:-80,stress:7,papers:12}, flag:"permit", result:"银行柜员没见过这张证明，需要请示主管。" }
   ]},
@@ -319,6 +319,18 @@ const BASE_EVENTS = [
   { id:"brot", title:"你只是想买面包，却被问了七个问题", office:"BÄCKEREI", text:"全麦、裸麦、混合麦；切片或整条；薄片或厚片；是否需要袋子；现金还是 Girocard。队伍安静地等着你。", choices:[
     { label:"说：和前面那位一样", effect:{money:-6,stress:-4,reputation:2}, result:"你得到了一种不知道名字但非常可靠的面包。" },
     { label:"认真逐项选择", effect:{money:-8,energy:-3,german:3}, result:"你完成了本周最顺利的一次行政程序。" }
+  ]},
+  { id:"permit-followup", title:"学生工作许可终于寄到了", office:"AUSLÄNDERBEHÖRDE", text:"许可批准日期是三周前，信封上的邮戳是昨天。雇主现在又需要你证明当时已经获准工作。", when:s=>s.flags.permit&&!s.flags.permitDone, choices:[
+    { label:"带完整邮件记录去人事部", effect:{money:120,papers:6,stress:-5}, flag:"permitDone", result:"人事终于补发了被暂扣的工资，并把文件归入正确员工档案。" },
+    { label:"先接受下一班工作", effect:{money:210,energy:-8,reputation:5}, flag:"permitDone", result:"手续没有变简单，但至少许可开始真正产生收入。" }
+  ]},
+  { id:"rent-followup", title:"租客协会寄来了房租重新计算结果", office:"MIETERVEREIN", text:"房东所谓的“草案”确实多算了一部分面积。新的计算表用了五页解释旧表为何不成立。", when:s=>s.flags.mieterverein&&!s.flags.rentRefund, choices:[
+    { label:"要求退回多收的租金", effect:{money:180,papers:5,stress:-4}, flag:"rentRefund", result:"退款到账。房东在转账备注里写了“无承认法律义务”。" },
+    { label:"换取未来几个月不涨租", effect:{stress:-8,reputation:6}, flag:"rentRefund", result:"没有立即拿到钱，但接下来每个月的住房支出更稳定了。" }
+  ]},
+  { id:"heating-followup", title:"暖气维修终于来了，但你必须全天在家", office:"HAUSVERWALTUNG", text:"维修时间仍是08:00–18:00。师傅在17:42到达，并问为什么没人早点告诉他故障原因。", when:s=>s.flags.rentFight&&!s.flags.heatingDone, choices:[
+    { label:"请假等维修完成", effect:{money:-70,health:8,stress:-7}, flag:"heatingDone", result:"暖气恢复了。你第一次觉得书面限期也可能产生热量。" },
+    { label:"请室友代为开门", effect:{reputation:8,health:6,energy:5}, flag:"heatingDone", result:"室友帮了忙，你答应下次替他等一个没有具体时段的包裹。" }
   ]}
 ];
 
@@ -444,7 +456,7 @@ function WeeklyMarket({state,lang,prices,onVisit,onTrade}){
     {!chosen?<><p>{lang==="de"?"Wähle diese Woche genau einen Markt. Danach kannst du hier kaufen und verkaufen; erst die Wochenaktion lässt die Preise weiterlaufen.":"本周只能选择一个市场。进入后可以自由买卖；完成下面的本周行动后，价格才会刷新。"}</p><div className="trade-explain">💡 {lang==="de"?"Der Einkaufspreis ist höher als der sofortige Verkaufspreis. Kaufe günstig, warte auf spätere Wochen und verkaufe erst über deinem durchschnittlichen Einstandspreis.":"同一周立刻转卖通常会亏钱：低价进货后，需要推进时间，等未来“本周可卖价”高于你的平均成本再卖出。"}</div><div className="market-places">{MARKETS.map(m=><button key={m.id} onClick={()=>onVisit(m.id)}><i>{m.icon}</i><b>{m.name}</b><small>{m.note}</small></button>)}</div></>:
     <><div className="chosen-market"><span>{chosen.icon}</span><div><small>{lang==="de"?"DIESER MARKT IST FÜR DIESE WOCHE FEST":"本周市场已锁定"}</small><b>{chosen.name}</b></div><em>{lang==="de"?"Neue Auswahl nächste Woche":"下周可重新选择"}</em></div><div className="weekly-goods">{GOODS.filter(g=>chosen.goods.includes(g.id)).map(g=>{
       const qty=state.inventory?.[g.id]||0,totalCost=state.inventoryCost?.[g.id]||0,avg=qty?totalCost/qty:0;
-      const contactDiscount=state.reputation>=75?.08:state.reputation>=50?.04:0;
+      const contactDiscount=(state.reputation>=75?.08:state.reputation>=50?.04:0)+(state.german>=75?.04:state.german>=60?.02:0);
       const buy=Math.max(1,Math.round(prices[g.id]*(1-contactDiscount))),sell=Math.max(1,Math.round(prices[g.id]*.9));
       const old=seededPrice(g,Math.max(0,state.totalWeek-1),NEWS[Math.floor(Math.max(0,state.totalWeek-1)/4)%NEWS.length]);
       const change=buy-old,changePct=old?Math.round(change/old*100):0;
@@ -463,6 +475,13 @@ function TradeLedger({state,lang,prices}){
     <div className="holding-grid">{holdings.length?holdings.map(g=>{const qty=state.inventory[g.id],avg=(state.inventoryCost[g.id]||0)/qty,sell=Math.round(prices[g.id]*.9),profit=Math.round((sell-avg)*qty);return <article key={g.id}><i>{g.icon}</i><div><b>{g.name}</b><small>{qty} 件 · 均价 {Math.round(avg)}€ · 当前卖价 {sell}€</small></div><em className={profit>=0?"profit":"loss"}>{profit>=0?"+":""}{profit}€</em></article>}):<div className="empty">{lang==="de"?"Noch kein Bestand. Wähle unter „Wochenaktion“ zuerst einen Markt.":"目前没有库存。请先在“本周行动”里选择本周市场。"}</div>}</div>
     <div className="trade-history"><div className="subhead"><b>{lang==="de"?"Letzte Geschäfte":"最近成交"}</b><span>{lang==="de"?"Neue Einträge zuerst":"最新在前"}</span></div>{(state.tradeLedger||[]).length?(state.tradeLedger||[]).slice(0,12).map((entry,index)=><p key={index}><span>{entry.mode==="buy"?"买入":"卖出"} {entry.good}<small>{MARKETS.find(m=>m.id===entry.market)?.name||"市场"} · {entry.qty} 件 × {entry.unitPrice}€</small></span><b>{entry.mode==="sell"&&entry.result!==null?`${entry.result>=0?"+":""}${entry.result}€`:`-${entry.qty*entry.unitPrice}€`}</b></p>):<div className="empty">{lang==="de"?"Noch keine Geschäfte.":"还没有成交记录。"}</div>}</div>
   </section>;
+}
+
+function ProgressBenefits({state,lang}){
+  const paperTier=state.papers>=80?"35%":state.papers>=60?"20%":"—";
+  const contactTier=state.reputation>=80?"25%":state.reputation>=60?"10%":"—";
+  const marketTier=(state.reputation>=75?8:state.reputation>=50?4:0)+(state.german>=75?4:state.german>=60?2:0);
+  return <div className="progress-benefits"><span><b>🗂️ {lang==="de"?"Akte":"档案"} {state.papers}</b><small>{lang==="de"?(paperTier==="—"?"Ab 60: weniger Energieverlust":`Energieverlust: −${paperTier}`):`事件精力减损：${paperTier==="—"?"60后解锁":`减少${paperTier}`}`}</small></span><span><b>🤝 {lang==="de"?"Kontakte":"人脉"} {state.reputation}</b><small>{lang==="de"?(contactTier==="—"?"Ab 60: weniger Geldverlust":`Geldverlust: −${contactTier}`):`事件资金减损：${contactTier==="—"?"60后解锁":`减少${contactTier}`}`}</small></span><span><b>🗣️ {lang==="de"?"Deutsch":"德语"} {state.german}</b><small>{lang==="de"?`Marktrabatt: ${marketTier}%`:`当前进货折扣：${marketTier}%`}</small></span></div>;
 }
 
 export default function Home() {
@@ -548,11 +567,13 @@ export default function Home() {
   function drawEvent(current){
     if(current.totalWeek%6===0){
       const opportunities=lang==="de"?DE_OPPORTUNITY_EVENTS:OPPORTUNITY_EVENTS;
-      const unlocked=opportunities.filter(e=>(!e.when||e.when(current))&&!current.seen.slice(-14).includes(e.id));
+      const opportunityUnlocked=e=>e.id==="opp-refund"?current.papers>=50:e.id==="opp-contact"?current.reputation>=45:e.id==="opp-paperwork"?current.papers>=65:e.id==="opp-market"?(current.tradeLedger||[]).filter(item=>item.mode==="sell").length>=2:true;
+      const unlocked=opportunities.filter(e=>opportunityUnlocked(e)&&!current.seen.slice(-14).includes(e.id));
       if(unlocked.length)return unlocked[(current.totalWeek/6-1)%unlocked.length];
     }
     const eventPool=lang==="de"?DE_EVENTS:BASE_EVENTS;
-    const eligible=eventPool.filter(e=>(!e.when||e.when(current))&&!current.seen.slice(-14).includes(e.id));
+    const recentWindow=Math.min(14,Math.max(6,eventPool.length-3));
+    const eligible=eventPool.filter(e=>(!e.when||e.when(current))&&!current.seen.slice(-recentWindow).includes(e.id));
     if(!eligible.length)return null;
     const index=(current.totalWeek*7+Math.round(current.stress)+Math.round(current.money))%eligible.length;
     return eligible[index];
@@ -565,12 +586,18 @@ export default function Home() {
     const actionEffect=action.run(state);
     let next=applyEffect(state,actionEffect);
     next=applyEffect(next,{energy:4});
+    const progressNotes=[];
+    if(action.id==="learn"){
+      if(state.german<50&&next.german>=50){next=applyEffect(next,{stress:-4,papers:3});progressNotes.push("德语达到50：日常沟通更顺，压力降低并补全了一部分档案。");}
+      if(state.german<60&&next.german>=60){next=applyEffect(next,{packs:1,reputation:3});progressNotes.push("德语达到60：获得一份双语材料模板，行政事件与市场议价开始受益。");}
+      if(state.german<75&&next.german>=75){next=applyEffect(next,{stress:-6,reputation:6});progressNotes.push("德语达到75：复杂沟通不再完全依赖运气，社会关系也更稳定。");}
+    }
     let log=lang==="de"?`Monat ${state.month}, Woche ${state.week}: ${deText(action.name)}`:`第 ${state.month} 月第 ${state.week} 周：${action.name}`;
     let nextWeek=state.week+1, nextMonth=state.month, newsIndex=state.newsIndex;
-    let monthSummary="";
+    let monthSummary=progressNotes.join(" ");
     if(nextWeek>4){
       nextWeek=1; nextMonth+=1; newsIndex+=1;
-      const living=780;
+      const living=Math.max(700,780-(next.flags.mieterverein?25:0)-(next.flags.rentFight?15:0)-(next.reputation>=70?20:0));
       const interest=Math.ceil(next.debt*.035);
       next=applyEffect(next,{money:-living,debt:interest,stress:next.money<living?12:1,energy:8});
       log+=`；月末扣除生活费 ${living}€，债务利息 ${interest}€`;
@@ -588,13 +615,15 @@ export default function Home() {
     const riskyGoods=GOODS.filter(g=>g.risk>=30&&(next.inventory?.[g.id]||0)>0);
     if(riskyGoods.length){
       const exposure=riskyGoods.reduce((sum,g)=>sum+g.risk*(next.inventory[g.id]||0),0);
+      const inspectionProtection=(next.papers>=80?8:next.papers>=60?4:0)+(next.german>=75?6:next.german>=60?3:0)+(next.reputation>=80?5:0);
       const inspectionRoll=(next.totalWeek*29+Math.round(next.money)+next.papers*3)%100;
-      if(inspectionRoll<Math.min(42,Math.round(exposure/8))){
+      if(inspectionRoll<Math.max(2,Math.min(42,Math.round(exposure/8)-inspectionProtection))){
         const seized=riskyGoods.reduce((sum,g)=>sum+(next.inventory[g.id]||0),0);
         const inventory={...next.inventory},inventoryCost={...next.inventoryCost};
         riskyGoods.forEach(g=>{inventory[g.id]=0;inventoryCost[g.id]=0;});
-        next=applyEffect({...next,inventory,inventoryCost},{money:-75,stress:14,papers:-6,reputation:-5});
-        monthSummary=`${monthSummary} 平台审核与市场监管同时出现：${seized} 件高风险库存被扣，并收到 75€ 处理费用。`.trim();
+        const fine=Math.max(35,75-(next.german>=75?15:0)-(next.papers>=80?10:0));
+        next=applyEffect({...next,inventory,inventoryCost},{money:-fine,stress:14,papers:-6,reputation:-5});
+        monthSummary=`${monthSummary} 平台审核与市场监管同时出现：${seized} 件高风险库存被扣，并收到 ${fine}€ 处理费用。`.trim();
       }
     }
     if(next.activeVenture&&next.totalWeek>=next.activeVenture.readyWeek){
@@ -619,6 +648,8 @@ export default function Home() {
     if(adjusted.stress>0)adjusted.stress=Math.max(0,adjusted.stress-languageRelief-academicRelief);
     if(adjusted.energy<0&&state.papers>=60)adjusted.energy=Math.round(adjusted.energy*(state.papers>=80?.65:.8));
     if(adjusted.papers>0&&state.papers>=60)adjusted.papers=Math.max(1,Math.round(adjusted.papers*(state.papers>=80?.35:.65)));
+    if(adjusted.money<0&&state.reputation>=60)adjusted.money=Math.round(adjusted.money*(state.reputation>=80?.75:.9));
+    if(adjusted.stress>0&&state.reputation>=80)adjusted.stress=Math.max(0,adjusted.stress-2);
     let next=applyEffect(state,adjusted);
     if(choice.flag)next={...next,flags:{...next.flags,[choice.flag]:true}};
     next={...next,seen:[...next.seen,event.id],journal:[`${event.office}：${event.title}｜${choice.label}`,...next.journal].slice(0,20)};
@@ -652,7 +683,7 @@ export default function Home() {
     const totalCost=state.inventoryCost?.[good.id]||0;
     const avgCost=qty>0?totalCost/qty:0;
     const totalQty=Object.values(state.inventory).reduce((a,b)=>a+b,0);
-    const contactDiscount=state.reputation>=75?.08:state.reputation>=50?.04:0;
+    const contactDiscount=(state.reputation>=75?.08:state.reputation>=50?.04:0)+(state.german>=75?.04:state.german>=60?.02:0);
     const unitPrice=mode==="buy"?Math.max(1,Math.round(prices[good.id]*(1-contactDiscount))):Math.max(1,Math.round(prices[good.id]*.9));
     const reserveLimit=Math.max(0,Math.floor((state.money-200)/unitPrice));
     const amount=mode==="buy"?Math.max(0,Math.min(requested,state.capacity-totalQty,reserveLimit)):Math.max(0,Math.min(requested,qty));
@@ -806,6 +837,7 @@ export default function Home() {
     </div>
 
     <section className="v2-panel">
+      {tab==="actions"&&<ProgressBenefits state={state} lang={lang}/>}
       {tab==="actions"&&<WeeklyMarket state={state} lang={lang} prices={prices} onVisit={visitMarket} onTrade={trade}/>}
       {tab==="market"&&<TradeLedger state={state} lang={lang} prices={prices}/>}
       {tab==="guestbook"&&<><div className="panel-title"><div><small>GÄSTEBUCH</small><h2>{lang==="de"?"Gästebuch":"访客留言板"}</h2></div><span>👁 {visitCount===null?"—":visitCount} {lang==="de"?"Besuche":"次访问"}</span></div>
