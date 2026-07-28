@@ -42,7 +42,8 @@ footer{display:flex;justify-content:space-between;padding:16px 24px;font-size:9p
 .version{font-size:9px;letter-spacing:.12em;color:var(--red);border:1px solid var(--red);padding:6px 8px;transform:rotate(2deg)}
 .v2-intro .hero{padding-top:38px}.v2-intro .hero h1{font-size:47px}.loop-preview{display:flex;align-items:center;justify-content:space-between;border-block:1px solid var(--line);padding:15px 4px;margin:24px 0;font-size:10px;font-weight:700}.loop-preview i{color:var(--red);font-style:normal}
 .starting-file{display:flex;gap:12px;align-items:center;background:#fff9;border:1px solid var(--line);border-left:4px solid var(--red);padding:12px;margin:20px 0}.starting-file>span{font-size:25px}.starting-file b,.starting-file small{display:block}.starting-file b{font:700 14px "Noto Serif SC"}.starting-file small{font-size:8px;color:var(--muted);margin-top:4px}
-.v2-game{max-width:520px;min-height:100svh;margin:auto;background:#ded9cd;box-shadow:0 0 60px #0002;padding-bottom:28px;overflow-x:hidden}
+.v2-game{max-width:520px;min-height:100svh;margin:auto;background:#ded9cd;box-shadow:0 0 60px #0002;padding-bottom:28px;overflow-x:clip}
+.sticky-status{position:sticky;top:0;z-index:15;box-shadow:0 7px 16px #17201d2b}
 .v2-head{height:78px;background:var(--ink);border-top:5px solid var(--yellow);color:white;display:flex;align-items:center;justify-content:space-between;padding:14px 18px}.v2-head small,.v2-head b{display:block}.v2-head small{font-size:8px;letter-spacing:.13em;color:#b8c0bc}.v2-head b{font:700 18px "Noto Serif SC";margin-top:5px}.deadline{text-align:right}.deadline b{font:800 15px "Noto Sans SC"}
 .v2-stats{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid #bbb5a8;background:#bbb5a8;gap:1px}.v2-stat{background:#f2efe7;padding:9px 8px;min-width:0}.v2-stat>span,.v2-stat>b{display:block}.v2-stat>span{font-size:8px;color:var(--muted)}.v2-stat>b{font-size:11px;margin-top:3px}.v2-stat>i{height:3px;background:#d3cec3;display:block;margin-top:6px}.v2-stat>i em{height:100%;display:block;background:#52775a}.v2-stat>i em.danger{background:var(--red)}
 .ticker{min-height:48px;background:#f1e4b7;border-bottom:1px solid #bdb6a8;display:flex;gap:10px;padding:10px 17px;align-items:center}.ticker b{font-size:8px;background:var(--yellow);padding:5px 6px;white-space:nowrap}.ticker span{font-size:9px;line-height:1.5}
@@ -118,7 +119,7 @@ footer{display:flex;justify-content:space-between;padding:16px 24px;font-size:9p
 /* Desktop edition — same game state, a wider information dashboard */
 @media (min-width:800px){
   body{padding:24px;background:linear-gradient(135deg,#dfdbd1,#eeeae2)}
-  .v2-game{width:min(1180px,calc(100vw - 48px));max-width:none;min-height:calc(100vh - 48px);border-radius:4px;overflow:hidden}
+  .v2-game{width:min(1180px,calc(100vw - 48px));max-width:none;min-height:calc(100vh - 48px);border-radius:4px;overflow:clip}
   .v2-head{height:92px;padding:18px 30px}.v2-head b{font-size:25px}.deadline b{font-size:21px}
   .v2-stats{grid-template-columns:repeat(4,1fr)}.v2-stat{padding:13px 18px}.v2-stat>span{font-size:11px}.v2-stat>b{font-size:18px}.v2-stat>i{height:5px}
   .ability-stats{grid-template-columns:repeat(6,1fr);overflow:visible}.ability-stats>div{padding:12px 18px}.ability-stats span{font-size:11px}.ability-stats b{font-size:19px}.ability-stats small{font-size:10px}
