@@ -189,6 +189,30 @@ footer{display:flex;justify-content:space-between;padding:16px 24px;font-size:9p
   .current-period em{font-size:8px}.header-weeks i{width:20px;height:13px;font-size:8px}
 }
 
+/* Desktop readability — larger type without restoring oversized navigation */
+@media (min-width:800px){
+  .sticky-status .v2-head small{font-size:11px}.sticky-status .v2-head b{font-size:23px}.current-period em{font-size:10px}
+  .sticky-status .deadline small{font-size:10px}.sticky-status .deadline b{font-size:20px}
+  .sticky-status .v2-stat>span{font-size:11px}.sticky-status .v2-stat>b{font-size:18px}
+  .sticky-status .ability-stats span{font-size:11px}.sticky-status .ability-stats b{font-size:18px}.sticky-status .ability-stats small{font-size:10px}
+  .academic-strip b,.academic-strip span{font-size:10px}.academic-strip small{font-size:9px}
+  .sticky-status .ticker b{font-size:10px}.sticky-status .ticker span{font-size:12px}
+  .sticky-status .time-rule b,.sticky-status .time-rule span{font-size:10px}
+  .sticky-status .tabs button{font-size:13px}
+  .panel-title small,.panel-title>span{font-size:12px}.panel-title h2{font-size:38px}
+  .current-job small{font-size:11px}.current-job b{font-size:17px}.current-job strong,.current-job button{font-size:14px}
+  .stat-guide b{font-size:14px}.stat-guide p{font-size:13px}
+  .action-grid b{font-size:16px}.action-grid small{font-size:12px}.action-grid button>em{font-size:10px}
+  .effect-badges strong,.effect-badges span{font-size:10px!important}
+  .month-cost b{font-size:13px}.month-cost span,.market-tip,.career-help{font-size:13px}
+  .subhead>b{font-size:15px}.subhead>span{font-size:12px}
+  .venture-goods b,.channel-row b{font-size:13px}.venture-goods small,.channel-row small,.venture-goods em{font-size:11px}
+  .capital-box b,.capital-box>button,.active-venture>button{font-size:13px}.capital-box>small,.cost-preview span,.active-venture div small,.active-venture>span{font-size:11px}
+  .venture-ledger p span,.venture-ledger p>b,.venture-ledger em{font-size:11px}.venture-ledger p small{font-size:9px}
+  .jobs b{font-size:16px}.jobs small,.jobs em,.debt-box small,.debt-box p,.debt-box button{font-size:12px}
+  .journal p{font-size:13px}
+}
+
 /* Student journey cinematics */
 .cinematic{width:min(760px,100%);min-height:100svh;margin:auto;background:#e9e5dc;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 0 70px #0003}
 .cinematic section{padding:34px 25px 30px}.cinematic section>small{font-size:10px;letter-spacing:.18em;color:var(--red);font-weight:900}.cinematic h1{font:900 clamp(42px,11vw,72px)/1.08 "Noto Serif SC";margin:12px 0 20px;letter-spacing:-.04em}.cinematic section>p{font-size:14px;line-height:1.8;color:#4d544f;max-width:620px}.cinematic .primary{margin-top:24px}
