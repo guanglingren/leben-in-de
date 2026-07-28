@@ -129,6 +129,32 @@ const DE_NEWS = [
   "Die Semesterferien beginnen. Der Campus wird leerer, viele ziehen aus."
 ];
 
+const OPPORTUNITY_EVENTS = [
+  {id:"opp-refund",office:"GUTE NACHRICHT",title:"之前整理的材料终于帮你追回了一笔钱",text:"那份几乎被你忘记的退款申请突然获批。看来 Aktenzeichen 偶尔也会通向钱。",choices:[
+    {label:"直接存下来准备还债",effect:{money:170,debt:-80,stress:-5},result:"一部分直接抵扣债务，剩下的钱让账户终于有了一点缓冲。"},
+    {label:"拿去补齐学习和生活用品",effect:{money:80,study:8,health:5},result:"打印纸、教材和一顿正常的饭，比冲动消费更像一种胜利。"}
+  ]},
+  {id:"opp-contact",office:"NETZWERK",title:"之前认识的同学给你介绍了一个短期机会",text:"这次不需要重新填写十页申请表，因为有人愿意把你的名字直接转给负责人。",choices:[
+    {label:"接下有报酬的校园任务",effect:{money:220,energy:-6,reputation:6,study:3},result:"工作不轻松，但第一次有人因为认识你而省略了“请走正式流程”。"},
+    {label:"换成教授的推荐与辅导",effect:{study:12,german:4,reputation:8,stress:-3},result:"没有即时收入，但下一次学业检查突然没那么可怕了。"}
+  ]},
+  {id:"opp-paperwork",office:"AKTE VOLLSTÄNDIG",title:"柜台发现你的材料居然一次齐全",text:"工作人员翻了两遍，最后承认没有缺少任何附件。隔壁窗口甚至过来看了一眼。",choices:[
+    {label:"顺便把另一件事一起办了",effect:{papers:5,packs:1,energy:6,stress:-8},result:"两个事项在同一天完成。你怀疑这可能违反某条自然规律。"},
+    {label:"见好就收，早点回家",effect:{energy:15,health:5,stress:-10},result:"你在天黑之前离开了政府大楼，并拥有了一个完整的下午。"}
+  ]},
+  {id:"opp-market",office:"KLEINANZEIGEN",title:"你记住的价格区间终于派上用场",text:"有人急着搬家，愿意低价处理一批状态不错的东西；你恰好知道正常价格。",choices:[
+    {label:"转手赚一笔稳妥差价",effect:{money:190,reputation:4,energy:-5},result:"没有暴富，但这笔利润来自判断，而不是自动抽奖。"},
+    {label:"留一部分自用并帮助新生",effect:{money:70,reputation:12,health:4,stress:-5},result:"你少赚了一点，却成了别人通讯录里“可能知道怎么办”的那个人。"}
+  ]}
+];
+
+const DE_OPPORTUNITY_EVENTS = OPPORTUNITY_EVENTS.map((event,index)=>[
+  {title:"Deine alten Unterlagen bringen endlich eine Erstattung",text:"Ein fast vergessener Antrag wurde bewilligt.",choices:[["Für die Schulden zurücklegen","Ein Teil wird verrechnet, der Rest schafft etwas Luft."],["Für Studium und Alltag verwenden","Papier, Bücher und eine richtige Mahlzeit fühlen sich wie ein Sieg an."]]},
+  {title:"Ein Kontakt vermittelt dir eine kurzfristige Chance",text:"Diesmal landet dein Name ohne zehnseitige Bewerbung direkt bei der zuständigen Person.",choices:[["Bezahlte Aufgabe annehmen","Zum ersten Mal spart ein Kontakt dir den offiziellen Umweg."],["Empfehlung und Tutorium wählen","Kein schnelles Geld, aber die Studienkontrolle wirkt weniger bedrohlich."]]},
+  {title:"Am Schalter ist deine Akte tatsächlich vollständig",text:"Die Unterlagen werden zweimal geprüft. Es fehlt wirklich nichts.",choices:[["Noch eine Sache gleich miterledigen","Zwei Vorgänge an einem Tag – fast ein Verstoß gegen Naturgesetze."],["Rechtzeitig nach Hause gehen","Du verlässt das Amt noch vor Einbruch der Dunkelheit."]]},
+  {title:"Dein Preisgefühl zahlt sich aus",text:"Jemand zieht eilig um und verkauft gute Sachen günstig. Du kennst den üblichen Preis.",choices:[["Mit sicherem Aufschlag weiterverkaufen","Kein Reichtum, aber Gewinn durch eine eigene Entscheidung."],["Etwas behalten und Neuen helfen","Weniger Gewinn, dafür wirst du zur hilfreichen Person im Adressbuch."]]}
+][index]).map((copy,index)=>({...OPPORTUNITY_EVENTS[index],title:copy.title,text:copy.text,choices:OPPORTUNITY_EVENTS[index].choices.map((choice,i)=>({...choice,label:copy.choices[i][0],result:copy.choices[i][1]}))}));
+
 const BASE_EVENTS = [
   { id:"seminar", title:"研讨课分组名单里没有你的名字", office:"UNIVERSITÄT", text:"教授说名单由考试办公室导入，考试办公室说课程平台才是正式名单，课程平台显示你已成功注册。", choices:[
     { label:"带着三张截图去找教授", effect:{energy:-8,stress:5,study:8,papers:5}, result:"教授手写把你加进名单，并提醒手写名单不具备系统效力。" },
@@ -418,7 +444,8 @@ function WeeklyMarket({state,lang,prices,onVisit,onTrade}){
     {!chosen?<><p>{lang==="de"?"Wähle diese Woche genau einen Markt. Danach kannst du hier kaufen und verkaufen; erst die Wochenaktion lässt die Preise weiterlaufen.":"本周只能选择一个市场。进入后可以自由买卖；完成下面的本周行动后，价格才会刷新。"}</p><div className="trade-explain">💡 {lang==="de"?"Der Einkaufspreis ist höher als der sofortige Verkaufspreis. Kaufe günstig, warte auf spätere Wochen und verkaufe erst über deinem durchschnittlichen Einstandspreis.":"同一周立刻转卖通常会亏钱：低价进货后，需要推进时间，等未来“本周可卖价”高于你的平均成本再卖出。"}</div><div className="market-places">{MARKETS.map(m=><button key={m.id} onClick={()=>onVisit(m.id)}><i>{m.icon}</i><b>{m.name}</b><small>{m.note}</small></button>)}</div></>:
     <><div className="chosen-market"><span>{chosen.icon}</span><div><small>{lang==="de"?"DIESER MARKT IST FÜR DIESE WOCHE FEST":"本周市场已锁定"}</small><b>{chosen.name}</b></div><em>{lang==="de"?"Neue Auswahl nächste Woche":"下周可重新选择"}</em></div><div className="weekly-goods">{GOODS.filter(g=>chosen.goods.includes(g.id)).map(g=>{
       const qty=state.inventory?.[g.id]||0,totalCost=state.inventoryCost?.[g.id]||0,avg=qty?totalCost/qty:0;
-      const buy=prices[g.id],sell=Math.max(1,Math.round(buy*.9));
+      const contactDiscount=state.reputation>=75?.08:state.reputation>=50?.04:0;
+      const buy=Math.max(1,Math.round(prices[g.id]*(1-contactDiscount))),sell=Math.max(1,Math.round(prices[g.id]*.9));
       const old=seededPrice(g,Math.max(0,state.totalWeek-1),NEWS[Math.floor(Math.max(0,state.totalWeek-1)/4)%NEWS.length]);
       const change=buy-old,changePct=old?Math.round(change/old*100):0;
       const direction=change>0?"↑":change<0?"↓":"→";
@@ -519,6 +546,11 @@ export default function Home() {
   }
 
   function drawEvent(current){
+    if(current.totalWeek%6===0){
+      const opportunities=lang==="de"?DE_OPPORTUNITY_EVENTS:OPPORTUNITY_EVENTS;
+      const unlocked=opportunities.filter(e=>(!e.when||e.when(current))&&!current.seen.slice(-14).includes(e.id));
+      if(unlocked.length)return unlocked[(current.totalWeek/6-1)%unlocked.length];
+    }
     const eventPool=lang==="de"?DE_EVENTS:BASE_EVENTS;
     const eligible=eventPool.filter(e=>(!e.when||e.when(current))&&!current.seen.slice(-14).includes(e.id));
     if(!eligible.length)return null;
@@ -585,6 +617,8 @@ export default function Home() {
     const academicRelief=academicOffice?(state.study>=75?4:state.study>=60?2:0):0;
     const adjusted={...choice.effect};
     if(adjusted.stress>0)adjusted.stress=Math.max(0,adjusted.stress-languageRelief-academicRelief);
+    if(adjusted.energy<0&&state.papers>=60)adjusted.energy=Math.round(adjusted.energy*(state.papers>=80?.65:.8));
+    if(adjusted.papers>0&&state.papers>=60)adjusted.papers=Math.max(1,Math.round(adjusted.papers*(state.papers>=80?.35:.65)));
     let next=applyEffect(state,adjusted);
     if(choice.flag)next={...next,flags:{...next.flags,[choice.flag]:true}};
     next={...next,seen:[...next.seen,event.id],journal:[`${event.office}：${event.title}｜${choice.label}`,...next.journal].slice(0,20)};
@@ -618,7 +652,8 @@ export default function Home() {
     const totalCost=state.inventoryCost?.[good.id]||0;
     const avgCost=qty>0?totalCost/qty:0;
     const totalQty=Object.values(state.inventory).reduce((a,b)=>a+b,0);
-    const unitPrice=mode==="buy"?prices[good.id]:Math.max(1,Math.round(prices[good.id]*.9));
+    const contactDiscount=state.reputation>=75?.08:state.reputation>=50?.04:0;
+    const unitPrice=mode==="buy"?Math.max(1,Math.round(prices[good.id]*(1-contactDiscount))):Math.max(1,Math.round(prices[good.id]*.9));
     const reserveLimit=Math.max(0,Math.floor((state.money-200)/unitPrice));
     const amount=mode==="buy"?Math.max(0,Math.min(requested,state.capacity-totalQty,reserveLimit)):Math.max(0,Math.min(requested,qty));
     if(mode==="buy"&&amount<1){setToast(totalQty>=state.capacity?"储物空间满了。":"至少要留下 200€ 生活备用金。");return;}
@@ -735,9 +770,16 @@ export default function Home() {
   if(screen==="arrival")return <Localize lang={lang}><main className="cinematic arrival-scene"><div className="sky"><span className="cloud c1">☁</span><span className="cloud c2">☁</span><span className="flying-plane">✈</span><div className="germany-line"><i/><i/><i/></div></div><section><small>ANKUNFT · WOCHE 1</small><h1>Willkommen<br/>in Deutschland</h1><p>{lang==="de"?"Das Flugzeug ist gelandet. Das Gepäckband steht noch still, aber Universität, Krankenkasse und Bürgeramt haben dir bereits geschrieben.":"飞机落地。行李转盘还没动，你已经收到大学、保险公司和市政厅的三封邮件。"}</p><button className="primary" onClick={()=>setScreen("game")}>{lang==="de"?"Leben in Deutschland beginnen":"开始德国生活"} <span>→</span></button></section></main></Localize>;
 
   if(screen==="end"){
-    const won=state.month>12&&state.health>0&&state.stress<100&&state.money>0;
+    const survived=state.month>12&&state.health>0&&state.stress<100&&state.money>0;
+    const excellent=survived&&state.study>=85&&state.debt<=0&&state.health>=45&&state.stress<=70;
+    const stable=survived&&state.study>=65&&state.debt<=600;
+    const outcome=excellent?"excellent":stable?"stable":survived?"probation":"failed";
+    const endingTitle=outcome==="excellent"?"Angekommen?":outcome==="stable"?"Das Leben geht weiter":outcome==="probation"?"Auf Bewährung":"Tschüss Deutschland";
     const net=Math.round(state.money-state.debt+Object.entries(state.inventory).reduce((sum,[id,q])=>sum+(prices[id]||0)*q,0));
-    return <Localize lang={lang}><main className={`cinematic departure-scene ${won?"continue":"farewell"}`}><div className="departure-sky"><div className="city-silhouette">▥ ▥ ▰ ▥ ▰ ▥</div><span className="departure-plane">✈</span></div><section><small>{won?"48 WOCHEN GESCHAFFT":"ABFLUG"}</small><h1>{won?"Das Leben geht weiter":"Tschüss Deutschland"}</h1><p>{lang==="de"?(won?"Du hast 48 Wochen geschafft. Das Studium ist nicht vorbei und der Briefkasten wird nie leer, aber Deutschland ist nun ein Teil deines Weges.":state.health<=0?"Dein Körper konnte nicht mehr.":state.stress>=100?"Der Stress hat die Grenze überschritten.":"Das Konto ist leer. Dein Leben in Deutschland endet vorerst hier."):(won?"你坚持了 48 周。课程还没有结束，信箱也不会清空，但德国生活已经从陌生的规则变成了你继续前行的一部分。":state.health<=0?"身体先撑不住了。":state.stress>=100?"压力突破了极限。":"账户见底，留德生活暂时在这里结束。")}</p><div className="score"><span>{lang==="de"?"Nettovermögen":"净资产"}<b>{net}€</b></span><span>{lang==="de"?"Studium":"学业进度"}<b>{state.study}</b></span><span>{lang==="de"?"Ereignisse":"处理事件"}<b>{state.seen.length}</b></span></div><button className="primary" onClick={()=>start(PROFILES[0])}>{lang==="de"?"Noch einmal einsteigen":"重新登机"} <span>↻</span></button></section></main></Localize>;
+    const endingText=lang==="de"
+      ?outcome==="excellent"?"Studium im Plan, schuldenfrei und trotzdem liegt schon der nächste Behördenbrief im Kasten. Angekommen ist vielleicht kein Zustand, sondern eine fortlaufende Akte.":outcome==="stable"?"Du hast 48 Wochen geschafft, den Studienanschluss gehalten und die Schulden unter Kontrolle gebracht. Das Leben geht weiter.":outcome==="probation"?`Du hast überlebt, aber ${state.study<65?"dein Studienfortschritt reicht nicht":"deine Schulden sind noch zu hoch"}. Deutschland gibt dir keine Niederlage, sondern eine weitere Frist.`:state.health<=0?"Dein Körper konnte nicht mehr.":state.stress>=100?"Der Stress hat die Grenze überschritten.":"Das Konto ist leer. Dein Leben in Deutschland endet vorerst hier."
+      :outcome==="excellent"?"学业达标、债务清零，信箱里却已经躺着下一封政府来信。所谓安顿下来，也许只是学会继续处理下一份档案。":outcome==="stable"?"你坚持了48周，守住了学业，也把债务控制在可承受范围内。Das Leben geht weiter。":outcome==="probation"?`你活过了48周，但${state.study<65?"学业进度尚未达到续注册要求":"债务仍然过高"}。德国没有立即让你离开，只给了你下一份限期整改通知。`:state.health<=0?"身体先撑不住了。":state.stress>=100?"压力突破了极限。":"账户见底，留德生活暂时在这里结束。";
+    return <Localize lang={lang}><main className={`cinematic departure-scene ${outcome==="excellent"||outcome==="stable"?"continue":"farewell"}`}><div className="departure-sky"><div className="city-silhouette">▥ ▥ ▰ ▥ ▰ ▥</div><span className="departure-plane">✈</span></div><section><small>{survived?"48 WOCHEN GESCHAFFT":"ABFLUG"}</small><h1>{endingTitle}</h1><p>{endingText}</p><div className="score"><span>{lang==="de"?"Nettovermögen":"净资产"}<b>{net}€</b></span><span>{lang==="de"?"Studium":"学业进度"}<b>{state.study}</b></span><span>{lang==="de"?"Schulden":"剩余债务"}<b>{Math.round(state.debt)}€</b></span></div><button className="primary" onClick={()=>start(PROFILES[0])}>{lang==="de"?"Noch einmal einsteigen":"重新登机"} <span>↻</span></button></section></main></Localize>;
   }
 
   const totalInventory=Object.values(state.inventory).reduce((a,b)=>a+b,0);
@@ -757,7 +799,7 @@ export default function Home() {
       <div title="在官僚事件中消耗一份，可显著降低损失"><span>📦 材料包</span><b>{state.packs}</b><small>事件减损</small></div>
       <div title="代表课程、作业与考试的总体进展"><span>🎓 学业</span><b>{state.study}</b><small>课程进度</small></div>
     </section>
-    <div className="academic-strip"><b>🎓 学业检查</b><span>第16周需 40 · 第32周需 65 · 期末建议 85</span><small>达到60解锁 HiWi，并降低大学事件压力</small><em>👁 {visitCount===null?"—":visitCount}</em></div>
+    <div className="academic-strip"><b>🎯 {lang==="de"?"Ziele für 48 Wochen":"48周目标"}</b><span>{lang==="de"?"Studium mindestens 65 · Schulden höchstens 600 €":"学业至少 65 · 债务降至 600€ 以下"}</span><small>{lang==="de"?"Studium 85 + schuldenfrei: bestes Ende; Akte 60 spart Energie, Kontakte 50 senken Einkaufspreise":"学业85＋债务清零可达成更好结局；档案60减少事件耗能，人脉50降低进货价"}</small><em>🎓 {state.study}/65 · 🏦 {Math.round(state.debt)}/600€</em></div>
     <div className="ticker"><b>本周消息</b><span>{lang==="de"?DE_NEWS[state.newsIndex]:news.text}</span></div>
     <div className="time-rule"><b>时间规则</b><span>⏳ 本周行动＝推进 1 周</span><span>{lang==="de"?"○ Ein Marktbesuch sowie Kauf, Verkauf und Jobwechsel kosten keine Zeit":"○ 每周访问一个市场；买卖与换职业不额外耗时"}</span></div>
     <nav className="tabs">{[["actions","本周行动"],["market","副业账本"],["career","职业设定"],["journal","记录"],["guestbook","留言板"]].map(([id,label])=><button className={tab===id?"active":""} key={id} onClick={()=>setTab(id)}>{label}</button>)}</nav>
