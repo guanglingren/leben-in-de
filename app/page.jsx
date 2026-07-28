@@ -94,24 +94,24 @@ const STOCKS = [
 ];
 
 const NEWS = [
-  { text: "铁路工会宣布预警罢工，自行车需求上升。", mods: { bike: 1.55, ticket: .8 } },
-  { text: "本周寒潮来袭，物业热线进入忙音状态。", mods: { heater: 1.7 } },
-  { text: "大学新学期开始，大量 WG 正在添置家具。", mods: { furniture: 1.6, printer: 1.2 } },
-  { text: "市政府宣布更多服务转为线上办理。", mods: { phone: 1.45, printer: 1.25 } },
-  { text: "全城跳蚤市场周末开张，二手货供应增加。", mods: { bike: .72, furniture: .68, phone: .82 } },
-  { text: "交通票价调整传闻四起，官方表示暂无信息。", mods: { ticket: 1.5 } },
-  { text: "能源价格短暂回落，大家开始清理储藏室。", mods: { heater: .68 } },
-  { text: "打印服务系统维护一周，纸质材料重新受到重视。", mods: { printer: 1.65 } }
+  { text:"新学期开学，大批新生正在购买教材和 WG 生活用品。",mods:{},ventureMods:{books:1.28,wgkit:1.25,printerset:1.16,moving:1.14} },
+  { text:"考试季临近，图书馆座位和打印店同时告急。",mods:{},ventureMods:{books:1.3,printerset:1.32,lunchbox:1.1} },
+  { text:"学生宿舍集中换房，搬家纸箱和廉价厨具需求上涨。",mods:{},ventureMods:{moving:1.34,wgkit:1.3} },
+  { text:"周末大型跳蚤市场开张，二手商品供应突然增加。",mods:{},ventureMods:{phones:.86,shoes:.88,moving:.9,wgkit:.92} },
+  { text:"校园国际文化节即将举行，餐食和运动用品更受欢迎。",mods:{},ventureMods:{lunchbox:1.32,shoes:1.16} },
+  { text:"市政府将更多手续转到线上，旧手机和打印设备需求上升。",mods:{},ventureMods:{phones:1.26,printerset:1.2} },
+  { text:"消费者中心警告假货和破解设备，平台开始集中清查。",mods:{},ventureMods:{shoes:.62,sticks:.58} },
+  { text:"假期开始，校园人流下降，毕业生正在集中清理家具。",mods:{},ventureMods:{books:.76,lunchbox:.78,moving:1.16,wgkit:.88} }
 ];
 const DE_NEWS = [
-  "Die Bahn kündigt einen Warnstreik an. Fahrräder sind plötzlich gefragt.",
-  "Eine Kältewelle trifft die Stadt. Die Hausverwaltung ist dauerhaft besetzt.",
-  "Das neue Semester beginnt. Viele WGs suchen Möbel.",
-  "Die Stadt verlagert weitere Dienste ins Internet.",
-  "Am Wochenende öffnet der große Flohmarkt. Mehr Gebrauchtwaren kommen auf den Markt.",
-  "Gerüchte über neue Fahrpreise machen die Runde. Offiziell ist nichts bekannt.",
-  "Die Energiepreise sinken kurz. Viele räumen ihre Keller aus.",
-  "Der Druckservice wird eine Woche gewartet. Papier ist wieder unverzichtbar."
+  "Semesterstart: Neue Studierende suchen Lehrbücher und WG-Ausstattung.",
+  "Die Prüfungsphase naht. Bibliothek und Copyshops sind überfüllt.",
+  "Viele Wohnheimzimmer wechseln. Umzugskartons und günstige Küchensachen sind gefragt.",
+  "Der große Flohmarkt öffnet. Das Angebot an Gebrauchtwaren steigt plötzlich.",
+  "Das internationale Campusfest steht an. Essen und Sportsachen sind gefragt.",
+  "Mehr Behördengänge werden digital. Alte Handys und Drucker sind gefragt.",
+  "Die Verbraucherzentrale warnt vor Fälschungen und manipulierten Geräten.",
+  "Die Semesterferien beginnen. Der Campus wird leerer, viele ziehen aus."
 ];
 
 const BASE_EVENTS = [
@@ -326,7 +326,7 @@ const DE_UI = {
   "设定本职工作":"Nebenjob festlegen","当前语言工资加成":"Sprachbonus beim Lohn","当前事件减压":"Stressbonus bei Ereignissen","基础周薪":"Grundlohn/Woche","精力":"Energie","健康":"Gesundheit","德语":"Deutsch","档案":"Akte","当前本职":"Aktueller Job","设为本职":"Als Job wählen","未解锁":"Gesperrt","私人债务":"Private Schulden","偿还最多 250€":"Bis zu 250 € tilgen","生活记录":"Lebensverlauf","个事件":" Ereignisse","行政事务":"Behördenangelegenheit","这周具体跑什么手续？":"Welche Behördensache erledigst du?","先不跑手续":"Doch nicht","随机事项":"Zufälliges Ereignis","📦 提交完整材料包快速处理":"📦 Vollständige Unterlagen einreichen","周结算":"Wochenabschluss","时间已经推进":"Die Zeit ist vergangen","这一周结束了":"Die Woche ist vorbei","进入新的一周":"In die nächste Woche","经营结算":"Handelsabschluss","完成结算":"Abschluss beenden","处理结果":"Ergebnis","资金":"Geld","材料包":"Unterlagen","学业":"Studium","人脉":"Kontakte","压力":"Stress"
   ,"低于 18 不能工作或接零工；":"Unter 18 kannst du weder arbeiten noch jobben; ","达到 45 可能出现稳定岗位；":"ab 45 kann eine Beförderung erscheinen; ","与德语共同解锁职业；":"schaltet zusammen mit Deutsch Jobs frei; ","可在官僚事件中抵消约 55% 的主要损失。":"reduziert bei Behördenereignissen den Hauptschaden um etwa 55%.","部分方案涉及资金":"einige Optionen betreffen Geld",
   "第 4 周行动结束后进入下个月，并扣除生活费 780€、增加债务利息 3.5%。随机事件发生在已经消耗的这一周内，不会额外再走一周。":"Nach Woche 4 beginnt ein neuer Monat: 780 € Lebenshaltungskosten und 3,5 % Schuldzinsen. Ereignisse verbrauchen keine zusätzliche Woche.","先买入或开一个经营批次，再用“本周行动”推进时间。价格和经营结果会随着周数变化。":"Kaufe Waren oder starte ein Projekt und lass dann mit einer Wochenaktion Zeit vergehen. Preise und Ergebnisse ändern sich wöchentlich.","预期毛利":"Erwartete Marge","风险":"Risiko","客流大、价格好，但平台留痕完整。":"Viele Kunden und gute Preise, aber eine vollständige digitale Spur.","要交摊位费、消耗体力，现金交易更灵活。":"Standgebühr und körperliche Arbeit, dafür flexiblere Barzahlung.","开始批次不耗时间，但资金会立刻锁定；至少推进一周后才能结算。":"Der Start kostet keine Zeit, bindet aber sofort Kapital. Abschluss frühestens nach einer Woche.","换职业不消耗时间。德语不仅解锁职业：超过 40 后，每点德语为本职周薪增加 2€，最多加 80€；德语 60/75 还会分别减少事件压力 2/4 点。":"Ein Jobwechsel kostet keine Zeit. Deutsch schaltet Jobs frei und erhöht ab 40 den Wochenlohn um 2 € pro Punkt, maximal 80 €. Mit 60/75 Deutsch sinkt Ereignisstress um 2/4.","每月增长 3.5%。还清后，你才真正拥有选择。":"Wächst monatlich um 3,5 %. Erst ohne Schulden hast du echte Wahlfreiheit.","你的档案目前还很薄。系统会设法改变这一点。":"Deine Akte ist noch dünn. Das System wird das ändern.","本次主要损失降低约 55%":"Der Hauptschaden sinkt um etwa 55%","已经用掉一周":" hat bereits eine Woche verbraucht","新的市场价格和生活状态已经更新。":"Preise und Lebenswerte wurden aktualisiert.",
-  "买货和结算不额外耗时":"Einkauf und Abschluss kosten keine zusätzliche Zeit","参加辅导课和学习小组":"Tutorium und Lerngruppe","推进学业 · 练德语 · 认识同学":"Studium · Deutsch · neue Kontakte","参加大学体育课":"Am Hochschulsport teilnehmen","恢复健康 · 减轻压力 · 消耗精力":"Gesundheit · weniger Stress · kostet Energie","在 WG 集体做饭":"Gemeinsam in der WG kochen","省生活费 · 恢复健康 · 增进室友情":"günstig · gesund · gut für die WG","WG 厨房入门包":"WG-Küchenstarterpaket","二手打印机加墨盒":"Gebrauchter Drucker mit Patronen","搬家纸箱与小家具":"Umzugskartons und Kleinmöbel","校园自制饭盒":"Hausgemachtes Campusessen","选择商品、销售渠道和投入金额，开始一批经营；然后通过“本周行动”推进至少一周，再回来查看能否赚钱。投入成本、回收金额和净利润都会保留在账本里。":"Wähle Ware, Verkaufskanal und Einsatz. Starte ein Projekt, lass mit einer Wochenaktion mindestens eine Woche vergehen und prüfe danach den Gewinn. Einsatz, Rückzahlung und Nettogewinn bleiben im Kassenbuch sichtbar."
+  "买货和结算不额外耗时":"Einkauf und Abschluss kosten keine zusätzliche Zeit","参加辅导课和学习小组":"Tutorium und Lerngruppe","推进学业 · 练德语 · 认识同学":"Studium · Deutsch · neue Kontakte","参加大学体育课":"Am Hochschulsport teilnehmen","恢复健康 · 减轻压力 · 消耗精力":"Gesundheit · weniger Stress · kostet Energie","在 WG 集体做饭":"Gemeinsam in der WG kochen","省生活费 · 恢复健康 · 增进室友情":"günstig · gesund · gut für die WG","WG 厨房入门包":"WG-Küchenstarterpaket","二手打印机加墨盒":"Gebrauchter Drucker mit Patronen","搬家纸箱与小家具":"Umzugskartons und Kleinmöbel","校园自制饭盒":"Hausgemachtes Campusessen","选择商品、销售渠道和投入金额，开始一批经营；然后通过“本周行动”推进至少一周，再回来查看能否赚钱。投入成本、回收金额和净利润都会保留在账本里。":"Wähle Ware, Verkaufskanal und Einsatz. Starte ein Projekt, lass mit einer Wochenaktion mindestens eine Woche vergehen und prüfe danach den Gewinn. Einsatz, Rückzahlung und Nettogewinn bleiben im Kassenbuch sichtbar.","消息改变概率，不保证赚钱":"Nachrichten verändern Chancen, garantieren aber keinen Gewinn","本周利好":"Diese Woche günstig","本周利空":"Diese Woche ungünstig","行情平稳":"Stabile Lage","盈利概率变化":"veränderte Gewinnchance"
 };
 
 function deText(value){
@@ -365,6 +365,9 @@ function seededPrice(good, week, news) {
   const wave = .78 + ((Math.sin((week + 1) * (good.base + 7) * .113) + 1) / 2) * .48;
   return Math.max(8, Math.round(good.base * wave * (news.mods[good.id] || 1)));
 }
+
+const ventureMarketFactor=(newsIndex,goodId)=>NEWS[newsIndex]?.ventureMods?.[goodId]||1;
+const ventureMarketLabel=factor=>factor>1.08?"本周利好":factor<.93?"本周利空":"行情平稳";
 
 function stockPrice(stock, week) {
   const trend=1+week*.006;
@@ -497,7 +500,8 @@ export default function Home() {
     const amount=Math.min(Math.max(50,ventureAmount),Math.max(50,state.money-250));
     if(state.money<amount+channel.cost+200){setToast("至少要留下 200€ 生活费，并支付渠道成本。");return;}
     const totalInvestment=amount+channel.cost;
-    const activeVenture={goodId:good.id,goodName:good.name,channelId:channel.id,channelName:channel.name,capital:amount,fee:channel.cost,invested:totalInvestment,startWeek:state.totalWeek,readyWeek:state.totalWeek+1};
+    const marketFactor=ventureMarketFactor(state.newsIndex,good.id);
+    const activeVenture={goodId:good.id,goodName:good.name,channelId:channel.id,channelName:channel.name,capital:amount,fee:channel.cost,invested:totalInvestment,startWeek:state.totalWeek,readyWeek:state.totalWeek+1,marketFactor,marketLabel:ventureMarketLabel(marketFactor),marketNews:NEWS[state.newsIndex].text};
     setState({...state,money:state.money-totalInvestment,activeVenture,journal:[`第 ${state.month} 月第 ${state.week} 周：投入 ${totalInvestment}€ 开始经营 ${good.name}`,...state.journal].slice(0,20)});
     setToast(`经营批次已开始。至少推进 1 周后才能结算。`);
   }
@@ -511,21 +515,28 @@ export default function Home() {
     const amount=batch.capital;
     const signal=(batch.startWeek*37+amount+good.risk*3+(channel.id==="ebay"?19:7))%100;
     const caught=signal<Math.max(2,good.risk+channel.risk);
-    const demand=.78+((state.totalWeek*13+good.id.length*11)%48)/100;
-    const salesGain=Math.round(amount*(good.margin+channel.bonus)*demand);
-    let profit=salesGain-channel.cost;
-    let returned=amount+salesGain;
+    const marketFactor=batch.marketFactor||1;
+    const profitChance=Math.max(.25,Math.min(.78,.52+(marketFactor-1)*.72-good.risk*.002+channel.bonus*.08));
+    const salesRoll=((signal*17+state.totalWeek*23+good.id.length*9)%100)/100;
+    const profitable=salesRoll<profitChance;
+    const swing=.62+((signal*7+state.totalWeek*5)%42)/100;
+    let returned=profitable
+      ?amount+Math.round(amount*(good.margin+channel.bonus)*swing*marketFactor)
+      :Math.round(amount*(1-(.08+((signal*11)%18)/100+good.risk/550)));
+    let profit=returned-batch.invested;
     let consequence={stress:good.risk>40?8:3,reputation:good.risk<20?4:-2};
-    let result=`你投入 ${amount}€，本周销售后净赚 ${profit}€。`;
+    let result=profitable
+      ?`${batch.marketLabel||ventureMarketLabel(marketFactor)}提高了成交机会，但结果仍有波动。投入 ${batch.invested}€，本次净赚 ${profit}€。`
+      :`${batch.marketLabel||ventureMarketLabel(marketFactor)}没有带来足够成交量。投入 ${batch.invested}€，滞销、砍价和退货造成净亏 ${Math.abs(profit)}€。`;
     if(caught){
       const fine=Math.round(90+amount*(good.risk/65));
       consequence={stress:18,papers:-8,reputation:-10};
       returned=Math.max(0,returned-fine);
       result=channel.id==="ebay"
-        ?`平台冻结了交易，并收到权利人投诉。扣除退款与罚款 ${fine}€ 后，本周净结果为 ${profit-fine}€。`
-        :`市场巡查要求出示进货凭证。货物被扣并产生 ${fine}€ 损失，本周净结果为 ${profit-fine}€。`;
+        ?`即使行情有利，平台仍冻结了交易并收到权利人投诉。扣除退款与罚款 ${fine}€ 后，本周净结果为 ${returned-batch.invested}€。`
+        :`行情不能阻止市场巡查。由于无法出示进货凭证，货物被扣并产生 ${fine}€ 损失，本周净结果为 ${returned-batch.invested}€。`;
     }
-    const ledgerEntry={week:state.totalWeek,good:good.name,channel:channel.name,capital:amount,fee:channel.cost,invested:batch.invested,returned,profit:returned-batch.invested,caught,heldWeeks:state.totalWeek-batch.startWeek};
+    const ledgerEntry={week:state.totalWeek,good:good.name,channel:channel.name,capital:amount,fee:channel.cost,invested:batch.invested,returned,profit:returned-batch.invested,caught,heldWeeks:state.totalWeek-batch.startWeek,marketLabel:batch.marketLabel||ventureMarketLabel(marketFactor)};
     let next=applyEffect(state,{...consequence,money:returned});
     next={...next,activeVenture:null,businessRuns:(next.businessRuns||0)+1,ventureLedger:[ledgerEntry,...(next.ventureLedger||[])].slice(0,8),journal:[`经营结算：${good.name}，净结果 ${ledgerEntry.profit>=0?"+":""}${ledgerEntry.profit}€`,...next.journal].slice(0,20)};
     setState(next);
@@ -588,9 +599,9 @@ export default function Home() {
       {tab==="actions"&&<><div className="panel-title"><div><small>WOCHE {state.totalWeek+1}</small><h2>这一周怎么过？</h2></div><span>每次只能选 1 项</span></div><div className="week-flow"><div className="week-node current"><small>现在</small><b>{lang==="de"?`Monat ${state.month} · Woche ${state.week}`:<>第 {state.month} 月 · 第 {state.week} 周</>}</b></div><div className="flow-arrow"><span>选择行动</span><b>→</b><small>消耗整整一周</small></div><div className="week-node next"><small>行动结束</small><b>{nextPeriod}</b></div><div className="month-weeks"><span>本月进度</span>{[1,2,3,4].map(w=><i key={w} className={w<state.week?"done":w===state.week?"active":""}><b>{w}</b><small>{lang==="de"?"Wo.":"周"}</small></i>)}</div></div><div className="current-job"><span>{currentJob.icon}</span><div><small>当前本职工作</small><b>{currentJob.name}</b></div><strong>{lang==="de"?`Wochenlohn ${currentWage}€`:`本周工资 ${currentWage}€`}</strong><button onClick={()=>setTab("career")}>更换职业</button></div><div className="stat-guide"><b>这些数值会怎样影响生活？</b><p><span>⚡ 精力</span>低于 18 不能工作或接零工；<span>🤝 人脉</span>达到 45 可能出现稳定岗位；<span>🗂️ 档案</span>与德语共同解锁职业；<span>📦 材料包</span>可在官僚事件中抵消约 55% 的主要损失。</p></div><div className="action-grid">{ACTIONS.map(a=>{const effect=a.planner?null:a.run(state);return <button key={a.id} onClick={()=>a.planner?setModal({type:"paperPlanner"}):doAction(a)} disabled={(a.id==="work"||a.id==="gig")&&state.energy<18}><i>{a.icon}</i><span><b>{a.name}</b><small>{a.id==="work"?`${currentJob.name} · 按当前工资结算`:a.sub}</small>{effect?<EffectBadges effect={effect} lang={lang}/>:<EffectBadges lang={lang} effect={{packs:1,papers:1,energy:-1,stress:1,money:1}}/>}</span><em>⏳ 推进1周</em></button>})}</div><div className="month-cost"><b>月末还会自动结算</b><span>{lang==="de"?"Nach Woche 4 beginnt ein neuer Monat: 780 € Lebenshaltungskosten und 3,5 % Schuldzinsen. Ereignisse verbrauchen keine zusätzliche Woche.":"第 4 周行动结束后进入下个月，并扣除生活费 780€、增加债务利息 3.5%。随机事件发生在已经消耗的这一周内，不会额外再走一周。"}</span></div></>}
 
       {tab==="market"&&<><div className="panel-title"><div><small>NEBENGEWERBE</small><h2>经营批次</h2></div><span>买货和结算不额外耗时</span></div><p className="market-tip">选择商品、销售渠道和投入金额，开始一批经营；然后通过“本周行动”推进至少一周，再回来查看能否赚钱。投入成本、回收金额和净利润都会保留在账本里。</p>
-        <div className="venture-block"><div className="subhead"><b>① 选择要卖的东西</b><span>利润越高，风险通常越大</span></div><div className="venture-goods">{HUSTLE_GOODS.map(g=><button key={g.id} className={ventureGood===g.id?"selected":""} onClick={()=>setVentureGood(g.id)}><i>{g.icon}</i><b>{g.name}</b><small>预期毛利 {Math.round(g.margin*100)}% · 风险 {g.risk}</small></button>)}</div>
+        <div className="venture-block"><div className="subhead"><b>① 选择要卖的东西</b><span>消息改变概率，不保证赚钱</span></div><div className="venture-goods">{HUSTLE_GOODS.map(g=>{const factor=ventureMarketFactor(state.newsIndex,g.id);const label=ventureMarketLabel(factor);return <button key={g.id} className={ventureGood===g.id?"selected":""} onClick={()=>setVentureGood(g.id)}><i>{g.icon}</i><b>{g.name}</b><small>预期毛利 {Math.round(g.margin*100)}% · 风险 {g.risk}</small><em className={factor>1.08?"market-up":factor<.93?"market-down":"market-flat"}>{label}{factor!==1?" · 盈利概率变化":""}</em></button>})}</div>
         <div className="subhead"><b>② 选择销售渠道</b></div><div className="channel-row">{CHANNELS.map(c=><button key={c.id} className={ventureChannel===c.id?"selected":""} onClick={()=>setVentureChannel(c.id)}><i>{c.icon}</i><span><b>{c.name}</b><small>{c.note}</small></span></button>)}</div>
-        {state.activeVenture?<div className="active-venture"><div><small>进行中的经营批次</small><b>{state.activeVenture.goodName} · {state.activeVenture.channelName}</b></div><span>已投入 <b>{state.activeVenture.invested}€</b></span><span>{state.totalWeek>=state.activeVenture.readyWeek?"现在可以结算":"还需推进 1 周"}</span><button onClick={settleVenture} disabled={state.totalWeek<state.activeVenture.readyWeek}>{state.totalWeek>=state.activeVenture.readyWeek?"查看行情并结算":"等待时间推进"}</button></div>:<div className="capital-box"><div><b>③ 开始经营批次</b><strong>{ventureAmount} €</strong></div><input aria-label="投入本金" type="range" min="50" max={Math.max(50,Math.min(800,state.money-250))} step="50" value={Math.min(ventureAmount,Math.max(50,state.money-250))} onChange={e=>setVentureAmount(Number(e.target.value))}/><div className="cost-preview"><span>商品本金<b>{ventureAmount}€</b></span><span>渠道费用<b>{CHANNELS.find(c=>c.id===ventureChannel)?.cost||0}€</b></span><span>总投入<b>{ventureAmount+(CHANNELS.find(c=>c.id===ventureChannel)?.cost||0)}€</b></span></div><small>开始批次不耗时间，但资金会立刻锁定；至少推进一周后才能结算。</small><button onClick={startVenture}>投入 {ventureAmount+(CHANNELS.find(c=>c.id===ventureChannel)?.cost||0)}€ 开始批次 <span>→</span></button></div>}
+        {state.activeVenture?<div className="active-venture"><div><small>进行中的经营批次 · {state.activeVenture.marketLabel||"行情平稳"}</small><b>{state.activeVenture.goodName} · {state.activeVenture.channelName}</b></div><span>已投入 <b>{state.activeVenture.invested}€</b></span><span>{state.totalWeek>=state.activeVenture.readyWeek?"现在可以结算":"还需推进 1 周"}</span><button onClick={settleVenture} disabled={state.totalWeek<state.activeVenture.readyWeek}>{state.totalWeek>=state.activeVenture.readyWeek?"查看行情并结算":"等待时间推进"}</button></div>:<div className="capital-box"><div><b>③ 开始经营批次</b><strong>{ventureAmount} €</strong></div><input aria-label="投入本金" type="range" min="50" max={Math.max(50,Math.min(800,state.money-250))} step="50" value={Math.min(ventureAmount,Math.max(50,state.money-250))} onChange={e=>setVentureAmount(Number(e.target.value))}/><div className="cost-preview"><span>商品本金<b>{ventureAmount}€</b></span><span>渠道费用<b>{CHANNELS.find(c=>c.id===ventureChannel)?.cost||0}€</b></span><span>总投入<b>{ventureAmount+(CHANNELS.find(c=>c.id===ventureChannel)?.cost||0)}€</b></span></div><small>开始批次不耗时间，但资金会立刻锁定；至少推进一周后才能结算。</small><button onClick={startVenture}>投入 {ventureAmount+(CHANNELS.find(c=>c.id===ventureChannel)?.cost||0)}€ 开始批次 <span>→</span></button></div>}
         {(state.ventureLedger||[]).length>0&&<div className="venture-ledger"><div className="subhead"><b>最近经营账本</b><span>投入 → 回收 → 净结果</span></div>{state.ventureLedger.slice(0,5).map((l,i)=><p key={i}><span>{l.good}<small>{l.channel}</small></span><b>{l.invested}€ → {l.returned}€</b><em className={l.profit>=0?"profit":"loss"}>{l.profit>=0?"+":""}{l.profit}€</em></p>)}</div>}</div>
       </>}
 

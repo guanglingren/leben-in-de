@@ -171,6 +171,11 @@ footer{display:flex;justify-content:space-between;padding:16px 24px;font-size:9p
   .sticky-status .tabs{height:auto;min-height:0;padding:3px 18px 0}.sticky-status .tabs button{min-height:34px;padding:4px;font-size:11px}
 }
 
+.venture-goods em{display:inline-block;font-style:normal;font-size:8px;font-weight:800;margin-top:6px;padding:3px 5px}
+.venture-goods em.market-up{background:#dcebdc;color:#2e6837}
+.venture-goods em.market-down{background:#f1d9d5;color:#9b3026}
+.venture-goods em.market-flat{background:#e4e0d7;color:#666b67}
+
 /* Student journey cinematics */
 .cinematic{width:min(760px,100%);min-height:100svh;margin:auto;background:#e9e5dc;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 0 70px #0003}
 .cinematic section{padding:34px 25px 30px}.cinematic section>small{font-size:10px;letter-spacing:.18em;color:var(--red);font-weight:900}.cinematic h1{font:900 clamp(42px,11vw,72px)/1.08 "Noto Serif SC";margin:12px 0 20px;letter-spacing:-.04em}.cinematic section>p{font-size:14px;line-height:1.8;color:#4d544f;max-width:620px}.cinematic .primary{margin-top:24px}
