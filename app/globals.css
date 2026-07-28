@@ -10,6 +10,7 @@ button:focus-visible{outline:3px solid var(--yellow);outline-offset:3px}
 .flagline{height:7px;background:linear-gradient(90deg,#171717 0 33.3%,#bd302c 33.3% 66.6%,#dfaa23 66.6%)}
 nav{height:88px;padding:22px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}
 .brand{font-size:10px;line-height:1.2;letter-spacing:.22em}.brand b{font-family:"Noto Serif SC";font-size:20px;letter-spacing:.08em}
+.brand small{display:block;font-size:8px;letter-spacing:.2em;color:var(--muted);margin-top:4px}
 .sound{width:38px;height:38px;border:1px solid var(--line);border-radius:50%;background:transparent;color:var(--muted)}
 .hero{padding:46px 25px 25px;flex:1;background-image:linear-gradient(#00000008 1px,transparent 1px);background-size:100% 28px}
 .kicker{font-size:10px;letter-spacing:.14em;font-weight:700;color:var(--red);margin-bottom:22px}
