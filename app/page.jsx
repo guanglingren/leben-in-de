@@ -58,8 +58,14 @@ const DE_EVENTS = [
 const JOBS = [
   { id: "shift", name: "仓库夜班", wage: 470, energy: -22, health: -4, stress: 6, requirement: 0, paperRequirement:0, icon: "📦" },
   { id: "delivery", name: "外卖接单", wage: 340, energy: -20, health: -6, stress: 4, requirement: 0, paperRequirement:0, icon: "🚲" },
-  { id: "office", name: "大学办公室助理", wage: 560, energy: -17, health: -2, stress: 7, requirement: 55, paperRequirement:45, icon: "🏫" },
-  { id: "agency", name: "学生事务翻译", wage: 640, energy: -16, health: -1, stress: 5, requirement: 75, paperRequirement:60, icon: "🗣️" }
+  { id: "office", name: "大学办公室助理", wage: 560, energy: -17, health: -2, stress: 7, requirement: 58, paperRequirement:50, icon: "🏫" },
+  { id: "hiwi", name: "大学 HiWi 学生助理", wage: 590, energy: -15, health: -1, stress: 4, requirement: 60, paperRequirement:45, studyRequirement:60, icon: "🔬" },
+  { id: "agency", name: "学生事务翻译", wage: 640, energy: -16, health: -1, stress: 5, requirement: 78, paperRequirement:68, studyRequirement:45, icon: "🗣️" }
+];
+
+const ACADEMIC_MILESTONES = [
+  {week:16,required:40,title:"第一次学业进度审查",penalty:{money:-80,stress:10,papers:-4},reward:{stress:-4,reputation:4}},
+  {week:32,required:65,title:"续注册与学业进度审查",penalty:{money:-140,stress:15,papers:-7},reward:{stress:-6,reputation:6}}
 ];
 
 const GOODS = [
@@ -285,21 +291,21 @@ const ACTIONS = [
   { id:"work", icon:"💼", name:"做本职工作", sub:"按当前职业结算工资", run:s=>{const job=JOBS.find(j=>j.id===s.jobId)||JOBS[0];const languageBonus=Math.min(80,Math.max(0,s.german-40)*2);return {money:job.wage+languageBonus+(s.flags.promotion?70:0),energy:job.energy,health:job.health,stress:job.stress,reputation:3};}},
   { id:"gig", icon:"🚲", name:"接一次临时零工", sub:"不改变本职 · 德语越好收入越高", run:s=>({money:190+Math.round(s.german*.9),energy:-19,health:-6,stress:7}) },
   { id:"paper", icon:"🏛️", name:"处理积压手续", sub:"选择一项具体行政任务", planner:true },
-  { id:"learn", icon:"📚", name:"学德语", sub:"解锁好工作 · 费脑", run:()=>({german:9,energy:-12,stress:2,money:-25}) },
-  { id:"study", icon:"🎓", name:"准备课程和考试", sub:"推进学业 · 消耗精力", run:()=>({study:11,energy:-15,stress:5,money:-12}) },
+  { id:"learn", icon:"📚", name:"学德语", sub:"解锁好工作 · 费脑", run:()=>({german:7,energy:-11,stress:2,money:-25}) },
+  { id:"study", icon:"🎓", name:"准备课程和考试", sub:"推进学业 · 消耗精力", run:()=>({study:11,energy:-13,stress:3,money:-12}) },
   { id:"rest", icon:"🛋️", name:"在家休息", sub:"恢复健康和精力", run:()=>({energy:25,health:8,stress:-10,money:-18}) },
   { id:"drink", icon:"🍺", name:"去酒吧喝酒", sub:"压力大降 · 伤身烧钱", run:()=>({money:-48,stress:-18,health:-7,energy:-3,reputation:4}) },
-  { id:"social", icon:"🤝", name:"参加社区活动", sub:"积累人脉 · 小额花费", run:()=>({money:-22,energy:-8,stress:-7,reputation:11,german:3}) },
-  { id:"tutorial", icon:"🧑‍🎓", name:"参加辅导课和学习小组", sub:"推进学业 · 练德语 · 认识同学", run:()=>({study:9,german:4,reputation:6,energy:-12,stress:3,money:-8}) },
+  { id:"social", icon:"🤝", name:"参加社区活动", sub:"积累人脉 · 小额花费", run:()=>({money:-22,energy:-8,stress:-7,reputation:8,german:2}) },
+  { id:"tutorial", icon:"🧑‍🎓", name:"参加辅导课和学习小组", sub:"推进学业 · 练德语 · 认识同学", run:()=>({study:9,german:3,reputation:4,energy:-10,stress:1,money:-8}) },
   { id:"sport", icon:"🏐", name:"参加大学体育课", sub:"恢复健康 · 减轻压力 · 消耗精力", run:()=>({health:11,stress:-9,reputation:5,energy:-12,money:-18}) },
   { id:"mealprep", icon:"🍲", name:"在 WG 集体做饭", sub:"省生活费 · 恢复健康 · 增进室友情", run:()=>({money:-24,health:6,stress:-6,reputation:7,energy:-7}) },
   { id:"doctor", icon:"🩺", name:"照顾身体", sub:"花钱治疗 · 恢复健康", run:()=>({money:-95,health:18,energy:8,stress:-5}) }
 ];
 
 const PAPER_TASKS = [
-  { id:"folder", icon:"🗂️", name:"整理标准材料包", sub:"获得 1 份可在事件中消耗的完整材料包", effect:{packs:1,papers:8,german:1,energy:-10,stress:3} },
-  { id:"termin", icon:"📅", name:"抢一次 Behörden-Termin", sub:"预约、复印、排队，把档案推进一大截", effect:{packs:1,papers:14,energy:-14,stress:6} },
-  { id:"refund", icon:"🧾", name:"核对旧账并申请退费", sub:"翻出一笔重复扣款，同时补全往来记录", effect:{money:90,papers:7,energy:-12,stress:4} }
+  { id:"folder", icon:"🗂️", name:"整理标准材料包", sub:"获得 1 份可在事件中消耗的完整材料包", effect:{packs:1,papers:6,german:1,energy:-10,stress:3} },
+  { id:"termin", icon:"📅", name:"抢一次 Behörden-Termin", sub:"预约、复印、排队，把档案推进一大截", effect:{packs:1,papers:10,energy:-14,stress:6} },
+  { id:"refund", icon:"🧾", name:"核对旧账并申请退费", sub:"翻出一笔重复扣款，同时补全往来记录", effect:{money:90,papers:5,energy:-12,stress:4} }
 ];
 
 const clamp = n => Math.max(0, Math.min(100, Math.round(n)));
@@ -326,8 +332,20 @@ const DE_UI = {
   "设定本职工作":"Nebenjob festlegen","当前语言工资加成":"Sprachbonus beim Lohn","当前事件减压":"Stressbonus bei Ereignissen","基础周薪":"Grundlohn/Woche","精力":"Energie","健康":"Gesundheit","德语":"Deutsch","档案":"Akte","当前本职":"Aktueller Job","设为本职":"Als Job wählen","未解锁":"Gesperrt","私人债务":"Private Schulden","偿还最多 250€":"Bis zu 250 € tilgen","生活记录":"Lebensverlauf","个事件":" Ereignisse","行政事务":"Behördenangelegenheit","这周具体跑什么手续？":"Welche Behördensache erledigst du?","先不跑手续":"Doch nicht","随机事项":"Zufälliges Ereignis","📦 提交完整材料包快速处理":"📦 Vollständige Unterlagen einreichen","周结算":"Wochenabschluss","时间已经推进":"Die Zeit ist vergangen","这一周结束了":"Die Woche ist vorbei","进入新的一周":"In die nächste Woche","经营结算":"Handelsabschluss","完成结算":"Abschluss beenden","处理结果":"Ergebnis","资金":"Geld","材料包":"Unterlagen","学业":"Studium","人脉":"Kontakte","压力":"Stress"
   ,"低于 18 不能工作或接零工；":"Unter 18 kannst du weder arbeiten noch jobben; ","达到 45 可能出现稳定岗位；":"ab 45 kann eine Beförderung erscheinen; ","与德语共同解锁职业；":"schaltet zusammen mit Deutsch Jobs frei; ","可在官僚事件中抵消约 55% 的主要损失。":"reduziert bei Behördenereignissen den Hauptschaden um etwa 55%.","部分方案涉及资金":"einige Optionen betreffen Geld",
   "第 4 周行动结束后进入下个月，并扣除生活费 780€、增加债务利息 3.5%。随机事件发生在已经消耗的这一周内，不会额外再走一周。":"Nach Woche 4 beginnt ein neuer Monat: 780 € Lebenshaltungskosten und 3,5 % Schuldzinsen. Ereignisse verbrauchen keine zusätzliche Woche.","先买入或开一个经营批次，再用“本周行动”推进时间。价格和经营结果会随着周数变化。":"Kaufe Waren oder starte ein Projekt und lass dann mit einer Wochenaktion Zeit vergehen. Preise und Ergebnisse ändern sich wöchentlich.","预期毛利":"Erwartete Marge","风险":"Risiko","客流大、价格好，但平台留痕完整。":"Viele Kunden und gute Preise, aber eine vollständige digitale Spur.","要交摊位费、消耗体力，现金交易更灵活。":"Standgebühr und körperliche Arbeit, dafür flexiblere Barzahlung.","开始批次不耗时间，但资金会立刻锁定；至少推进一周后才能结算。":"Der Start kostet keine Zeit, bindet aber sofort Kapital. Abschluss frühestens nach einer Woche.","换职业不消耗时间。德语不仅解锁职业：超过 40 后，每点德语为本职周薪增加 2€，最多加 80€；德语 60/75 还会分别减少事件压力 2/4 点。":"Ein Jobwechsel kostet keine Zeit. Deutsch schaltet Jobs frei und erhöht ab 40 den Wochenlohn um 2 € pro Punkt, maximal 80 €. Mit 60/75 Deutsch sinkt Ereignisstress um 2/4.","每月增长 3.5%。还清后，你才真正拥有选择。":"Wächst monatlich um 3,5 %. Erst ohne Schulden hast du echte Wahlfreiheit.","你的档案目前还很薄。系统会设法改变这一点。":"Deine Akte ist noch dünn. Das System wird das ändern.","本次主要损失降低约 55%":"Der Hauptschaden sinkt um etwa 55%","已经用掉一周":" hat bereits eine Woche verbraucht","新的市场价格和生活状态已经更新。":"Preise und Lebenswerte wurden aktualisiert.",
-  "买货和结算不额外耗时":"Einkauf und Abschluss kosten keine zusätzliche Zeit","参加辅导课和学习小组":"Tutorium und Lerngruppe","推进学业 · 练德语 · 认识同学":"Studium · Deutsch · neue Kontakte","参加大学体育课":"Am Hochschulsport teilnehmen","恢复健康 · 减轻压力 · 消耗精力":"Gesundheit · weniger Stress · kostet Energie","在 WG 集体做饭":"Gemeinsam in der WG kochen","省生活费 · 恢复健康 · 增进室友情":"günstig · gesund · gut für die WG","WG 厨房入门包":"WG-Küchenstarterpaket","二手打印机加墨盒":"Gebrauchter Drucker mit Patronen","搬家纸箱与小家具":"Umzugskartons und Kleinmöbel","校园自制饭盒":"Hausgemachtes Campusessen","选择商品、销售渠道和投入金额，开始一批经营；然后通过“本周行动”推进至少一周，再回来查看能否赚钱。投入成本、回收金额和净利润都会保留在账本里。":"Wähle Ware, Verkaufskanal und Einsatz. Starte ein Projekt, lass mit einer Wochenaktion mindestens eine Woche vergehen und prüfe danach den Gewinn. Einsatz, Rückzahlung und Nettogewinn bleiben im Kassenbuch sichtbar.","消息改变概率，不保证赚钱":"Nachrichten verändern Chancen, garantieren aber keinen Gewinn","本周利好":"Diese Woche günstig","本周利空":"Diese Woche ungünstig","行情平稳":"Stabile Lage","盈利概率变化":"veränderte Gewinnchance"
+  "买货和结算不额外耗时":"Einkauf und Abschluss kosten keine zusätzliche Zeit","参加辅导课和学习小组":"Tutorium und Lerngruppe","推进学业 · 练德语 · 认识同学":"Studium · Deutsch · neue Kontakte","参加大学体育课":"Am Hochschulsport teilnehmen","恢复健康 · 减轻压力 · 消耗精力":"Gesundheit · weniger Stress · kostet Energie","在 WG 集体做饭":"Gemeinsam in der WG kochen","省生活费 · 恢复健康 · 增进室友情":"günstig · gesund · gut für die WG","WG 厨房入门包":"WG-Küchenstarterpaket","二手打印机加墨盒":"Gebrauchter Drucker mit Patronen","搬家纸箱与小家具":"Umzugskartons und Kleinmöbel","校园自制饭盒":"Hausgemachtes Campusessen","选择商品、销售渠道和投入金额，开始一批经营；然后通过“本周行动”推进至少一周，再回来查看能否赚钱。投入成本、回收金额和净利润都会保留在账本里。":"Wähle Ware, Verkaufskanal und Einsatz. Starte ein Projekt, lass mit einer Wochenaktion mindestens eine Woche vergehen und prüfe danach den Gewinn. Einsatz, Rückzahlung und Nettogewinn bleiben im Kassenbuch sichtbar.","消息改变概率，不保证赚钱":"Nachrichten verändern Chancen, garantieren aber keinen Gewinn","本周利好":"Diese Woche günstig","本周利空":"Diese Woche ungünstig","行情平稳":"Stabile Lage","盈利概率变化":"veränderte Gewinnchance","大学 HiWi 学生助理":"Studentische Hilfskraft (HiWi)","学业检查":"Studienkontrolle","第16周需 40 · 第32周需 65 · 期末建议 85":"Woche 16: 40 · Woche 32: 65 · Ziel zum Jahresende: 85","达到60可解锁 HiWi，并降低大学相关事件压力。":"Ab 60 wird ein HiWi-Job freigeschaltet und Uni-Ereignisse verursachen weniger Stress.","本月已经还过一次债务了。下个月才能再次还款。":"Du hast diesen Monat bereits Schulden getilgt. Nächsten Monat geht es wieder.","本月偿还债务":"Schuldentilgung in diesem Monat","本月已还款":"Diesen Monat bereits getilgt","本月偿还最多 250€":"Diesen Monat bis zu 250 € tilgen","债务已还清":"Schulden abbezahlt"
 };
+
+Object.assign(DE_UI,{
+  "换职业不消耗时间。德语提高本职工资并降低事件压力；档案与学业共同决定能否获得办公室、HiWi 和学生事务岗位。":"Ein Jobwechsel kostet keine Zeit. Deutsch erhöht den Lohn und senkt Ereignisstress; Akte und Studium entscheiden über Büro-, HiWi- und Studierendenwerk-Jobs.",
+  "大学事件减压":"Weniger Stress bei Uni-Ereignissen",
+  "每月增长 3.5%，每月最多偿还一次。不能在同一个月连续清空债务。":"Monatlich 3,5 % Zinsen; Tilgung ist nur einmal pro Monat möglich.",
+  "第一次学业进度审查":"Erste Studienfortschrittskontrolle",
+  "续注册与学业进度审查":"Rückmeldung und Studienfortschrittskontrolle",
+  "进度达标":"Fortschritt erfüllt",
+  "进度不足，收到书面警告":"Fortschritt zu niedrig, schriftliche Warnung",
+  "学校确认学业进度正常。":"Die Hochschule bestätigt einen ausreichenden Studienfortschritt.",
+  "未通过：扣除补办费用并增加压力，学业需达到 ":"nicht bestanden: zusätzliche Gebühren und Stress; erforderlich sind "
+});
 
 function deText(value){
   let translated=value
@@ -397,7 +415,7 @@ export default function Home() {
   const stockPrices=useMemo(()=>state?Object.fromEntries(STOCKS.map(s=>[s.id,stockPrice(s,state.totalWeek)])): {},[state?.totalWeek]);
 
   function start(profile){
-    setState({...profile,profileId:profile.id,month:1,week:1,totalWeek:0,jobId:"shift",inventory:{},inventoryCost:{},stocks:{},stockCost:{},activeVenture:null,ventureLedger:[],packs:0,flags:{},seen:[],journal:[],newsIndex:0,capacity:6,businessRuns:0});
+    setState({...profile,profileId:profile.id,month:1,week:1,totalWeek:0,jobId:"shift",inventory:{},inventoryCost:{},stocks:{},stockCost:{},activeVenture:null,ventureLedger:[],packs:0,flags:{},seen:[],journal:[],newsIndex:0,capacity:6,businessRuns:0,lastDebtPaymentMonth:0,academicWarnings:0});
     setScreen("arrival"); setTab("actions"); setModal(null);
   }
 
@@ -405,6 +423,13 @@ export default function Home() {
     const next={...base};
     Object.entries(effect).forEach(([k,v])=>{next[k]=["money","debt"].includes(k)?Math.max(0,(next[k]||0)+v):clamp((next[k]||0)+v);});
     return next;
+  }
+
+  const hasEnded=s=>s.health<=0||s.stress>=100||s.money<=0||s.month>12;
+  function commitState(next){
+    setState(next);
+    if(hasEnded(next)){setScreen("end");setModal(null);return true;}
+    return false;
   }
 
   function drawEvent(current){
@@ -417,6 +442,8 @@ export default function Home() {
 
   function doAction(action,force=false){
     if(modal&&!force)return;
+    const minimumEnergy=["work","gig"].includes(action.id)?18:["learn","study","tutorial","sport","social"].includes(action.id)||action.id.startsWith("paper-")?10:0;
+    if(state.energy<minimumEnergy){setToast(lang==="de"?`Für diese Aktion brauchst du mindestens ${minimumEnergy} Energie.`:`精力至少需要 ${minimumEnergy} 才能进行这项行动。`);setModal(null);return;}
     let next=applyEffect(state,action.run(state));
     let log=lang==="de"?`Monat ${state.month}, Woche ${state.week}: ${deText(action.name)}`:`第 ${state.month} 月第 ${state.week} 周：${action.name}`;
     let nextWeek=state.week+1, nextMonth=state.month, newsIndex=state.newsIndex;
@@ -430,9 +457,15 @@ export default function Home() {
       monthSummary=`月末已扣生活费 ${living}€，债务增加利息 ${interest}€。`;
     }
     next={...next,week:nextWeek,month:nextMonth,totalWeek:state.totalWeek+1,newsIndex,journal:[log,...state.journal].slice(0,20)};
-    const ended=next.health<=0||next.stress>=100||next.money<=0||next.month>12;
-    setState(next);
-    if(ended){setScreen("end");return;}
+    const milestone=ACADEMIC_MILESTONES.find(item=>item.week===next.totalWeek);
+    if(milestone){
+      const passed=next.study>=milestone.required;
+      next=applyEffect(next,passed?milestone.reward:milestone.penalty);
+      next={...next,academicWarnings:(next.academicWarnings||0)+(passed?0:1),journal:[`${milestone.title}：学业 ${next.study}/${milestone.required}，${passed?"进度达标":"进度不足，收到书面警告"}`,...next.journal].slice(0,20)};
+      const academicSummary=passed?`${milestone.title}通过，学校确认学业进度正常。`:`${milestone.title}未通过：扣除补办费用并增加压力，学业需达到 ${milestone.required}。`;
+      monthSummary=`${monthSummary} ${academicSummary}`.trim();
+    }
+    if(commitState(next))return;
     const event=(next.totalWeek%2===0||next.stress>68)?drawEvent(next):null;
     const timeLabel=`${periodLabel(state)} → ${periodLabel(next)}`;
     if(event)setModal({type:"event",event,timeLabel,actionName:action.name,monthSummary});
@@ -441,13 +474,16 @@ export default function Home() {
 
   function chooseEvent(choice,event){
     const languageRelief=state.german>=75?4:state.german>=60?2:0;
+    const academicOffice=["UNIVERSITÄT","PRÜFUNGSAMT","SEMINAR","BIBLIOTHEK"].includes(event.office);
+    const academicRelief=academicOffice?(state.study>=75?4:state.study>=60?2:0):0;
     const adjusted={...choice.effect};
-    if(adjusted.stress>0)adjusted.stress=Math.max(0,adjusted.stress-languageRelief);
+    if(adjusted.stress>0)adjusted.stress=Math.max(0,adjusted.stress-languageRelief-academicRelief);
     let next=applyEffect(state,adjusted);
     if(choice.flag)next={...next,flags:{...next.flags,[choice.flag]:true}};
     next={...next,seen:[...next.seen,event.id],journal:[`${event.office}：${event.title}｜${choice.label}`,...next.journal].slice(0,20)};
     const timeLabel=modal?.timeLabel;
-    setState(next); setModal({type:"result",choice,event,timeLabel,languageRelief});
+    if(commitState(next))return;
+    setModal({type:"result",choice,event,timeLabel,languageRelief,academicRelief});
   }
 
   function choosePrepared(event){
@@ -461,7 +497,7 @@ export default function Home() {
     let next=applyEffect(state,reduced);
     if(choice.flag)next={...next,flags:{...next.flags,[choice.flag]:true}};
     next={...next,seen:[...next.seen,event.id],journal:[`${event.office}：${event.title}｜提交完整档案快速处理`,...next.journal].slice(0,20)};
-    setState(next);
+    if(commitState(next))return;
     setModal({type:"result",choice:{label:"提交完整材料包快速处理",result:"你拿出了原件、复印件、回执、Aktenzeichen 和按日期排列的往来信件。工作人员短暂沉默后，事情居然办下来了。"},event,timeLabel:modal?.timeLabel,prepared:true});
   }
 
@@ -482,14 +518,15 @@ export default function Home() {
   }
 
   function payDebt(){
+    if(state.lastDebtPaymentMonth===state.month){setToast("本月已经还过一次债务了。下个月才能再次还款。");return;}
     const amount=Math.min(250,state.money-200,state.debt);
     if(amount<=0){setToast("至少要留下 200€ 生活费。");return;}
-    setState({...state,money:state.money-amount,debt:state.debt-amount});
-    setToast(`偿还债务 ${amount}€`);
+    setState({...state,money:state.money-amount,debt:state.debt-amount,lastDebtPaymentMonth:state.month});
+    setToast(`本月偿还债务 ${amount}€`);
   }
 
   function switchJob(job){
-    if(state.german<job.requirement||state.papers<job.paperRequirement){setToast(`需要德语 ${job.requirement}、档案完整度 ${job.paperRequirement}`);return;}
+    if(state.german<job.requirement||state.papers<job.paperRequirement||state.study<(job.studyRequirement||0)){setToast(`需要德语 ${job.requirement}、档案 ${job.paperRequirement}${job.studyRequirement?`、学业 ${job.studyRequirement}`:""}`);return;}
     setState({...state,jobId:job.id});setToast(`下周开始做：${job.name}`);
   }
 
@@ -539,7 +576,7 @@ export default function Home() {
     const ledgerEntry={week:state.totalWeek,good:good.name,channel:channel.name,capital:amount,fee:channel.cost,invested:batch.invested,returned,profit:returned-batch.invested,caught,heldWeeks:state.totalWeek-batch.startWeek,marketLabel:batch.marketLabel||ventureMarketLabel(marketFactor)};
     let next=applyEffect(state,{...consequence,money:returned});
     next={...next,activeVenture:null,businessRuns:(next.businessRuns||0)+1,ventureLedger:[ledgerEntry,...(next.ventureLedger||[])].slice(0,8),journal:[`经营结算：${good.name}，净结果 ${ledgerEntry.profit>=0?"+":""}${ledgerEntry.profit}€`,...next.journal].slice(0,20)};
-    setState(next);
+    if(commitState(next))return;
     setModal({type:"ventureResult",title:caught?"副业翻车了":"这批货卖完了",result,ledger:ledgerEntry});
   }
 
@@ -596,6 +633,7 @@ export default function Home() {
     </div>
 
     <section className="v2-panel">
+      {tab==="actions"&&<div className="academic-overview"><b>🎓 学业检查</b><span>第16周需 40 · 第32周需 65 · 期末建议 85</span><small>达到60可解锁 HiWi，并降低大学相关事件压力。</small></div>}
       {tab==="actions"&&<><div className="panel-title"><div><small>WOCHE {state.totalWeek+1}</small><h2>这一周怎么过？</h2></div><span>每次只能选 1 项</span></div><div className="week-flow"><div className="week-node current"><small>现在</small><b>{lang==="de"?`Monat ${state.month} · Woche ${state.week}`:<>第 {state.month} 月 · 第 {state.week} 周</>}</b></div><div className="flow-arrow"><span>选择行动</span><b>→</b><small>消耗整整一周</small></div><div className="week-node next"><small>行动结束</small><b>{nextPeriod}</b></div><div className="month-weeks"><span>本月进度</span>{[1,2,3,4].map(w=><i key={w} className={w<state.week?"done":w===state.week?"active":""}><b>{w}</b><small>{lang==="de"?"Wo.":"周"}</small></i>)}</div></div><div className="current-job"><span>{currentJob.icon}</span><div><small>当前本职工作</small><b>{currentJob.name}</b></div><strong>{lang==="de"?`Wochenlohn ${currentWage}€`:`本周工资 ${currentWage}€`}</strong><button onClick={()=>setTab("career")}>更换职业</button></div><div className="stat-guide"><b>这些数值会怎样影响生活？</b><p><span>⚡ 精力</span>低于 18 不能工作或接零工；<span>🤝 人脉</span>达到 45 可能出现稳定岗位；<span>🗂️ 档案</span>与德语共同解锁职业；<span>📦 材料包</span>可在官僚事件中抵消约 55% 的主要损失。</p></div><div className="action-grid">{ACTIONS.map(a=>{const effect=a.planner?null:a.run(state);return <button key={a.id} onClick={()=>a.planner?setModal({type:"paperPlanner"}):doAction(a)} disabled={(a.id==="work"||a.id==="gig")&&state.energy<18}><i>{a.icon}</i><span><b>{a.name}</b><small>{a.id==="work"?`${currentJob.name} · 按当前工资结算`:a.sub}</small>{effect?<EffectBadges effect={effect} lang={lang}/>:<EffectBadges lang={lang} effect={{packs:1,papers:1,energy:-1,stress:1,money:1}}/>}</span><em>⏳ 推进1周</em></button>})}</div><div className="month-cost"><b>月末还会自动结算</b><span>{lang==="de"?"Nach Woche 4 beginnt ein neuer Monat: 780 € Lebenshaltungskosten und 3,5 % Schuldzinsen. Ereignisse verbrauchen keine zusätzliche Woche.":"第 4 周行动结束后进入下个月，并扣除生活费 780€、增加债务利息 3.5%。随机事件发生在已经消耗的这一周内，不会额外再走一周。"}</span></div></>}
 
       {tab==="market"&&<><div className="panel-title"><div><small>NEBENGEWERBE</small><h2>经营批次</h2></div><span>买货和结算不额外耗时</span></div><p className="market-tip">选择商品、销售渠道和投入金额，开始一批经营；然后通过“本周行动”推进至少一周，再回来查看能否赚钱。投入成本、回收金额和净利润都会保留在账本里。</p>
@@ -605,7 +643,7 @@ export default function Home() {
         {(state.ventureLedger||[]).length>0&&<div className="venture-ledger"><div className="subhead"><b>最近经营账本</b><span>投入 → 回收 → 净结果</span></div>{state.ventureLedger.slice(0,5).map((l,i)=><p key={i}><span>{l.good}<small>{l.channel}</small></span><b>{l.invested}€ → {l.returned}€</b><em className={l.profit>=0?"profit":"loss"}>{l.profit>=0?"+":""}{l.profit}€</em></p>)}</div>}</div>
       </>}
 
-      {tab==="career"&&<><div className="panel-title"><div><small>HAUPTBERUF & SCHULDEN</small><h2>设定本职工作</h2></div><span>德语 {state.german} · 档案 {state.papers}</span></div><p className="career-help">换职业不消耗时间。德语不仅解锁职业：超过 40 后，每点德语为本职周薪增加 2€，最多加 80€；德语 60/75 还会分别减少事件压力 2/4 点。</p><div className="language-bonus"><span>当前语言工资加成<b>+{languageBonus}€ / 周</b></span><span>当前事件减压<b>-{state.german>=75?4:state.german>=60?2:0} 压力</b></span></div><div className="jobs">{JOBS.map(j=>{const unlocked=state.german>=j.requirement&&state.papers>=j.paperRequirement;return <button key={j.id} className={state.jobId===j.id?"selected":""} onClick={()=>switchJob(j)}><i>{j.icon}</i><span><b>{j.name}</b><small>基础周薪 {j.wage}€ · 精力 {j.energy} · 健康 {j.health}{j.requirement?` · 德语 ${j.requirement} · 档案 ${j.paperRequirement}`:""}</small></span><em>{state.jobId===j.id?"当前本职":unlocked?"设为本职":"未解锁"}</em></button>})}</div><div className="debt-box"><span><small>私人债务</small><b>{Math.round(state.debt)} €</b></span><p>每月增长 3.5%。还清后，你才真正拥有选择。</p><button onClick={payDebt}>偿还最多 250€</button></div></>}
+      {tab==="career"&&<><div className="panel-title"><div><small>HAUPTBERUF & SCHULDEN</small><h2>设定本职工作</h2></div><span>德语 {state.german} · 档案 {state.papers} · 学业 {state.study}</span></div><p className="career-help">换职业不消耗时间。德语提高本职工资并降低事件压力；档案与学业共同决定能否获得办公室、HiWi 和学生事务岗位。</p><div className="language-bonus"><span>当前语言工资加成<b>+{languageBonus}€ / 周</b></span><span>大学事件减压<b>-{state.study>=75?4:state.study>=60?2:0} 压力</b></span></div><div className="jobs">{JOBS.map(j=>{const unlocked=state.german>=j.requirement&&state.papers>=j.paperRequirement&&state.study>=(j.studyRequirement||0);return <button key={j.id} className={state.jobId===j.id?"selected":""} onClick={()=>switchJob(j)}><i>{j.icon}</i><span><b>{j.name}</b><small>基础周薪 {j.wage}€ · 精力 {j.energy} · 健康 {j.health}{j.requirement?` · 德语 ${j.requirement} · 档案 ${j.paperRequirement}${j.studyRequirement?` · 学业 ${j.studyRequirement}`:""}`:""}</small></span><em>{state.jobId===j.id?"当前本职":unlocked?"设为本职":"未解锁"}</em></button>})}</div><div className="debt-box"><span><small>私人债务</small><b>{Math.round(state.debt)} €</b></span><p>每月增长 3.5%，每月最多偿还一次。不能在同一个月连续清空债务。</p><button onClick={payDebt} disabled={state.lastDebtPaymentMonth===state.month||state.debt<=0}>{state.debt<=0?"债务已还清":state.lastDebtPaymentMonth===state.month?"本月已还款":"本月偿还最多 250€"}</button></div></>}
 
       {tab==="journal"&&<><div className="panel-title"><div><small>VERLAUF</small><h2>生活记录</h2></div><span>{state.seen.length} 个事件</span></div><div className="journal">{state.journal.length?state.journal.map((j,i)=><p key={i}><i>{String(state.journal.length-i).padStart(2,"0")}</i>{j}</p>):<div className="empty">你的档案目前还很薄。系统会设法改变这一点。</div>}</div></>}
     </section>

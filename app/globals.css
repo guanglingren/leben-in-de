@@ -175,6 +175,9 @@ footer{display:flex;justify-content:space-between;padding:16px 24px;font-size:9p
 .venture-goods em.market-up{background:#dcebdc;color:#2e6837}
 .venture-goods em.market-down{background:#f1d9d5;color:#9b3026}
 .venture-goods em.market-flat{background:#e4e0d7;color:#666b67}
+.academic-overview{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;align-items:center;background:#e5dfd2;border-left:4px solid var(--yellow);padding:9px 11px;margin-bottom:13px}
+.academic-overview b{font-size:11px}.academic-overview span{font-size:10px;font-weight:800}.academic-overview small{grid-column:1/-1;font-size:9px;color:var(--muted)}
+.debt-box button:disabled{background:#aaa49a;cursor:not-allowed}
 
 /* Student journey cinematics */
 .cinematic{width:min(760px,100%);min-height:100svh;margin:auto;background:#e9e5dc;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 0 70px #0003}
