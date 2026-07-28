@@ -98,12 +98,40 @@ footer{display:flex;justify-content:space-between;padding:16px 24px;font-size:9p
 .time-passed,.holding-period{font-size:12px}.time-passed small,.holding-period small{font-size:9px}.secondary{font-size:11px}
 
 @media (max-width:420px){
-  .ability-stats{grid-template-columns:repeat(3,1fr);overflow:visible}
-  .ability-stats>div{min-width:0}
+  .ability-stats{grid-template-columns:repeat(6,1fr);overflow:visible}
+  .ability-stats>div{min-width:0;grid-column:span 2}
+  .ability-stats>div:nth-child(4),.ability-stats>div:nth-child(5){grid-column:span 3}
   .v2-panel{margin-inline:8px;padding-inline:13px}
   .action-grid{grid-template-columns:1fr}
   .action-grid button{min-height:76px}
   .good{grid-template-columns:31px 1fr auto}.good .trade-buttons{grid-column:2/-1}.trade-buttons button{flex:1}
   .stock{grid-template-columns:25px 1fr auto}.stock>div{grid-column:2/-1}.stock button{flex:1;padding:7px}
   .time-rule span:last-child{margin-left:0}
+}
+
+/* Desktop edition — same game state, a wider information dashboard */
+@media (min-width:800px){
+  body{padding:24px;background:linear-gradient(135deg,#dfdbd1,#eeeae2)}
+  .v2-game{width:min(1180px,calc(100vw - 48px));max-width:none;min-height:calc(100vh - 48px);border-radius:4px;overflow:hidden}
+  .v2-head{height:92px;padding:18px 30px}.v2-head b{font-size:25px}.deadline b{font-size:21px}
+  .v2-stats{grid-template-columns:repeat(4,1fr)}.v2-stat{padding:13px 18px}.v2-stat>span{font-size:11px}.v2-stat>b{font-size:18px}.v2-stat>i{height:5px}
+  .ability-stats{grid-template-columns:repeat(5,1fr);overflow:visible}.ability-stats>div{padding:12px 18px}.ability-stats span{font-size:11px}.ability-stats b{font-size:19px}.ability-stats small{font-size:10px}
+  .ticker{padding-inline:30px}.ticker b{font-size:11px}.ticker span{font-size:13px}
+  .time-rule{padding:10px 30px}.time-rule b,.time-rule span{font-size:10px}
+  .tabs{padding:13px 26px 0;gap:8px}.tabs button{font-size:13px;padding:13px}
+  .v2-panel{margin:0 26px 26px;padding:26px 30px;min-height:560px}.panel-title h2{font-size:36px}.panel-title small,.panel-title>span{font-size:11px}
+  .current-job{grid-template-columns:42px 1fr auto auto;padding:14px 18px;gap:12px}.current-job>span{font-size:28px}.current-job small{font-size:10px}.current-job b{font-size:16px}.current-job strong,.current-job button{font-size:13px}.current-job button{grid-column:auto}
+  .stat-guide{display:flex;align-items:center;gap:18px;padding:14px 18px}.stat-guide b{font-size:13px;white-space:nowrap;margin:0}.stat-guide p{font-size:12px}
+  .action-grid{grid-template-columns:repeat(4,1fr);gap:12px}.action-grid button{min-height:104px;padding:15px;grid-template-columns:34px 1fr}.action-grid button>i{font-size:27px}.action-grid b{font-size:15px}.action-grid small{font-size:11px}.action-grid button>em{font-size:9px;right:8px;top:8px}
+  .month-cost{padding:14px 18px}.month-cost b{font-size:12px}.month-cost span{font-size:11px}
+  .goods{grid-template-columns:1fr 1fr;column-gap:30px}.good{min-height:82px}.good b{font-size:14px}.good small,.good em{font-size:10px}.good>strong{font-size:15px}.trade-buttons button{font-size:12px;padding:7px 10px}
+  .market-tip,.career-help{font-size:12px}.market-section-title{margin-top:18px}.market-section-title b{font-size:18px}.market-section-title span{font-size:11px}
+  .venture-goods{grid-template-columns:repeat(4,1fr);gap:10px}.venture-goods button{padding:13px}.venture-goods i{font-size:24px}.venture-goods b{font-size:12px}.venture-goods small{font-size:10px}
+  .channel-row{gap:10px}.channel-row button{padding:13px}.channel-row b{font-size:12px}.channel-row small{font-size:10px}.subhead>b{font-size:14px}.subhead>span{font-size:10px}
+  .capital-box,.active-venture{padding:16px}.cost-preview span{font-size:9px}.cost-preview b{font-size:14px}.capital-box>small{font-size:10px}.capital-box>button,.active-venture>button{font-size:12px;padding:12px}
+  .stock-block{display:grid;grid-template-columns:repeat(3,1fr);gap:0 22px}.stock-block>.subhead{grid-column:1/-1}.stock{min-height:72px}.stock b{font-size:11px}.stock small{font-size:9px}
+  .jobs{grid-template-columns:1fr 1fr;gap:11px}.jobs>button{min-height:84px;padding:14px}.jobs b{font-size:15px}.jobs small,.jobs em{font-size:11px}.language-bonus span{font-size:10px}.language-bonus b{font-size:14px}
+  .journal{columns:2;column-gap:34px}.journal p{break-inside:avoid;font-size:12px}
+  .event-modal{width:min(620px,calc(100vw - 50px));padding:28px 30px}.event-modal h2{font-size:32px}.event-modal>p{font-size:15px}.modal-choices b,.paper-tasks b{font-size:14px}.modal-choices span,.paper-tasks span{font-size:11px}
+  .toast{width:min(620px,calc(100% - 40px));font-size:12px}
 }
