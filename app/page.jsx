@@ -1,7 +1,58 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 const PROFILES = [
   { id: "student", icon: "🎓", name: "外国大学生", detail: "刚下飞机 · 德语 B1 · 学籍待激活 · 一叠陌生的信", money: 1900, debt: 1200, health: 80, stress: 28, energy: 78, german: 46, papers: 35, reputation: 25, study:22, wage: 470 }
+];
+
+const DE_EVENTS = [
+  {id:"de-seminar",title:"Dein Name fehlt auf der Seminarliste",office:"UNIVERSITÄT",text:"Der Dozent verweist auf das Prüfungsamt, das Prüfungsamt auf Moodle. Moodle sagt: erfolgreich angemeldet.",choices:[
+    {label:"Mit drei Screenshots zum Dozenten",effect:{energy:-8,stress:5,study:8,papers:5},result:"Du wirst handschriftlich ergänzt. Handschriftliche Listen gelten allerdings nicht im System."},
+    {label:"Teilnehmen und weiter mailen",effect:{energy:-5,stress:8,study:5,german:2},result:"Du lernst etwas und erhältst zugleich die Bitte, keine doppelten Anfragen zu senden."}
+  ]},
+  {id:"de-exam",title:"Die Prüfungsanmeldung schloss zwei Minuten zu früh",office:"PRÜFUNGSAMT",text:"Auf der Website stand 23:59. Der Server lebte offenbar in einer anderen Zeitzone.",choices:[
+    {label:"Härtefallantrag stellen",effect:{papers:14,energy:-15,stress:10,study:4},result:"Der Antrag ist eingegangen. Die Entscheidung kommt nach dem Prüfungstermin."},
+    {label:"Auf das nächste Semester verschieben",effect:{stress:4,study:10,health:2},result:"Dein Studienplan verschiebt sich, aber du hörst auf, die Seite neu zu laden."}
+  ]},
+  {id:"de-mensa",title:"Die Mensakarte hat Guthaben, existiert aber nicht",office:"MENSA",text:"Der Automat kennt dein Geld, die Kasse kennt deine Karte nicht.",choices:[
+    {label:"Noch einmal Mittagessen kaufen",effect:{money:-18,health:3,stress:3},result:"Eine Mahlzeit existiert im System, die andere auf deinem Tablett."},
+    {label:"Guthaben übertragen lassen",effect:{energy:-9,papers:6,stress:6},result:"Die alte Karte muss zuerst gelöscht werden. Dafür muss die neue Karte bereits gültig sein."}
+  ]},
+  {id:"de-library",title:"Mahnung für ein Buch, das du nie ausgeliehen hast",office:"BIBLIOTHEK",text:"Der Datensatz ist vollständig. Nur die Unterschrift gehört nicht dir.",choices:[
+    {label:"Ausleihbeleg anfordern",effect:{energy:-10,papers:9,stress:6,study:-2},result:"Der Beleg kommt nach der Datenschutzprüfung. Die Mahngebühr läuft weiter."},
+    {label:"Zahlen und das Konto entsperren",effect:{money:-65,stress:-4,study:6},result:"Am nächsten Tag gibt jemand anderes das Buch zurück."}
+  ]},
+  {id:"de-group",title:"Die Gruppe verschwindet kurz vor der Abgabe",office:"SEMINAR",text:"Die letzte Nachricht lautet: Ich lade es heute Abend hoch. Im Ordner liegt nichts.",choices:[
+    {label:"Alles allein fertigstellen",effect:{study:13,energy:-18,health:-5,stress:12},result:"Die Arbeit ist pünktlich da. Vier Namen stehen ordentlich auf dem Deckblatt."},
+    {label:"Dem Dozenten schreiben",effect:{german:3,reputation:-3,stress:7,study:4},result:"Ihr sollt zunächst eure interkulturelle Gruppenkommunikation verbessern."}
+  ]},
+  {id:"de-heating",title:"Die Heizung ist kaputt, alle bedauern es",office:"HAUSVERWALTUNG",text:"Die Verwaltung verweist auf den Vermieter, der Vermieter auf die Verwaltung. Im Zimmer sind 15 °C.",choices:[
+    {label:"Einen Heizlüfter kaufen",effect:{money:-120,health:-4,stress:3},result:"Das Zimmer wird wärmer. Die Stromrechnung beginnt ein eigenes Studium."},
+    {label:"Schriftlich eine Frist setzen",effect:{health:-8,energy:-10,papers:14},result:"Die Reparatur kommt irgendwann zwischen 8 und 18 Uhr."}
+  ]},
+  {id:"de-train",title:"Der Zug fällt aus, gilt aber als pünktlich",office:"DEUTSCHE BAHN",text:"Der Endbahnhof wurde geändert. Die App meldet trotzdem eine erfolgreiche Reise.",choices:[
+    {label:"Taxi nehmen und die Schicht retten",effect:{money:-68,stress:3,reputation:4},result:"Der Arbeitgeber zeigt Verständnis und empfiehlt künftig mehr Verkehrspuffer."},
+    {label:"Warten und Beweise sammeln",effect:{energy:-13,stress:9,papers:6},result:"Der Support erklärt, ein Screenshot beweise nicht, dass du im Zug warst."}
+  ]},
+  {id:"de-permit",title:"Die Aufenthaltserlaubnis braucht eine Aufenthaltserlaubnis",office:"AUSLÄNDERBEHÖRDE",text:"Der Arbeitgeber braucht die Genehmigung. Die Behörde braucht zuerst den Arbeitsvertrag.",choices:[
+    {label:"Alle Stellen gleichzeitig anschreiben",effect:{energy:-15,stress:11,papers:18},result:"Nach der siebten Mail landen beide Anhänge endlich in derselben Akte."},
+    {label:"Eine Fiktionsbescheinigung beantragen",effect:{money:-80,stress:7,papers:12},result:"Die Bank kennt das Dokument nicht und fragt die Zentrale."}
+  ]},
+  {id:"de-radio",title:"Doppelter Rundfunkbeitrag für dieselbe Wohnung",office:"BEITRAGSSERVICE",text:"Du und dein Mitbewohner teilen eine Beitragsnummer. Das System hat trotzdem ein zweites Konto eröffnet.",choices:[
+    {label:"Schriftlich widersprechen",effect:{energy:-8,stress:10,papers:11},result:"Sechs Wochen keine Antwort. Die Mahnung kommt pünktlich."},
+    {label:"Zahlen und später zurückfordern",effect:{money:-55,stress:-3},result:"Die Rückforderung benötigt nun die Nummer des geschlossenen Kontos."}
+  ]},
+  {id:"de-doctor",title:"Der nächste Facharzttermin ist nächstes Jahr",office:"FACHARZT",text:"Der Hausarzt empfiehlt eine schnelle Untersuchung. Fünf Praxen nehmen niemanden auf.",choices:[
+    {label:"Weiter telefonieren",effect:{energy:-14,health:-6,stress:9},result:"Nach zwölf Anrufen kennst du jede Warteschleifenmelodie."},
+    {label:"Als Selbstzahler gehen",effect:{money:-240,health:12,stress:-5},result:"Morgen wäre ein Termin frei. Medizinische Zeit ist käuflich."}
+  ]},
+  {id:"de-neighbor",title:"Die Nachbarn laden zum Grillen ein",office:"NACHBARSCHAFT",text:"Keine Anmeldung, kein Formular, kein Termin. Das wirkt verdächtig unkompliziert.",choices:[
+    {label:"Etwas mitbringen und hingehen",effect:{money:-28,stress:-13,reputation:14,energy:-3},result:"Du lernst jemanden kennen, der Fahrräder repariert und Mietrecht versteht."},
+    {label:"Zu Hause ausruhen",effect:{health:5,energy:11,stress:-5},result:"Du schläfst einen ganzen Nachmittag und erledigst keinen Antrag."}
+  ]},
+  {id:"de-bread",title:"Du willst nur Brot und bekommst sieben Fragen",office:"BÄCKEREI",text:"Vollkorn, Roggen, Mischung; geschnitten oder ganz; dünn oder dick; bar oder Girocard.",choices:[
+    {label:"Dasselbe wie die Person vor mir",effect:{money:-6,stress:-4,reputation:2},result:"Du bekommst ein zuverlässiges Brot, dessen Namen du nie erfahren wirst."},
+    {label:"Jede Frage sorgfältig beantworten",effect:{money:-8,energy:-3,german:3},result:"Das war der reibungsloseste Verwaltungsvorgang deiner Woche."}
+  ]}
 ];
 
 const JOBS = [
@@ -47,6 +98,16 @@ const NEWS = [
   { text: "交通票价调整传闻四起，官方表示暂无信息。", mods: { ticket: 1.5 } },
   { text: "能源价格短暂回落，大家开始清理储藏室。", mods: { heater: .68 } },
   { text: "打印服务系统维护一周，纸质材料重新受到重视。", mods: { printer: 1.65 } }
+];
+const DE_NEWS = [
+  "Die Bahn kündigt einen Warnstreik an. Fahrräder sind plötzlich gefragt.",
+  "Eine Kältewelle trifft die Stadt. Die Hausverwaltung ist dauerhaft besetzt.",
+  "Das neue Semester beginnt. Viele WGs suchen Möbel.",
+  "Die Stadt verlagert weitere Dienste ins Internet.",
+  "Am Wochenende öffnet der große Flohmarkt. Mehr Gebrauchtwaren kommen auf den Markt.",
+  "Gerüchte über neue Fahrpreise machen die Runde. Offiziell ist nichts bekannt.",
+  "Die Energiepreise sinken kurz. Viele räumen ihre Keller aus.",
+  "Der Druckservice wird eine Woche gewartet. Papier ist wieder unverzichtbar."
 ];
 
 const BASE_EVENTS = [
@@ -236,12 +297,61 @@ const PAPER_TASKS = [
 
 const clamp = n => Math.max(0, Math.min(100, Math.round(n)));
 const effectNames = {money:"资金",debt:"债务",energy:"精力",health:"健康",stress:"压力",german:"德语",papers:"档案",packs:"材料包",reputation:"人脉",study:"学业"};
+const effectNamesDe = {money:"Geld",debt:"Schulden",energy:"Energie",health:"Gesundheit",stress:"Stress",german:"Deutsch",papers:"Akte",packs:"Unterlagen",reputation:"Kontakte",study:"Studium"};
 const effectIcons = {money:"💶",debt:"🏦",energy:"⚡",health:"❤️",stress:"🧠",german:"🗣️",papers:"🗂️",packs:"📦",reputation:"🤝",study:"🎓"};
 const periodLabel = s => s.month>12?"年度结束":`第 ${s.month} 月 · 第 ${s.week} 周`;
 
-function EffectBadges({effect}) {
-  return <div className="effect-badges"><strong>关联数值</strong>{Object.keys(effect).map(key=><span key={key}>{effectIcons[key]} {effectNames[key]}</span>)}</div>;
+function EffectBadges({effect,lang="zh"}) {
+  const names=lang==="de"?effectNamesDe:effectNames;
+  return <div className="effect-badges"><strong>{lang==="de"?"Betroffene Werte":"关联数值"}</strong>{Object.keys(effect).map(key=><span key={key}>{effectIcons[key]} {names[key]}</span>)}</div>;
 }
+
+const DE_UI = {
+  "现金":"Geld","债务":"Schulden","❤️ 健康":"❤️ Gesundheit","🧠 压力":"🧠 Stress","⚡ 精力":"⚡ Energie","🗣️ 德语":"🗣️ Deutsch","🤝 人脉":"🤝 Kontakte","🗂️ 档案":"🗂️ Akte","📦 材料包":"📦 Unterlagen","🎓 学业":"🎓 Studium",
+  "可正常行动":"handlungsfähig","需要休息":"Erholung nötig","无法工作":"arbeitsunfähig","解锁职业":"schaltet Jobs frei","事件减损":"Schutz bei Ereignissen","课程进度":"Studienfortschritt","本周消息":"Diese Woche","时间规则":"ZEITREGEL","⏳ 本周行动＝推进 1 周":"⏳ Wochenaktion = 1 Woche","○ 商品、股票、经营批次、换职业＝不耗时间":"○ Handel, Anlage und Jobwechsel kosten keine Zeit",
+  "本周行动":"Wochenaktion","交易投资":"Handel & Anlage","职业设定":"Beruf","记录":"Verlauf","这一周怎么过？":"Wie verbringst du diese Woche?","每次只能选 1 项":"Wähle genau 1 Aktion","现在":"Jetzt","选择行动":"Aktion wählen","消耗整整一周":"verbraucht eine Woche","行动结束":"Danach","本月进度":"Monatsfortschritt","第 ":"Monat "," 月 · 第 ":" · Woche "," 周":"",
+  "本周工资 ":"Wochenlohn ","储物 ":"Lager ","持有 ":"Bestand ","投入 ":"Einsatz "," 开始批次":" · Projekt starten",
+  "当前本职工作":"Aktueller Nebenjob","更换职业":"Job wechseln","这些数值会怎样影响生活？":"Wie wirken diese Werte?","关联数值":"Betroffene Werte","处理积压手续":"Papierkram erledigen","选择一项具体行政任务":"Eine konkrete Behördenaufgabe wählen","做本职工作":"Im Nebenjob arbeiten","按当前职业结算工资":"Lohn des aktuellen Jobs","按当前工资结算":"Lohn wird danach abgerechnet","接一次临时零工":"Gelegenheitsjob annehmen","不改变本职 · 德语越好收入越高":"Kein Jobwechsel · besseres Deutsch bringt mehr Geld","学德语":"Deutsch lernen","解锁好工作 · 费脑":"Bessere Jobs · kostet Konzentration","准备课程和考试":"Für Kurse und Prüfungen lernen","推进学业 · 消耗精力":"Studium voranbringen · kostet Energie","在家休息":"Zu Hause erholen","恢复健康和精力":"Gesundheit und Energie regenerieren","去酒吧喝酒":"In die Kneipe gehen","压力大降 · 伤身烧钱":"Weniger Stress · kostet Geld und Gesundheit","参加社区活动":"Zum Nachbarschaftstreffen","积累人脉 · 小额花费":"Kontakte aufbauen · kleine Ausgabe","照顾身体":"Um die Gesundheit kümmern","花钱治疗 · 恢复健康":"Behandlung bezahlen · Gesundheit gewinnen","⏳ 推进1周":"⏳ +1 Woche",
+  "仓库夜班":"Nachtschicht im Lager","外卖接单":"Essenslieferung","大学办公室助理":"Uni-Bürohilfe","学生事务翻译":"Übersetzung im Studierendenwerk","整理标准材料包":"Standard-Unterlagen vorbereiten","获得 1 份可在事件中消耗的完整材料包":"Ein vollständiges Unterlagenpaket erhalten","抢一次 Behörden-Termin":"Behördentermin ergattern","预约、复印、排队，把档案推进一大截":"Termin, Kopien und Warteschlange für eine vollständigere Akte","核对旧账并申请退费":"Alte Abrechnung prüfen","翻出一笔重复扣款，同时补全往来记录":"Doppelabbuchung finden und Schriftverkehr ergänzen",
+  "二手自行车":"Gebrauchtes Fahrrad","罢工和好天气时走俏":"Bei Streik und Sonne gefragt","电暖器":"Heizlüfter","寒潮时价格暴涨":"Bei Kälte besonders teuer","Deutschlandticket":"Deutschlandticket","政策变化会影响价格":"Politik verändert den Preis","旧手机":"Altes Smartphone","办线上手续的刚需":"Für digitale Anträge fast unverzichtbar","宜家小桌":"Kleiner IKEA-Tisch","开学季需求上升":"Zum Semesterstart gefragt","家用打印机":"Drucker","任何手续都可能需要它":"Jeder Antrag könnte ihn verlangen",
+  "二手德语教材":"Gebrauchte Deutschbücher","翻新旧手机":"Aufbereitete Smartphones","高仿名牌运动鞋":"Gefälschte Markenschuhe","破解电视棒":"Manipulierter TV-Stick","eBay Kleinanzeigen":"Kleinanzeigen","周末跳蚤市场":"Wochenend-Flohmarkt","德国大盘基金":"Deutscher Indexfonds","莱茵物流股份":"Rhein-Logistik AG","政务软件股份":"Behördensoftware AG",
+  "月末还会自动结算":"Monatsabrechnung","交易与投资":"Handel und Anlage","所有操作不直接耗时":"Diese Aktionen kosten keine Zeit","即时买卖":"Soforthandel","当前卖价":"Aktueller Preis","买":"Kaufen","卖":"Verkaufen","尚未买入":"Noch nicht gekauft","经营批次":"Handelsprojekt","开始与结算均不耗时":"Start und Abschluss kosten keine Zeit","① 选择要卖的东西":"① Ware wählen","利润越高，风险通常越大":"Mehr Gewinn bedeutet meist mehr Risiko","② 选择销售渠道":"② Verkaufskanal wählen","③ 开始经营批次":"③ Handelsprojekt starten","商品本金":"Warenkapital","渠道费用":"Kanalgebühr","总投入":"Gesamteinsatz","虚构证券市场":"Fiktiver Aktienmarkt","均价与浮盈亏实时显示":"Einstand und Gewinn/Verlust werden angezeigt","现价":"Kurs","未持有 · 买入后记录成本":"Nicht im Depot · Kaufpreis wird gespeichert",
+  "设定本职工作":"Nebenjob festlegen","当前语言工资加成":"Sprachbonus beim Lohn","当前事件减压":"Stressbonus bei Ereignissen","基础周薪":"Grundlohn/Woche","精力":"Energie","健康":"Gesundheit","德语":"Deutsch","档案":"Akte","当前本职":"Aktueller Job","设为本职":"Als Job wählen","未解锁":"Gesperrt","私人债务":"Private Schulden","偿还最多 250€":"Bis zu 250 € tilgen","生活记录":"Lebensverlauf","个事件":" Ereignisse","行政事务":"Behördenangelegenheit","这周具体跑什么手续？":"Welche Behördensache erledigst du?","先不跑手续":"Doch nicht","随机事项":"Zufälliges Ereignis","📦 提交完整材料包快速处理":"📦 Vollständige Unterlagen einreichen","周结算":"Wochenabschluss","时间已经推进":"Die Zeit ist vergangen","这一周结束了":"Die Woche ist vorbei","进入新的一周":"In die nächste Woche","经营结算":"Handelsabschluss","完成结算":"Abschluss beenden","处理结果":"Ergebnis","资金":"Geld","材料包":"Unterlagen","学业":"Studium","人脉":"Kontakte","压力":"Stress"
+  ,"低于 18 不能工作或接零工；":"Unter 18 kannst du weder arbeiten noch jobben; ","达到 45 可能出现稳定岗位；":"ab 45 kann eine Beförderung erscheinen; ","与德语共同解锁职业；":"schaltet zusammen mit Deutsch Jobs frei; ","可在官僚事件中抵消约 55% 的主要损失。":"reduziert bei Behördenereignissen den Hauptschaden um etwa 55%.","部分方案涉及资金":"einige Optionen betreffen Geld",
+  "第 4 周行动结束后进入下个月，并扣除生活费 780€、增加债务利息 3.5%。随机事件发生在已经消耗的这一周内，不会额外再走一周。":"Nach Woche 4 beginnt ein neuer Monat: 780 € Lebenshaltungskosten und 3,5 % Schuldzinsen. Ereignisse verbrauchen keine zusätzliche Woche.","先买入或开一个经营批次，再用“本周行动”推进时间。价格和经营结果会随着周数变化。":"Kaufe Waren oder starte ein Projekt und lass dann mit einer Wochenaktion Zeit vergehen. Preise und Ergebnisse ändern sich wöchentlich.","预期毛利":"Erwartete Marge","风险":"Risiko","客流大、价格好，但平台留痕完整。":"Viele Kunden und gute Preise, aber eine vollständige digitale Spur.","要交摊位费、消耗体力，现金交易更灵活。":"Standgebühr und körperliche Arbeit, dafür flexiblere Barzahlung.","开始批次不耗时间，但资金会立刻锁定；至少推进一周后才能结算。":"Der Start kostet keine Zeit, bindet aber sofort Kapital. Abschluss frühestens nach einer Woche.","换职业不消耗时间。德语不仅解锁职业：超过 40 后，每点德语为本职周薪增加 2€，最多加 80€；德语 60/75 还会分别减少事件压力 2/4 点。":"Ein Jobwechsel kostet keine Zeit. Deutsch schaltet Jobs frei und erhöht ab 40 den Wochenlohn um 2 € pro Punkt, maximal 80 €. Mit 60/75 Deutsch sinkt Ereignisstress um 2/4.","每月增长 3.5%。还清后，你才真正拥有选择。":"Wächst monatlich um 3,5 %. Erst ohne Schulden hast du echte Wahlfreiheit.","你的档案目前还很薄。系统会设法改变这一点。":"Deine Akte ist noch dünn. Das System wird das ändern.","本次主要损失降低约 55%":"Der Hauptschaden sinkt um etwa 55%","已经用掉一周":" hat bereits eine Woche verbraucht","新的市场价格和生活状态已经更新。":"Preise und Lebenswerte wurden aktualisiert."
+};
+
+function deText(value){
+  let translated=value
+    .replace(/第 (\d+) 月 · 第 (\d+) 周/g,"Monat $1 · Woche $2")
+    .replace(/第 (\d+) 月/g,"Monat $1")
+    .replace(/第 (\d+) 周/g,"Woche $1")
+    .replace(/本周工资 (\d+)€/g,"Wochenlohn $1 €")
+    .replace(/工资 \+(\d+)€/g,"Lohn +$1 €")
+    .replace(/(\d+) 后可能触发晋升/g,"Ab $1: Chance auf Beförderung")
+    .replace(/持有 (\d+)/g,"Bestand $1")
+    .replace(/均价 (\d+)€/g,"Einstand $1 €")
+    .replace(/储物 (\d+)\/(\d+)/g,"Lager $1/$2")
+    .replace(/消耗 1 份材料包/g,"Verbraucht 1 Unterlagenpaket")
+    .replace(/当前不足/g,"nicht vorhanden")
+    .replace(/投入 (\d+)€ 开始批次/g,"$1 € einsetzen und Projekt starten");
+  for(const [zh,de] of Object.entries(DE_UI).sort((a,b)=>b[0].length-a[0].length))translated=translated.replaceAll(zh,de);
+  return translated;
+}
+
+function localizeNode(node,lang){
+  if(lang!=="de")return node;
+  if(typeof node==="string")return deText(node);
+  if(Array.isArray(node))return node.map((item,i)=><React.Fragment key={i}>{localizeNode(item,lang)}</React.Fragment>);
+  if(!React.isValidElement(node))return node;
+  const props={};
+  if(node.props.children!==undefined)props.children=localizeNode(node.props.children,lang);
+  if(typeof node.props.title==="string")props.title=deText(node.props.title);
+  if(typeof node.props["aria-label"]==="string")props["aria-label"]=deText(node.props["aria-label"]);
+  return React.cloneElement(node,props);
+}
+
+function Localize({lang,children}){return localizeNode(children,lang);}
 
 function seededPrice(good, week, news) {
   const wave = .78 + ((Math.sin((week + 1) * (good.base + 7) * .113) + 1) / 2) * .48;
@@ -260,6 +370,8 @@ function Stat({label,value,type="bar",bad=false}) {
 }
 
 export default function Home() {
+  const [lang,setLang]=useState("zh");
+  useEffect(()=>{document.documentElement.lang=lang==="de"?"de":"zh-CN";},[lang]);
   const [screen,setScreen]=useState("intro");
   const [state,setState]=useState(null);
   const [tab,setTab]=useState("actions");
@@ -285,7 +397,8 @@ export default function Home() {
   }
 
   function drawEvent(current){
-    const eligible=BASE_EVENTS.filter(e=>(!e.when||e.when(current))&&!current.seen.slice(-14).includes(e.id));
+    const eventPool=lang==="de"?DE_EVENTS:BASE_EVENTS;
+    const eligible=eventPool.filter(e=>(!e.when||e.when(current))&&!current.seen.slice(-14).includes(e.id));
     if(!eligible.length)return null;
     const index=(current.totalWeek*7+Math.round(current.stress)+Math.round(current.money))%eligible.length;
     return eligible[index];
@@ -294,7 +407,7 @@ export default function Home() {
   function doAction(action,force=false){
     if(modal&&!force)return;
     let next=applyEffect(state,action.run(state));
-    let log=`第 ${state.month} 月第 ${state.week} 周：${action.name}`;
+    let log=lang==="de"?`Monat ${state.month}, Woche ${state.week}: ${deText(action.name)}`:`第 ${state.month} 月第 ${state.week} 周：${action.name}`;
     let nextWeek=state.week+1, nextMonth=state.month, newsIndex=state.newsIndex;
     let monthSummary="";
     if(nextWeek>4){
@@ -431,38 +544,38 @@ export default function Home() {
       :`卖出 ${stock.ticker}：成交 ${price}€，实际${realized>=0?"赚":"亏"} ${Math.abs(realized)}€`);
   }
 
-  if(screen==="intro")return <main className="landing v2-intro"><div className="flagline"/><nav><span className="brand">DEUTSCHLAND<br/><b>浮生记</b></span><span className="version">STUDENTENLEBEN · V4</span></nav><section className="hero"><div className="kicker">12 MONATE · 48 WOCHEN · STUDIEREN & ÜBERLEBEN</div><h1>来到德国，<br/><em>从第一周开始。</em></h1><p>你是一名刚抵达德国的外国大学生：学籍尚待激活、房间是临时的、德语勉强够用，还必须靠打工维持生活。课程、考试、签证和每一封信，都可能改变这一年。</p><div className="starting-file"><span>🎓</span><div><b>外国大学生</b><small>现金 1900€ · 债务 1200€ · 德语 B1 · 学业刚起步</small></div></div><div className="loop-preview"><span>学习与打工</span><i>→</i><span>处理生活</span><i>→</i><span>熬过 48 周</span></div><button className="primary" onClick={()=>start(PROFILES[0])}>登上飞往德国的航班 <span>✈</span></button></section><footer><span>无需预选专业</span><span>留德生活由每周选择形成</span></footer></main>;
+  if(screen==="intro")return <Localize lang={lang}><main className="landing v2-intro"><div className="flagline"/><nav><span className="brand">DEUTSCHLAND<br/><b>{lang==="de"?"LEBEN":"浮生记"}</b></span><div className="lang-switch"><button className={lang==="zh"?"active":""} onClick={()=>setLang("zh")}>中文</button><button className={lang==="de"?"active":""} onClick={()=>setLang("de")}>Deutsch</button></div></nav><section className="hero"><div className="kicker">12 MONATE · 48 WOCHEN · STUDIEREN & ÜBERLEBEN</div><h1>{lang==="de"?<>Ankommen.<br/><em>Ab Woche eins.</em></>:<>来到德国，<br/><em>从第一周开始。</em></>}</h1><p>{lang==="de"?"Du bist als internationaler Student gerade in Deutschland gelandet. Die Immatrikulation ist noch nicht vollständig, das Zimmer nur vorläufig und dein Deutsch gerade gut genug. Studium, Nebenjobs, Visum und jeder Brief können dieses Jahr verändern。":"你是一名刚抵达德国的外国大学生：学籍尚待激活、房间是临时的、德语勉强够用，还必须靠打工维持生活。课程、考试、签证和每一封信，都可能改变这一年。"}</p><div className="starting-file"><span>🎓</span><div><b>{lang==="de"?"Internationaler Student":"外国大学生"}</b><small>{lang==="de"?"1.900 € · 1.200 € Schulden · Deutsch B1 · Studienbeginn":"现金 1900€ · 债务 1200€ · 德语 B1 · 学业刚起步"}</small></div></div><div className="loop-preview"><span>{lang==="de"?"Studieren & jobben":"学习与打工"}</span><i>→</i><span>{lang==="de"?"Alltag bewältigen":"处理生活"}</span><i>→</i><span>{lang==="de"?"48 Wochen schaffen":"熬过 48 周"}</span></div><button className="primary" onClick={()=>start(PROFILES[0])}>{lang==="de"?"Flug nach Deutschland nehmen":"登上飞往德国的航班"} <span>✈</span></button></section><footer><span>{lang==="de"?"Kein Studienfach nötig":"无需预选专业"}</span><span>{lang==="de"?"Jede Woche formt dein Leben":"留德生活由每周选择形成"}</span></footer></main></Localize>;
 
-  if(screen==="arrival")return <main className="cinematic arrival-scene"><div className="sky"><span className="cloud c1">☁</span><span className="cloud c2">☁</span><span className="flying-plane">✈</span><div className="germany-line"><i/><i/><i/></div></div><section><small>ANKUNFT · WOCHE 1</small><h1>Willkommen<br/>in Deutschland</h1><p>飞机落地。行李转盘还没动，你已经收到大学、保险公司和市政厅的三封邮件。</p><button className="primary" onClick={()=>setScreen("game")}>开始德国生活 <span>→</span></button></section></main>;
+  if(screen==="arrival")return <Localize lang={lang}><main className="cinematic arrival-scene"><div className="sky"><span className="cloud c1">☁</span><span className="cloud c2">☁</span><span className="flying-plane">✈</span><div className="germany-line"><i/><i/><i/></div></div><section><small>ANKUNFT · WOCHE 1</small><h1>Willkommen<br/>in Deutschland</h1><p>{lang==="de"?"Das Flugzeug ist gelandet. Das Gepäckband steht noch still, aber Universität, Krankenkasse und Bürgeramt haben dir bereits geschrieben.":"飞机落地。行李转盘还没动，你已经收到大学、保险公司和市政厅的三封邮件。"}</p><button className="primary" onClick={()=>setScreen("game")}>{lang==="de"?"Leben in Deutschland beginnen":"开始德国生活"} <span>→</span></button></section></main></Localize>;
 
   if(screen==="end"){
     const won=state.month>12&&state.health>0&&state.stress<100&&state.money>0;
     const net=Math.round(state.money-state.debt+Object.entries(state.inventory).reduce((sum,[id,q])=>sum+(prices[id]||0)*q,0));
-    return <main className={`cinematic departure-scene ${won?"continue":"farewell"}`}><div className="departure-sky"><div className="city-silhouette">▥ ▥ ▰ ▥ ▰ ▥</div><span className="departure-plane">✈</span></div><section><small>{won?"48 WOCHEN GESCHAFFT":"ABFLUG"}</small><h1>{won?"Das Leben geht weiter":"Tschüss Deutschland"}</h1><p>{won?"你坚持了 48 周。课程还没有结束，信箱也不会清空，但德国生活已经从陌生的规则变成了你继续前行的一部分。":state.health<=0?"身体先撑不住了。":state.stress>=100?"压力突破了极限。":"账户见底，留德生活暂时在这里结束。"}</p><div className="score"><span>净资产<b>{net}€</b></span><span>学业进度<b>{state.study}</b></span><span>处理事件<b>{state.seen.length}</b></span></div><button className="primary" onClick={()=>start(PROFILES[0])}>重新登机 <span>↻</span></button></section></main>;
+    return <Localize lang={lang}><main className={`cinematic departure-scene ${won?"continue":"farewell"}`}><div className="departure-sky"><div className="city-silhouette">▥ ▥ ▰ ▥ ▰ ▥</div><span className="departure-plane">✈</span></div><section><small>{won?"48 WOCHEN GESCHAFFT":"ABFLUG"}</small><h1>{won?"Das Leben geht weiter":"Tschüss Deutschland"}</h1><p>{lang==="de"?(won?"Du hast 48 Wochen geschafft. Das Studium ist nicht vorbei und der Briefkasten wird nie leer, aber Deutschland ist nun ein Teil deines Weges.":state.health<=0?"Dein Körper konnte nicht mehr.":state.stress>=100?"Der Stress hat die Grenze überschritten.":"Das Konto ist leer. Dein Leben in Deutschland endet vorerst hier."):(won?"你坚持了 48 周。课程还没有结束，信箱也不会清空，但德国生活已经从陌生的规则变成了你继续前行的一部分。":state.health<=0?"身体先撑不住了。":state.stress>=100?"压力突破了极限。":"账户见底，留德生活暂时在这里结束。")}</p><div className="score"><span>{lang==="de"?"Nettovermögen":"净资产"}<b>{net}€</b></span><span>{lang==="de"?"Studium":"学业进度"}<b>{state.study}</b></span><span>{lang==="de"?"Ereignisse":"处理事件"}<b>{state.seen.length}</b></span></div><button className="primary" onClick={()=>start(PROFILES[0])}>{lang==="de"?"Noch einmal einsteigen":"重新登机"} <span>↻</span></button></section></main></Localize>;
   }
 
   const totalInventory=Object.values(state.inventory).reduce((a,b)=>a+b,0);
   const currentJob=JOBS.find(j=>j.id===state.jobId)||JOBS[0];
   const languageBonus=Math.min(80,Math.max(0,state.german-40)*2);
   const currentWage=currentJob.wage+languageBonus+(state.flags.promotion?70:0);
-  const nextPeriod=state.week===4?`第 ${state.month+1} 月 · 第 1 周`:`第 ${state.month} 月 · 第 ${state.week+1} 周`;
-  return <main className="v2-game">
-    <header className="v2-head"><div><small>LEBENSAKTE · {state.name}</small><b>第 {state.month} 月 · 第 {state.week} 周</b></div><div className="deadline"><small>年度进度</small><b>{Math.min(state.totalWeek,48)}/48</b></div></header>
-    <section className="v2-stats"><Stat label="现金" value={state.money} type="money"/><Stat label="债务" value={state.debt} type="money"/><Stat label="❤️ 健康" value={state.health}/><Stat label="🧠 压力" value={state.stress} bad/></section>
+  const nextPeriod=lang==="de"?(state.week===4?`Monat ${state.month+1} · Woche 1`:`Monat ${state.month} · Woche ${state.week+1}`):(state.week===4?`第 ${state.month+1} 月 · 第 1 周`:`第 ${state.month} 月 · 第 ${state.week+1} 周`);
+  return <Localize lang={lang}><main className="v2-game">
+    <header className="v2-head"><div><small>LEBENSAKTE · {lang==="de"?"Internationaler Student":state.name}</small><b>{lang==="de"?`Monat ${state.month} · Woche ${state.week}`:`第 ${state.month} 月 · 第 ${state.week} 周`}</b></div><div className="head-tools"><div className="deadline"><small>{lang==="de"?"Jahresfortschritt":"年度进度"}</small><b>{Math.min(state.totalWeek,48)}/48</b></div><div className="lang-switch compact"><button className={lang==="zh"?"active":""} onClick={()=>setLang("zh")}>{lang==="de"?"ZH":"中"}</button><button className={lang==="de"?"active":""} onClick={()=>setLang("de")}>DE</button></div></div></header>
+    <section className="v2-stats"><Stat label={lang==="de"?"Geld":"现金"} value={state.money} type="money"/><Stat label={lang==="de"?"Schulden":"债务"} value={state.debt} type="money"/><Stat label={lang==="de"?"❤️ Gesundheit":"❤️ 健康"} value={state.health}/><Stat label={lang==="de"?"🧠 Stress":"🧠 压力"} value={state.stress} bad/></section>
     <section className="ability-stats" aria-label="能力与行政资源">
       <div title="行动会消耗精力；低于 18 时不能工作或接零工"><span>⚡ 精力</span><b>{state.energy}</b><small>{state.energy<18?"无法工作":state.energy<35?"需要休息":"可正常行动"}</small></div>
-      <div title="提高周薪、解锁职业，并降低事件压力"><span>🗣️ 德语</span><b>{state.german}</b><small>工资 +{languageBonus}€</small></div>
+      <div title="提高周薪、解锁职业，并降低事件压力"><span>🗣️ 德语</span><b>{state.german}</b><small>{lang==="de"?"Lohn":"工资"} +{languageBonus}€</small></div>
       <div title="代表社会关系；达到 45 后，随机事件中可能出现稳定岗位的晋升机会"><span>🤝 人脉</span><b>{state.reputation}</b><small>{state.reputation>=45?"可能触发晋升事件":"45 后可能触发晋升"}</small></div>
       <div title="代表行政记录完整度；高级职业要求档案达标"><span>🗂️ 档案</span><b>{state.papers}</b><small>解锁职业</small></div>
       <div title="在官僚事件中消耗一份，可显著降低损失"><span>📦 材料包</span><b>{state.packs}</b><small>事件减损</small></div>
       <div title="代表课程、作业与考试的总体进展"><span>🎓 学业</span><b>{state.study}</b><small>课程进度</small></div>
     </section>
-    <div className="ticker"><b>本周消息</b><span>{news.text}</span></div>
+    <div className="ticker"><b>本周消息</b><span>{lang==="de"?DE_NEWS[state.newsIndex]:news.text}</span></div>
     <div className="time-rule"><b>时间规则</b><span>⏳ 本周行动＝推进 1 周</span><span>○ 商品、股票、经营批次、换职业＝不耗时间</span></div>
     <nav className="tabs">{[["actions","本周行动"],["market","交易投资"],["career","职业设定"],["journal","记录"]].map(([id,label])=><button className={tab===id?"active":""} key={id} onClick={()=>setTab(id)}>{label}</button>)}</nav>
 
     <section className="v2-panel">
-      {tab==="actions"&&<><div className="panel-title"><div><small>WOCHE {state.totalWeek+1}</small><h2>这一周怎么过？</h2></div><span>每次只能选 1 项</span></div><div className="week-flow"><div className="week-node current"><small>现在</small><b>第 {state.month} 月 · 第 {state.week} 周</b></div><div className="flow-arrow"><span>选择行动</span><b>→</b><small>消耗整整一周</small></div><div className="week-node next"><small>行动结束</small><b>{nextPeriod}</b></div><div className="month-weeks"><span>本月进度</span>{[1,2,3,4].map(w=><i key={w} className={w<state.week?"done":w===state.week?"active":""}><b>{w}</b><small>周</small></i>)}</div></div><div className="current-job"><span>{currentJob.icon}</span><div><small>当前本职工作</small><b>{currentJob.name}</b></div><strong>本周工资 {currentWage}€</strong><button onClick={()=>setTab("career")}>更换职业</button></div><div className="stat-guide"><b>这些数值会怎样影响生活？</b><p><span>⚡ 精力</span>低于 18 不能工作或接零工；<span>🤝 人脉</span>达到 45 可能出现稳定岗位；<span>🗂️ 档案</span>与德语共同解锁职业；<span>📦 材料包</span>可在官僚事件中抵消约 55% 的主要损失。</p></div><div className="action-grid">{ACTIONS.map(a=>{const effect=a.planner?null:a.run(state);return <button key={a.id} onClick={()=>a.planner?setModal({type:"paperPlanner"}):doAction(a)} disabled={(a.id==="work"||a.id==="gig")&&state.energy<18}><i>{a.icon}</i><span><b>{a.name}</b><small>{a.id==="work"?`${currentJob.name} · 按当前工资结算`:a.sub}</small>{effect?<EffectBadges effect={effect}/>:<div className="effect-badges"><strong>关联数值</strong><span>📦 材料包</span><span>🗂️ 档案</span><span>⚡ 精力</span><span>🧠 压力</span><span>💶 部分方案涉及资金</span></div>}</span><em>⏳ 推进1周</em></button>})}</div><div className="month-cost"><b>月末还会自动结算</b><span>第 4 周行动结束后进入下个月，并扣除生活费 780€、增加债务利息 3.5%。随机事件发生在已经消耗的这一周内，不会额外再走一周。</span></div></>}
+      {tab==="actions"&&<><div className="panel-title"><div><small>WOCHE {state.totalWeek+1}</small><h2>这一周怎么过？</h2></div><span>每次只能选 1 项</span></div><div className="week-flow"><div className="week-node current"><small>现在</small><b>{lang==="de"?`Monat ${state.month} · Woche ${state.week}`:<>第 {state.month} 月 · 第 {state.week} 周</>}</b></div><div className="flow-arrow"><span>选择行动</span><b>→</b><small>消耗整整一周</small></div><div className="week-node next"><small>行动结束</small><b>{nextPeriod}</b></div><div className="month-weeks"><span>本月进度</span>{[1,2,3,4].map(w=><i key={w} className={w<state.week?"done":w===state.week?"active":""}><b>{w}</b><small>{lang==="de"?"Wo.":"周"}</small></i>)}</div></div><div className="current-job"><span>{currentJob.icon}</span><div><small>当前本职工作</small><b>{currentJob.name}</b></div><strong>{lang==="de"?`Wochenlohn ${currentWage}€`:`本周工资 ${currentWage}€`}</strong><button onClick={()=>setTab("career")}>更换职业</button></div><div className="stat-guide"><b>这些数值会怎样影响生活？</b><p><span>⚡ 精力</span>低于 18 不能工作或接零工；<span>🤝 人脉</span>达到 45 可能出现稳定岗位；<span>🗂️ 档案</span>与德语共同解锁职业；<span>📦 材料包</span>可在官僚事件中抵消约 55% 的主要损失。</p></div><div className="action-grid">{ACTIONS.map(a=>{const effect=a.planner?null:a.run(state);return <button key={a.id} onClick={()=>a.planner?setModal({type:"paperPlanner"}):doAction(a)} disabled={(a.id==="work"||a.id==="gig")&&state.energy<18}><i>{a.icon}</i><span><b>{a.name}</b><small>{a.id==="work"?`${currentJob.name} · 按当前工资结算`:a.sub}</small>{effect?<EffectBadges effect={effect} lang={lang}/>:<EffectBadges lang={lang} effect={{packs:1,papers:1,energy:-1,stress:1,money:1}}/>}</span><em>⏳ 推进1周</em></button>})}</div><div className="month-cost"><b>月末还会自动结算</b><span>{lang==="de"?"Nach Woche 4 beginnt ein neuer Monat: 780 € Lebenshaltungskosten und 3,5 % Schuldzinsen. Ereignisse verbrauchen keine zusätzliche Woche.":"第 4 周行动结束后进入下个月，并扣除生活费 780€、增加债务利息 3.5%。随机事件发生在已经消耗的这一周内，不会额外再走一周。"}</span></div></>}
 
       {tab==="market"&&<><div className="panel-title"><div><small>HANDEL & ANLAGE</small><h2>交易与投资</h2></div><span>所有操作不直接耗时</span></div><p className="market-tip">先买入或开一个经营批次，再用“本周行动”推进时间。价格和经营结果会随着周数变化。</p>
         <div className="market-section-title"><b>即时买卖</b><span>储物 {totalInventory}/{state.capacity}</span></div><div className="goods">{GOODS.map(g=>{const qty=state.inventory[g.id]||0;const avg=qty?Math.round((state.inventoryCost[g.id]||0)/qty):0;const pnl=qty?prices[g.id]-avg:0;return <div className="good" key={g.id}><span className="good-icon">{g.icon}</span><div><b>{g.name}</b><small>{g.note}</small><em>持有 {qty} · {qty?`均价 ${avg}€ · 每件${pnl>=0?"浮盈":"浮亏"} ${Math.abs(pnl)}€`:"尚未买入"}</em></div><strong><small>当前卖价</small>{prices[g.id]}€</strong><div className="trade-buttons"><button onClick={()=>trade(g,"buy")}>买</button><button onClick={()=>trade(g,"sell")}>卖</button></div></div>})}</div>
@@ -483,5 +596,5 @@ export default function Home() {
     {modal&&<div className="modal-backdrop"><article className="event-modal">
       {modal.type==="paperPlanner"?<><div className="modal-top"><span>BEHÖRDENPLAN</span><b>行政事务</b></div><h2>这周具体跑什么手续？</h2><p>选择一项后才会推进一周。它们会留下档案、材料包或追回的钱，不再只是“忙了一周”。</p><div className="paper-tasks">{PAPER_TASKS.map(task=><button key={task.id} onClick={()=>doPaperTask(task)}><b>{task.icon} {task.name}</b><span>{task.sub}</span><em>{Object.entries(task.effect).map(([k,v])=>`${effectNames[k]} ${v>0?"+":""}${v}`).join(" · ")}</em></button>)}</div><button className="secondary" onClick={()=>setModal(null)}>先不跑手续</button></>:modal.type==="event"?<><div className="modal-top"><span>{modal.event.office}</span><b>随机事项</b></div><div className="time-passed">{modal.timeLabel}<small>{modal.actionName}已经用掉一周</small></div><h2>{modal.event.title}</h2><p>{modal.event.text}</p><div className="modal-choices">{modal.event.choices.map(c=><button key={c.label} onClick={()=>chooseEvent(c,modal.event)}><b>{c.label}</b><span>{Object.entries(c.effect||{}).map(([k,v])=>`${effectNames[k]} ${v>0?"+":""}${v}`).join(" · ")}</span></button>)}<button className="prepared-choice" disabled={state.packs<1} onClick={()=>choosePrepared(modal.event)}><b>📦 提交完整材料包快速处理</b><span>消耗 1 份材料包 · 本次主要损失降低约 55%{state.packs<1?" · 当前不足":""}</span></button></div></>:modal.type==="weekResult"?<><div className="modal-top"><span>WOCHENABSCHLUSS</span><b>周结算</b></div><div className="time-passed large">{modal.timeLabel}<small>时间已经推进</small></div><h2>这一周结束了</h2><p>{modal.actionName}已经完成。{modal.monthSummary||"新的市场价格和生活状态已经更新。"}</p><button className="primary" onClick={()=>setModal(null)}>进入新的一周 <span>→</span></button></>:modal.type==="ventureResult"?<><div className="modal-top"><span>NEBENGEWERBE</span><b>经营结算</b></div><div className="holding-period">持有 {modal.ledger.heldWeeks} 周后结算<small>开始和结算本身均不耗时间</small></div><h2>{modal.title}</h2><p>{modal.result}</p><div className="venture-result-numbers"><span>总投入<b>{modal.ledger.invested}€</b><small>本金 {modal.ledger.capital}€ + 渠道 {modal.ledger.fee}€</small></span><span>回收金额<b>{modal.ledger.returned}€</b><small>实际回到账户的价值</small></span><span>净利润<b className={modal.ledger.profit>=0?"profit":"loss"}>{modal.ledger.profit>=0?"+":""}{modal.ledger.profit}€</b><small>回收 − 总投入</small></span></div><button className="primary" onClick={()=>setModal(null)}>完成结算 <span>→</span></button></>:<><div className="modal-top"><span>AUSWIRKUNG</span><b>处理结果</b></div>{modal.timeLabel&&<div className="time-passed">{modal.timeLabel}<small>事件发生在已经消耗的这一周</small></div>}<h2>{modal.choice.label}</h2><p>{modal.choice.result}</p>{modal.languageRelief>0&&<div className="language-relief">🗣️ 德语能力令本次压力额外减少 {modal.languageRelief} 点</div>}<button className="primary" onClick={()=>setModal(null)}>进入新的一周 <span>→</span></button></>}
     </article></div>}
-  </main>;
+  </main></Localize>;
 }
