@@ -78,6 +78,11 @@ footer{display:flex;justify-content:space-between;padding:16px 24px;font-size:9p
 .stat-guide b{display:block;font-size:12px;margin-bottom:5px}
 .stat-guide p{font-size:10px;line-height:1.7;color:var(--muted);margin:0}
 .stat-guide p span{color:var(--ink);font-weight:800}
+.week-flow{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;background:#ddd6c9;border:1px solid #b9b2a5;padding:10px;margin:13px 0}
+.week-node{background:#f8f5ed;border:1px solid #bcb5a8;padding:9px}.week-node.current{border-left:4px solid var(--red)}.week-node.next{border-left:4px solid #55765d}.week-node small,.week-node b{display:block}.week-node small{font-size:8px;color:var(--muted)}.week-node b{font-size:11px;margin-top:3px}
+.flow-arrow{text-align:center}.flow-arrow span,.flow-arrow small{display:block;font-size:7px;color:var(--muted)}.flow-arrow b{display:block;font-size:20px;color:var(--red);line-height:1}
+.month-weeks{grid-column:1/-1;display:grid;grid-template-columns:auto repeat(4,1fr);gap:5px;align-items:center}.month-weeks>span{font-size:8px;font-weight:800;margin-right:4px}.month-weeks i{display:flex;align-items:center;justify-content:center;gap:2px;background:#c9c2b6;color:#6e716d;padding:4px;font-style:normal}.month-weeks i.done{background:#76877a;color:white}.month-weeks i.active{background:var(--yellow);color:var(--ink);box-shadow:inset 0 0 0 2px var(--ink)}.month-weeks b{font-size:9px}.month-weeks small{font-size:7px}
+.effect-badges{display:flex!important;flex-wrap:wrap;gap:4px;margin-top:8px}.effect-badges strong{width:100%;font-size:8px;color:var(--muted)}.effect-badges span{display:inline-block!important;background:#e8e2d7;border:1px solid #cec6b9;padding:3px 5px;font-size:8px!important;color:#424944!important;margin:0!important}
 
 .v2-head small{font-size:10px}.v2-head b{font-size:20px}.deadline b{font-size:17px}
 .v2-stat>span{font-size:10px}.v2-stat>b{font-size:14px}
@@ -103,7 +108,7 @@ footer{display:flex;justify-content:space-between;padding:16px 24px;font-size:9p
   .ability-stats>div:nth-child(4),.ability-stats>div:nth-child(5){grid-column:span 3}
   .v2-panel{margin-inline:8px;padding-inline:13px}
   .action-grid{grid-template-columns:1fr}
-  .action-grid button{min-height:76px}
+  .action-grid button{min-height:108px}
   .good{grid-template-columns:31px 1fr auto}.good .trade-buttons{grid-column:2/-1}.trade-buttons button{flex:1}
   .stock{grid-template-columns:25px 1fr auto}.stock>div{grid-column:2/-1}.stock button{flex:1;padding:7px}
   .time-rule span:last-child{margin-left:0}
@@ -122,7 +127,8 @@ footer{display:flex;justify-content:space-between;padding:16px 24px;font-size:9p
   .v2-panel{margin:0 26px 26px;padding:26px 30px;min-height:560px}.panel-title h2{font-size:36px}.panel-title small,.panel-title>span{font-size:11px}
   .current-job{grid-template-columns:42px 1fr auto auto;padding:14px 18px;gap:12px}.current-job>span{font-size:28px}.current-job small{font-size:10px}.current-job b{font-size:16px}.current-job strong,.current-job button{font-size:13px}.current-job button{grid-column:auto}
   .stat-guide{display:flex;align-items:center;gap:18px;padding:14px 18px}.stat-guide b{font-size:13px;white-space:nowrap;margin:0}.stat-guide p{font-size:12px}
-  .action-grid{grid-template-columns:repeat(4,1fr);gap:12px}.action-grid button{min-height:104px;padding:15px;grid-template-columns:34px 1fr}.action-grid button>i{font-size:27px}.action-grid b{font-size:15px}.action-grid small{font-size:11px}.action-grid button>em{font-size:9px;right:8px;top:8px}
+  .week-flow{grid-template-columns:1fr 150px 1fr 1.4fr;padding:13px 16px}.month-weeks{grid-column:auto}.week-node small{font-size:9px}.week-node b{font-size:13px}.flow-arrow span,.flow-arrow small{font-size:9px}.month-weeks>span{font-size:10px}.month-weeks b{font-size:10px}.month-weeks small{font-size:8px}
+  .action-grid{grid-template-columns:repeat(4,1fr);gap:12px}.action-grid button{min-height:148px;padding:15px;grid-template-columns:34px 1fr}.action-grid button>i{font-size:27px}.action-grid b{font-size:15px}.action-grid small{font-size:11px}.action-grid button>em{font-size:9px;right:8px;top:8px}.effect-badges strong{font-size:9px}.effect-badges span{font-size:9px!important}
   .month-cost{padding:14px 18px}.month-cost b{font-size:12px}.month-cost span{font-size:11px}
   .goods{grid-template-columns:1fr 1fr;column-gap:30px}.good{min-height:82px}.good b{font-size:14px}.good small,.good em{font-size:10px}.good>strong{font-size:15px}.trade-buttons button{font-size:12px;padding:7px 10px}
   .market-tip,.career-help{font-size:12px}.market-section-title{margin-top:18px}.market-section-title b{font-size:18px}.market-section-title span{font-size:11px}

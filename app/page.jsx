@@ -215,7 +215,12 @@ const PAPER_TASKS = [
 
 const clamp = n => Math.max(0, Math.min(100, Math.round(n)));
 const effectNames = {money:"资金",debt:"债务",energy:"精力",health:"健康",stress:"压力",german:"德语",papers:"档案",packs:"材料包",reputation:"人脉"};
+const effectIcons = {money:"💶",debt:"🏦",energy:"⚡",health:"❤️",stress:"🧠",german:"🗣️",papers:"🗂️",packs:"📦",reputation:"🤝"};
 const periodLabel = s => s.month>12?"年度结束":`第 ${s.month} 月 · 第 ${s.week} 周`;
+
+function EffectBadges({effect}) {
+  return <div className="effect-badges"><strong>关联数值</strong>{Object.keys(effect).map(key=><span key={key}>{effectIcons[key]} {effectNames[key]}</span>)}</div>;
+}
 
 function seededPrice(good, week, news) {
   const wave = .78 + ((Math.sin((week + 1) * (good.base + 7) * .113) + 1) / 2) * .48;
@@ -417,6 +422,7 @@ export default function Home() {
   const currentJob=JOBS.find(j=>j.id===state.jobId)||JOBS[0];
   const languageBonus=Math.min(80,Math.max(0,state.german-40)*2);
   const currentWage=currentJob.wage+languageBonus+(state.flags.promotion?70:0);
+  const nextPeriod=state.week===4?`第 ${state.month+1} 月 · 第 1 周`:`第 ${state.month} 月 · 第 ${state.week+1} 周`;
   return <main className="v2-game">
     <header className="v2-head"><div><small>LEBENSAKTE · {state.name}</small><b>第 {state.month} 月 · 第 {state.week} 周</b></div><div className="deadline"><small>年度进度</small><b>{Math.min(state.totalWeek,48)}/48</b></div></header>
     <section className="v2-stats"><Stat label="现金" value={state.money} type="money"/><Stat label="债务" value={state.debt} type="money"/><Stat label="健康" value={state.health}/><Stat label="压力" value={state.stress} bad/></section>
@@ -432,7 +438,7 @@ export default function Home() {
     <nav className="tabs">{[["actions","本周行动"],["market","交易投资"],["career","职业设定"],["journal","记录"]].map(([id,label])=><button className={tab===id?"active":""} key={id} onClick={()=>setTab(id)}>{label}</button>)}</nav>
 
     <section className="v2-panel">
-      {tab==="actions"&&<><div className="panel-title"><div><small>WOCHE {state.totalWeek+1}</small><h2>这一周怎么过？</h2></div><span>每次只能选 1 项</span></div><div className="current-job"><span>{currentJob.icon}</span><div><small>当前本职工作</small><b>{currentJob.name}</b></div><strong>本周工资 {currentWage}€</strong><button onClick={()=>setTab("career")}>更换职业</button></div><div className="stat-guide"><b>这些数值会怎样影响生活？</b><p><span>⚡ 精力</span>低于 18 不能工作或接零工；<span>🤝 人脉</span>达到 45 可能出现稳定岗位；<span>🗂️ 档案</span>与德语共同解锁职业；<span>📦 材料包</span>可在官僚事件中抵消约 55% 的主要损失。</p></div><div className="action-grid">{ACTIONS.map(a=><button key={a.id} onClick={()=>a.planner?setModal({type:"paperPlanner"}):doAction(a)} disabled={(a.id==="work"||a.id==="gig")&&state.energy<18}><i>{a.icon}</i><span><b>{a.name}</b><small>{a.id==="work"?`${currentJob.name} · 收入 ${currentWage}€`:a.sub}</small></span><em>⏳ 1周</em></button>)}</div><div className="month-cost"><b>处理手续不再是“空过一周”</b><span>你可以整理材料、抢预约或追旧账。材料包能在官僚事件中直接消耗，显著降低损失；档案值则用于解锁更好的职业。</span></div></>}
+      {tab==="actions"&&<><div className="panel-title"><div><small>WOCHE {state.totalWeek+1}</small><h2>这一周怎么过？</h2></div><span>每次只能选 1 项</span></div><div className="week-flow"><div className="week-node current"><small>现在</small><b>第 {state.month} 月 · 第 {state.week} 周</b></div><div className="flow-arrow"><span>选择行动</span><b>→</b><small>消耗整整一周</small></div><div className="week-node next"><small>行动结束</small><b>{nextPeriod}</b></div><div className="month-weeks"><span>本月进度</span>{[1,2,3,4].map(w=><i key={w} className={w<state.week?"done":w===state.week?"active":""}><b>{w}</b><small>周</small></i>)}</div></div><div className="current-job"><span>{currentJob.icon}</span><div><small>当前本职工作</small><b>{currentJob.name}</b></div><strong>本周工资 {currentWage}€</strong><button onClick={()=>setTab("career")}>更换职业</button></div><div className="stat-guide"><b>这些数值会怎样影响生活？</b><p><span>⚡ 精力</span>低于 18 不能工作或接零工；<span>🤝 人脉</span>达到 45 可能出现稳定岗位；<span>🗂️ 档案</span>与德语共同解锁职业；<span>📦 材料包</span>可在官僚事件中抵消约 55% 的主要损失。</p></div><div className="action-grid">{ACTIONS.map(a=>{const effect=a.planner?null:a.run(state);return <button key={a.id} onClick={()=>a.planner?setModal({type:"paperPlanner"}):doAction(a)} disabled={(a.id==="work"||a.id==="gig")&&state.energy<18}><i>{a.icon}</i><span><b>{a.name}</b><small>{a.id==="work"?`${currentJob.name} · 按当前工资结算`:a.sub}</small>{effect?<EffectBadges effect={effect}/>:<div className="effect-badges"><strong>关联数值</strong><span>📦 材料包</span><span>🗂️ 档案</span><span>⚡ 精力</span><span>🧠 压力</span><span>💶 部分方案涉及资金</span></div>}</span><em>⏳ 推进1周</em></button>})}</div><div className="month-cost"><b>月末还会自动结算</b><span>第 4 周行动结束后进入下个月，并扣除生活费 780€、增加债务利息 3.5%。随机事件发生在已经消耗的这一周内，不会额外再走一周。</span></div></>}
 
       {tab==="market"&&<><div className="panel-title"><div><small>HANDEL & ANLAGE</small><h2>交易与投资</h2></div><span>所有操作不直接耗时</span></div><p className="market-tip">先买入或开一个经营批次，再用“本周行动”推进时间。价格和经营结果会随着周数变化。</p>
         <div className="market-section-title"><b>即时买卖</b><span>储物 {totalInventory}/{state.capacity}</span></div><div className="goods">{GOODS.map(g=>{const qty=state.inventory[g.id]||0;const avg=qty?Math.round((state.inventoryCost[g.id]||0)/qty):0;const pnl=qty?prices[g.id]-avg:0;return <div className="good" key={g.id}><span className="good-icon">{g.icon}</span><div><b>{g.name}</b><small>{g.note}</small><em>持有 {qty} · {qty?`均价 ${avg}€ · 每件${pnl>=0?"浮盈":"浮亏"} ${Math.abs(pnl)}€`:"尚未买入"}</em></div><strong><small>当前卖价</small>{prices[g.id]}€</strong><div className="trade-buttons"><button onClick={()=>trade(g,"buy")}>买</button><button onClick={()=>trade(g,"sell")}>卖</button></div></div>})}</div>
