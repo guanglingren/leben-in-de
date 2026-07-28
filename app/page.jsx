@@ -22,6 +22,24 @@ const GOODS = [
   { id: "printer", name: "家用打印机", icon: "🖨️", base: 85, note: "任何手续都可能需要它" }
 ];
 
+const HUSTLE_GOODS = [
+  { id:"books", name:"二手德语教材", icon:"📚", margin:.18, risk:2, demand:"稳定", detail:"来源清楚，利润不高，但几乎不会出事。" },
+  { id:"phones", name:"翻新旧手机", icon:"📱", margin:.34, risk:12, demand:"较高", detail:"需要处理退货、砍价和“最低多少钱包邮”。" },
+  { id:"shoes", name:"高仿名牌运动鞋", icon:"👟", margin:.82, risk:54, demand:"很高", detail:"利润诱人，但可能被平台封号、海关扣货或品牌方追责。" },
+  { id:"sticks", name:"破解电视棒", icon:"📺", margin:1.05, risk:68, demand:"火爆", detail:"卖得快，风险也最高；一次投诉可能吞掉几个月利润。" }
+];
+
+const CHANNELS = [
+  { id:"ebay", name:"eBay Kleinanzeigen", icon:"💻", bonus:.18, risk:12, cost:8, note:"客流大、价格好，但平台留痕完整。" },
+  { id:"flohmarkt", name:"周末跳蚤市场", icon:"⛺", bonus:0, risk:-8, cost:28, note:"要交摊位费、消耗体力，现金交易更灵活。" }
+];
+
+const STOCKS = [
+  { id:"dax", ticker:"DAXX", name:"德国大盘基金", base:112, icon:"🏦", volatility:.12, note:"相对平稳的虚构指数基金" },
+  { id:"rail", ticker:"RLOG", name:"莱茵物流股份", base:74, icon:"🚆", volatility:.27, note:"罢工和供应链新闻影响明显" },
+  { id:"amt", ticker:"AMT", name:"政务软件股份", base:46, icon:"🗄️", volatility:.38, note:"每次数字化失败，订单反而可能增加" }
+];
+
 const NEWS = [
   { text: "铁路工会宣布预警罢工，自行车需求上升。", mods: { bike: 1.55, ticket: .8 } },
   { text: "本周寒潮来袭，物业热线进入忙音状态。", mods: { heater: 1.7 } },
@@ -151,6 +169,13 @@ function seededPrice(good, week, news) {
   return Math.max(8, Math.round(good.base * wave * (news.mods[good.id] || 1)));
 }
 
+function stockPrice(stock, week) {
+  const trend=1+week*.006;
+  const wave=1+Math.sin((week+2)*(stock.base*.017))*stock.volatility;
+  const bureaucracy=stock.id==="amt"&&week%7===0?1.32:1;
+  return Math.max(8,Math.round(stock.base*trend*wave*bureaucracy));
+}
+
 function Stat({label,value,type="bar",bad=false}) {
   return <div className="v2-stat"><span>{label}</span><b>{type==="money"?`${Math.round(value)} €`:Math.round(value)}</b>{type==="bar"&&<i><em style={{width:`${clamp(value)}%`}} className={bad?"danger":""}/></i>}</div>;
 }
@@ -161,12 +186,16 @@ export default function Home() {
   const [tab,setTab]=useState("actions");
   const [modal,setModal]=useState(null);
   const [toast,setToast]=useState("");
+  const [ventureGood,setVentureGood]=useState("phones");
+  const [ventureChannel,setVentureChannel]=useState("ebay");
+  const [ventureAmount,setVentureAmount]=useState(150);
 
   const news=state?NEWS[state.newsIndex%NEWS.length]:NEWS[0];
   const prices=useMemo(()=>state?Object.fromEntries(GOODS.map(g=>[g.id,seededPrice(g,state.totalWeek,news)])): {},[state?.totalWeek,state?.newsIndex]);
+  const stockPrices=useMemo(()=>state?Object.fromEntries(STOCKS.map(s=>[s.id,stockPrice(s,state.totalWeek)])): {},[state?.totalWeek]);
 
   function start(profile){
-    setState({...profile,profileId:profile.id,month:1,week:1,totalWeek:0,jobId:"shift",inventory:{},flags:{},seen:[],journal:[],newsIndex:0,capacity:6});
+    setState({...profile,profileId:profile.id,month:1,week:1,totalWeek:0,jobId:"shift",inventory:{},stocks:{},flags:{},seen:[],journal:[],newsIndex:0,capacity:6,businessRuns:0});
     setScreen("game"); setTab("actions"); setModal(null);
   }
 
@@ -233,6 +262,38 @@ export default function Home() {
     setState({...state,jobId:job.id});setToast(`下周开始做：${job.name}`);
   }
 
+  function runVenture(){
+    const good=HUSTLE_GOODS.find(g=>g.id===ventureGood);
+    const channel=CHANNELS.find(c=>c.id===ventureChannel);
+    const amount=Math.min(Math.max(50,ventureAmount),Math.max(50,state.money-250));
+    if(state.money<amount+channel.cost+200){setToast("至少要留下 200€ 生活费，并支付渠道成本。");return;}
+    const signal=(state.totalWeek*37+amount+good.risk*3+(channel.id==="ebay"?19:7))%100;
+    const caught=signal<Math.max(2,good.risk+channel.risk);
+    const demand=.78+((state.totalWeek*13+good.id.length*11)%48)/100;
+    let profit=Math.round(amount*(good.margin+channel.bonus)*demand)-channel.cost;
+    let effect={money:profit,energy:channel.id==="flohmarkt"?-15:-8,stress:good.risk>40?8:3,reputation:good.risk<20?4:-2};
+    let result=`你投入 ${amount}€，本周销售后净赚 ${profit}€。`;
+    if(caught){
+      const fine=Math.round(90+amount*(good.risk/65));
+      effect={...effect,money:profit-fine,stress:18,papers:-8,reputation:-10};
+      result=channel.id==="ebay"
+        ?`平台冻结了交易，并收到权利人投诉。扣除退款与罚款 ${fine}€ 后，本周净结果为 ${profit-fine}€。`
+        :`市场巡查要求出示进货凭证。货物被扣并产生 ${fine}€ 损失，本周净结果为 ${profit-fine}€。`;
+    }
+    doAction({id:"venture",name:`经营副业：${good.name}`,run:()=>effect});
+    setState(s=>s?{...s,businessRuns:(s.businessRuns||0)+1}:s);
+    setModal({type:"ventureResult",title:caught?"副业翻车了":"这周生意不错",result,effect});
+  }
+
+  function tradeStock(stock,mode){
+    const held=state.stocks[stock.id]||0;
+    const price=stockPrices[stock.id];
+    if(mode==="buy"&&state.money<price+250){setToast("买入后至少要保留 250€ 现金。");return;}
+    if(mode==="sell"&&held<1){setToast("你没有持有这只股票。");return;}
+    setState({...state,money:state.money+(mode==="buy"?-price:price),stocks:{...state.stocks,[stock.id]:held+(mode==="buy"?1:-1)}});
+    setToast(`${mode==="buy"?"买入":"卖出"} 1 股 ${stock.ticker}，成交价 ${price}€`);
+  }
+
   if(screen==="intro")return <main className="landing v2-intro"><div className="flagline"/><nav><span className="brand">DEUTSCHLAND<br/><b>浮生记</b></span><span className="version">NEUE FASSUNG · V2</span></nav><section className="hero"><div className="kicker">12 MONATE · 48 WOCHEN · KEIN EINFACHER WEG</div><h1>活下去，<br/><em>并且保持体面。</em></h1><p>工作会赚钱，也会磨损身体。喝酒能暂时减压，却要付出健康和现金。学习、交朋友、跑手续、在跳蚤市场低买高卖——每一周都由你决定。</p><div className="loop-preview"><span>行动一周</span><i>→</i><span>承担后果</span><i>→</i><span>熬过月末</span></div><button className="primary" onClick={()=>setScreen("profiles")}>开始十二个月的生活 <span>→</span></button></section><footer><span>每月 4 次行动</span><span>事件牌堆不连续重复</span></footer></main>;
 
   if(screen==="profiles")return <main className="paper-page"><button className="back" onClick={()=>setScreen("intro")}>← 返回</button><header className="section-head"><small>LEBENSAKTE AUSWÄHLEN</small><h2>你靠什么开始？</h2><p>身份会改变收入、固定支出和专属事件。</p></header><div className="profiles">{PROFILES.map(p=><button className="profile-card" key={p.id} onClick={()=>start(p)}><span className="avatar">{p.icon}</span><span><b>{p.name}</b><small>{p.detail}<br/>现金 {p.money}€ · 债务 {p.debt}€</small></span><i>→</i></button>)}</div></main>;
@@ -248,12 +309,19 @@ export default function Home() {
     <header className="v2-head"><div><small>LEBENSAKTE · {state.name}</small><b>第 {state.month} 月 · 第 {state.week} 周</b></div><div className="deadline"><small>年度进度</small><b>{Math.min(state.totalWeek,48)}/48</b></div></header>
     <section className="v2-stats"><Stat label="现金" value={state.money} type="money"/><Stat label="债务" value={state.debt} type="money"/><Stat label="健康" value={state.health}/><Stat label="压力" value={state.stress} bad/></section>
     <div className="ticker"><b>本周消息</b><span>{news.text}</span></div>
-    <nav className="tabs">{[["actions","本周行动"],["market","跳蚤市场"],["career","工作档案"],["journal","生活记录"]].map(([id,label])=><button className={tab===id?"active":""} key={id} onClick={()=>setTab(id)}>{label}</button>)}</nav>
+    <nav className="tabs five-tabs">{[["actions","本周行动"],["market","买卖"],["venture","副业投资"],["career","工作"],["journal","记录"]].map(([id,label])=><button className={tab===id?"active":""} key={id} onClick={()=>setTab(id)}>{label}</button>)}</nav>
 
     <section className="v2-panel">
       {tab==="actions"&&<><div className="panel-title"><div><small>WOCHE {state.totalWeek+1}</small><h2>这一周怎么过？</h2></div><span>选择后推进 1 周</span></div><div className="resource-row"><span>⚡ 精力 {state.energy}</span><span>🗣️ 德语 {state.german}</span><span>🤝 人脉 {state.reputation}</span><span>📄 手续 {state.papers}</span></div><div className="action-grid">{ACTIONS.map(a=><button key={a.id} onClick={()=>doAction(a)} disabled={(a.id==="work"||a.id==="gig")&&state.energy<18}><i>{a.icon}</i><span><b>{a.name}</b><small>{a.sub}</small></span></button>)}</div><div className="month-cost"><b>月末账单</b><span>每 4 次行动扣除生活费，并给债务计息 3.5%</span></div></>}
 
       {tab==="market"&&<><div className="panel-title"><div><small>FLOHMARKT</small><h2>低买高卖</h2></div><span>储物 {totalInventory}/{state.capacity}</span></div><p className="market-tip">交易本身不推进时间；价格会在每周行动后变化。新闻可能是机会，也可能只是传闻。</p><div className="goods">{GOODS.map(g=><div className="good" key={g.id}><span className="good-icon">{g.icon}</span><div><b>{g.name}</b><small>{g.note}</small><em>持有 {state.inventory[g.id]||0}</em></div><strong>{prices[g.id]}€</strong><div className="trade-buttons"><button onClick={()=>trade(g,"buy")}>买</button><button onClick={()=>trade(g,"sell")}>卖</button></div></div>)}</div></>}
+
+      {tab==="venture"&&<><div className="panel-title"><div><small>NEBENGEWERBE & BÖRSE</small><h2>拿本金冒险</h2></div><span>已经营 {state.businessRuns||0} 周</span></div>
+        <div className="venture-block"><div className="subhead"><b>① 选择要卖的东西</b><span>利润越高，风险通常越大</span></div><div className="venture-goods">{HUSTLE_GOODS.map(g=><button key={g.id} className={ventureGood===g.id?"selected":""} onClick={()=>setVentureGood(g.id)}><i>{g.icon}</i><b>{g.name}</b><small>预期毛利 {Math.round(g.margin*100)}% · 风险 {g.risk}</small></button>)}</div>
+        <div className="subhead"><b>② 选择销售渠道</b></div><div className="channel-row">{CHANNELS.map(c=><button key={c.id} className={ventureChannel===c.id?"selected":""} onClick={()=>setVentureChannel(c.id)}><i>{c.icon}</i><span><b>{c.name}</b><small>{c.note}</small></span></button>)}</div>
+        <div className="capital-box"><div><b>③ 本周投入本金</b><strong>{ventureAmount} €</strong></div><input aria-label="投入本金" type="range" min="50" max={Math.max(50,Math.min(800,state.money-250))} step="50" value={Math.min(ventureAmount,Math.max(50,state.money-250))} onChange={e=>setVentureAmount(Number(e.target.value))}/><small>本金越高，盈利和翻车损失都会同步放大。经营一次推进一周。</small><button onClick={runVenture}>开始本周生意 <span>→</span></button></div></div>
+        <div className="stock-block"><div className="subhead"><b>虚构证券市场</b><span>非现实投资建议 · 每周价格变化</span></div>{STOCKS.map(s=><div className="stock" key={s.id}><i>{s.icon}</i><span><b>{s.ticker} · {s.name}</b><small>{s.note} · 持有 {state.stocks[s.id]||0} 股</small></span><strong>{stockPrices[s.id]}€</strong><div><button onClick={()=>tradeStock(s,"buy")}>买</button><button onClick={()=>tradeStock(s,"sell")}>卖</button></div></div>)}</div>
+      </>}
 
       {tab==="career"&&<><div className="panel-title"><div><small>ARBEIT & SCHULDEN</small><h2>工作档案</h2></div><span>德语 {state.german}</span></div><div className="jobs">{JOBS.map(j=><button key={j.id} className={state.jobId===j.id?"selected":""} onClick={()=>switchJob(j)}><i>{j.icon}</i><span><b>{j.name}</b><small>每周 {j.wage}€ · 精力 {j.energy} · 健康 {j.health}{j.requirement?` · 德语 ${j.requirement}`:""}</small></span><em>{state.jobId===j.id?"当前":state.german>=j.requirement?"选择":"未解锁"}</em></button>)}</div><div className="debt-box"><span><small>私人债务</small><b>{Math.round(state.debt)} €</b></span><p>每月增长 3.5%。还清后，你才真正拥有选择。</p><button onClick={payDebt}>偿还最多 250€</button></div></>}
 
@@ -262,7 +330,7 @@ export default function Home() {
 
     {toast&&<button className="toast" onClick={()=>setToast("")}>{toast}<span>×</span></button>}
     {modal&&<div className="modal-backdrop"><article className="event-modal">
-      {modal.type==="event"?<><div className="modal-top"><span>{modal.event.office}</span><b>随机事项</b></div><h2>{modal.event.title}</h2><p>{modal.event.text}</p><div className="modal-choices">{modal.event.choices.map(c=><button key={c.label} onClick={()=>chooseEvent(c,modal.event)}><b>{c.label}</b><span>{Object.entries(c.effect||{}).map(([k,v])=>`${effectNames[k]} ${v>0?"+":""}${v}`).join(" · ")}</span></button>)}</div></>:<><div className="modal-top"><span>AUSWIRKUNG</span><b>处理结果</b></div><h2>{modal.choice.label}</h2><p>{modal.choice.result}</p><button className="primary" onClick={()=>setModal(null)}>继续生活 <span>→</span></button></>}
+      {modal.type==="event"?<><div className="modal-top"><span>{modal.event.office}</span><b>随机事项</b></div><h2>{modal.event.title}</h2><p>{modal.event.text}</p><div className="modal-choices">{modal.event.choices.map(c=><button key={c.label} onClick={()=>chooseEvent(c,modal.event)}><b>{c.label}</b><span>{Object.entries(c.effect||{}).map(([k,v])=>`${effectNames[k]} ${v>0?"+":""}${v}`).join(" · ")}</span></button>)}</div></>:modal.type==="ventureResult"?<><div className="modal-top"><span>NEBENGEWERBE</span><b>经营结算</b></div><h2>{modal.title}</h2><p>{modal.result}</p><button className="primary" onClick={()=>setModal(null)}>接受结果 <span>→</span></button></>:<><div className="modal-top"><span>AUSWIRKUNG</span><b>处理结果</b></div><h2>{modal.choice.label}</h2><p>{modal.choice.result}</p><button className="primary" onClick={()=>setModal(null)}>继续生活 <span>→</span></button></>}
     </article></div>}
   </main>;
 }
