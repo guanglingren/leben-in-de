@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import {addGuestbookMessage,getGuestbookMessages,getVisitCount,registerVisit} from "./supabase";
 
 const PROFILES = [
   { id: "student", icon: "🎓", name: "外国大学生", detail: "刚下飞机 · 德语 B1 · 学籍待激活 · 一叠陌生的信", money: 1900, debt: 1200, health: 80, stress: 28, energy: 78, german: 46, papers: 35, reputation: 25, study:22, wage: 470 }
@@ -346,6 +347,7 @@ Object.assign(DE_UI,{
   "学校确认学业进度正常。":"Die Hochschule bestätigt einen ausreichenden Studienfortschritt.",
   "未通过：扣除补办费用并增加压力，学业需达到 ":"nicht bestanden: zusätzliche Gebühren und Stress; erforderlich sind "
   ,"达到60解锁 HiWi，并降低大学事件压力":"Ab 60: HiWi-Job und weniger Stress bei Uni-Ereignissen"
+  ,"留言板":"Gästebuch"
 });
 
 function deText(value){
@@ -405,6 +407,23 @@ export default function Home() {
     document.documentElement.lang=lang==="de"?"de":"zh-CN";
     document.title=lang==="de"?"AKTENLEBEN｜48 Wochen Deutschland":"AKTENLEBEN｜留德浮生记";
   },[lang]);
+  const [visitCount,setVisitCount]=useState(null);
+  const [messages,setMessages]=useState([]);
+  const [guestbookLoading,setGuestbookLoading]=useState(false);
+  const [guestbookError,setGuestbookError]=useState("");
+  const [guestbookForm,setGuestbookForm]=useState({nickname:"",message:""});
+  useEffect(()=>{
+    let active=true;
+    (async()=>{
+      try{
+        const counted=sessionStorage.getItem("aktenleben-visit-counted");
+        const total=counted?await getVisitCount():await registerVisit();
+        if(!counted)sessionStorage.setItem("aktenleben-visit-counted","1");
+        if(active)setVisitCount(total);
+      }catch{if(active)setVisitCount(null);}
+    })();
+    return()=>{active=false;};
+  },[]);
   const [screen,setScreen]=useState("intro");
   const [state,setState]=useState(null);
   const [tab,setTab]=useState("actions");
@@ -413,6 +432,32 @@ export default function Home() {
   const [ventureGood,setVentureGood]=useState("phones");
   const [ventureChannel,setVentureChannel]=useState("ebay");
   const [ventureAmount,setVentureAmount]=useState(150);
+
+  async function loadGuestbook(){
+    setGuestbookLoading(true);setGuestbookError("");
+    try{setMessages(await getGuestbookMessages());}
+    catch{setGuestbookError(lang==="de"?"Das Gästebuch ist noch nicht mit der Datenbank verbunden.":"留言板尚未连接数据库，请先完成 Supabase 初始化。");}
+    finally{setGuestbookLoading(false);}
+  }
+
+  useEffect(()=>{if(tab==="guestbook")loadGuestbook();},[tab]);
+
+  async function submitGuestbook(event){
+    event.preventDefault();
+    const nickname=guestbookForm.nickname.trim();
+    const message=guestbookForm.message.trim();
+    if(!nickname||!message){setGuestbookError(lang==="de"?"Bitte Name und Nachricht eingeben.":"请填写昵称和留言。");return;}
+    const last=Number(localStorage.getItem("aktenleben-last-message")||0);
+    if(Date.now()-last<60000){setGuestbookError(lang==="de"?"Bitte warte eine Minute bis zur nächsten Nachricht.":"每次留言请间隔一分钟。");return;}
+    setGuestbookLoading(true);setGuestbookError("");
+    try{
+      const saved=await addGuestbookMessage({nickname,message,language:lang});
+      localStorage.setItem("aktenleben-last-message",String(Date.now()));
+      setMessages(current=>[saved,...current].filter(Boolean).slice(0,50));
+      setGuestbookForm({nickname:"",message:""});
+    }catch{setGuestbookError(lang==="de"?"Die Nachricht konnte nicht gespeichert werden.":"留言提交失败，请稍后再试。");}
+    finally{setGuestbookLoading(false);}
+  }
 
   const news=state?NEWS[state.newsIndex%NEWS.length]:NEWS[0];
   const prices=useMemo(()=>state?Object.fromEntries(GOODS.map(g=>[g.id,seededPrice(g,state.totalWeek,news)])): {},[state?.totalWeek,state?.newsIndex]);
@@ -608,7 +653,7 @@ export default function Home() {
     <div className="flagline"/>
     <nav><span className="brand"><b>AKTENLEBEN</b><small>{lang==="de"?"LEBEN IN AKTEN":"留德浮生记"}</small></span><div className="lang-switch"><button className={lang==="zh"?"active":""} onClick={()=>setLang("zh")}>中文</button><button className={lang==="de"?"active":""} onClick={()=>setLang("de")}>Deutsch</button></div></nav>
     <section className="hero"><div className="kicker">{lang==="de"?"48 WOCHEN ZWISCHEN STUDIUM, ARBEIT UND AMT":"在学业、打工与官僚机构之间活过48周"}</div><h1>{lang==="de"?<>Ankommen.<br/><em>Ab Woche eins.</em></>:<>来到德国，<br/><em>从第一周开始。</em></>}</h1><p>{lang==="de"?"Du bist als internationaler Student gerade in Deutschland gelandet. Die Immatrikulation ist noch nicht vollständig, das Zimmer nur vorläufig und dein Deutsch gerade gut genug. Studium, Nebenjobs, Visum und jeder Brief können dieses Jahr verändern.":"你是一名刚抵达德国的外国大学生：学籍尚待激活、房间是临时的、德语勉强够用，还必须靠打工维持生活。课程、考试、签证和每一封信，都可能改变这一年。"}</p><div className="starting-file"><span>🎓</span><div><b>{lang==="de"?"Internationaler Student":"外国大学生"}</b><small>{lang==="de"?"1.900 € · 1.200 € Schulden · Deutsch B1 · Studienbeginn":"现金 1900€ · 债务 1200€ · 德语 B1 · 学业刚起步"}</small></div></div><div className="loop-preview"><span>{lang==="de"?"Studieren & jobben":"学习与打工"}</span><i>→</i><span>{lang==="de"?"Alltag bewältigen":"处理生活"}</span><i>→</i><span>{lang==="de"?"48 Wochen schaffen":"熬过 48 周"}</span></div><button className="primary" onClick={()=>start(PROFILES[0])}>{lang==="de"?"Flug nach Deutschland nehmen":"登上飞往德国的航班"} <span>✈</span></button></section>
-    <footer><span>{lang==="de"?"Kein Studienfach nötig":"无需预选专业"}</span><span>{lang==="de"?"Jede Woche formt dein Leben":"留德生活由每周选择形成"}</span></footer>
+    <footer><span>{lang==="de"?"Kein Studienfach nötig":"无需预选专业"}</span><span>👁 {visitCount===null?"—":visitCount} {lang==="de"?"Besuche":"次访问"}</span><span>{lang==="de"?"Jede Woche formt dein Leben":"留德生活由每周选择形成"}</span></footer>
   </main></Localize>;
 
   if(screen==="arrival")return <Localize lang={lang}><main className="cinematic arrival-scene"><div className="sky"><span className="cloud c1">☁</span><span className="cloud c2">☁</span><span className="flying-plane">✈</span><div className="germany-line"><i/><i/><i/></div></div><section><small>ANKUNFT · WOCHE 1</small><h1>Willkommen<br/>in Deutschland</h1><p>{lang==="de"?"Das Flugzeug ist gelandet. Das Gepäckband steht noch still, aber Universität, Krankenkasse und Bürgeramt haben dir bereits geschrieben.":"飞机落地。行李转盘还没动，你已经收到大学、保险公司和市政厅的三封邮件。"}</p><button className="primary" onClick={()=>setScreen("game")}>{lang==="de"?"Leben in Deutschland beginnen":"开始德国生活"} <span>→</span></button></section></main></Localize>;
@@ -636,13 +681,17 @@ export default function Home() {
       <div title="在官僚事件中消耗一份，可显著降低损失"><span>📦 材料包</span><b>{state.packs}</b><small>事件减损</small></div>
       <div title="代表课程、作业与考试的总体进展"><span>🎓 学业</span><b>{state.study}</b><small>课程进度</small></div>
     </section>
-    <div className="academic-strip"><b>🎓 学业检查</b><span>第16周需 40 · 第32周需 65 · 期末建议 85</span><small>达到60解锁 HiWi，并降低大学事件压力</small></div>
+    <div className="academic-strip"><b>🎓 学业检查</b><span>第16周需 40 · 第32周需 65 · 期末建议 85</span><small>达到60解锁 HiWi，并降低大学事件压力</small><em>👁 {visitCount===null?"—":visitCount}</em></div>
     <div className="ticker"><b>本周消息</b><span>{lang==="de"?DE_NEWS[state.newsIndex]:news.text}</span></div>
     <div className="time-rule"><b>时间规则</b><span>⏳ 本周行动＝推进 1 周</span><span>{lang==="de"?"○ Handelsprojekt starten/abschließen und Jobwechsel kosten keine Zeit":"○ 开始/结算经营批次、换职业＝不耗时间"}</span></div>
-    <nav className="tabs">{[["actions","本周行动"],["market","交易投资"],["career","职业设定"],["journal","记录"]].map(([id,label])=><button className={tab===id?"active":""} key={id} onClick={()=>setTab(id)}>{label}</button>)}</nav>
+    <nav className="tabs">{[["actions","本周行动"],["market","交易投资"],["career","职业设定"],["journal","记录"],["guestbook","留言板"]].map(([id,label])=><button className={tab===id?"active":""} key={id} onClick={()=>setTab(id)}>{label}</button>)}</nav>
     </div>
 
     <section className="v2-panel">
+      {tab==="guestbook"&&<><div className="panel-title"><div><small>GÄSTEBUCH</small><h2>{lang==="de"?"Gästebuch":"访客留言板"}</h2></div><span>👁 {visitCount===null?"—":visitCount} {lang==="de"?"Besuche":"次访问"}</span></div>
+        <form className="guestbook-form" onSubmit={submitGuestbook}><label><span>{lang==="de"?"Name":"昵称"}</span><input maxLength="24" value={guestbookForm.nickname} onChange={event=>setGuestbookForm({...guestbookForm,nickname:event.target.value})} placeholder={lang==="de"?"Maximal 24 Zeichen":"最多24个字"}/></label><label><span>{lang==="de"?"Nachricht":"留言"}</span><textarea maxLength="300" rows="4" value={guestbookForm.message} onChange={event=>setGuestbookForm({...guestbookForm,message:event.target.value})} placeholder={lang==="de"?"Was möchtest du anderen Studierenden sagen?":"想对其他留学生或作者说些什么？"}/><small>{guestbookForm.message.length}/300</small></label><button disabled={guestbookLoading}>{guestbookLoading?(lang==="de"?"Wird gespeichert…":"正在提交…"):(lang==="de"?"Nachricht hinterlassen":"提交留言")}</button>{guestbookError&&<p className="guestbook-error">{guestbookError}</p>}</form>
+        <div className="guestbook-list">{guestbookLoading&&!messages.length?<div className="empty">{lang==="de"?"Gästebuch wird geladen…":"正在读取留言…"}</div>:messages.length?messages.map(item=><article key={item.id}><header><b>{item.nickname}</b><time>{new Date(item.created_at).toLocaleDateString(lang==="de"?"de-DE":"zh-CN")}</time></header><p>{item.message}</p></article>):!guestbookError&&<div className="empty">{lang==="de"?"Noch keine Einträge. Schreib den ersten.":"还没有留言，来写下第一条吧。"}</div>}</div>
+      </>}
       {tab==="actions"&&<><div className="panel-title"><div><small>WOCHE {state.totalWeek+1}</small><h2>这一周怎么过？</h2></div><span>每次只能选 1 项</span></div><div className="week-flow"><div className="week-node current"><small>现在</small><b>{lang==="de"?`Monat ${state.month} · Woche ${state.week}`:<>第 {state.month} 月 · 第 {state.week} 周</>}</b></div><div className="flow-arrow"><span>选择行动</span><b>→</b><small>消耗整整一周</small></div><div className="week-node next"><small>行动结束</small><b>{nextPeriod}</b></div><div className="month-weeks"><span>本月进度</span>{[1,2,3,4].map(w=><i key={w} className={w<state.week?"done":w===state.week?"active":""}><b>{w}</b><small>{lang==="de"?"Wo.":"周"}</small></i>)}</div></div><div className="current-job"><span>{currentJob.icon}</span><div><small>当前本职工作</small><b>{currentJob.name}</b></div><strong>{lang==="de"?`Wochenlohn ${currentWage}€`:`本周工资 ${currentWage}€`}</strong><button onClick={()=>setTab("career")}>更换职业</button></div><div className="stat-guide"><b>这些数值会怎样影响生活？</b><p><span>⚡ 精力</span>低于 18 不能工作或接零工；<span>🤝 人脉</span>达到 45 可能出现稳定岗位；<span>🗂️ 档案</span>与德语共同解锁职业；<span>📦 材料包</span>可在官僚事件中抵消约 55% 的主要损失。</p></div><div className="action-grid">{ACTIONS.map(a=>{const effect=a.planner?null:a.run(state);return <button key={a.id} onClick={()=>a.planner?setModal({type:"paperPlanner"}):doAction(a)} disabled={(a.id==="work"||a.id==="gig")&&state.energy<18}><i>{a.icon}</i><span><b>{a.name}</b><small>{a.id==="work"?`${currentJob.name} · 按当前工资结算`:a.sub}</small>{effect?<EffectBadges effect={effect} lang={lang}/>:<EffectBadges lang={lang} effect={{packs:1,papers:1,energy:-1,stress:1,money:1}}/>}</span><em>⏳ 推进1周</em></button>})}</div><div className="month-cost"><b>月末还会自动结算</b><span>{lang==="de"?"Nach Woche 4 beginnt ein neuer Monat: 780 € Lebenshaltungskosten und 3,5 % Schuldzinsen. Ereignisse verbrauchen keine zusätzliche Woche.":"第 4 周行动结束后进入下个月，并扣除生活费 780€、增加债务利息 3.5%。随机事件发生在已经消耗的这一周内，不会额外再走一周。"}</span></div></>}
 
       {tab==="market"&&<><div className="panel-title"><div><small>NEBENGEWERBE</small><h2>经营批次</h2></div><span>买货和结算不额外耗时</span></div><p className="market-tip">选择商品、销售渠道和投入金额，开始一批经营；然后通过“本周行动”推进至少一周，再回来查看能否赚钱。投入成本、回收金额和净利润都会保留在账本里。</p>

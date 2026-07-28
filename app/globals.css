@@ -214,6 +214,23 @@ footer{display:flex;justify-content:space-between;padding:16px 24px;font-size:9p
   .journal p{font-size:13px}
 }
 
+.sticky-status .tabs{grid-template-columns:repeat(5,1fr)}
+.academic-strip em{margin-left:auto;font-style:normal;font-size:8px;font-weight:800}
+.guestbook-form{display:grid;gap:11px;background:#e7e0d2;border-left:4px solid var(--yellow);padding:14px;margin:15px 0}
+.guestbook-form label,.guestbook-form label>span{display:block}.guestbook-form label>span{font-size:10px;font-weight:800;margin-bottom:5px}
+.guestbook-form input,.guestbook-form textarea{width:100%;border:1px solid #aaa397;background:#faf8f2;padding:10px;font:inherit;font-size:12px;resize:vertical}
+.guestbook-form label{position:relative}.guestbook-form label>small{position:absolute;right:7px;bottom:7px;font-size:8px;color:var(--muted)}
+.guestbook-form>button{border:0;background:var(--ink);color:white;padding:11px;font-size:11px;font-weight:800;cursor:pointer}.guestbook-form>button:disabled{background:#aaa49a}
+.guestbook-error{margin:0;color:var(--red);font-size:10px;line-height:1.5}
+.guestbook-list{display:grid;gap:8px}.guestbook-list article{border:1px solid #cbc4b7;background:#faf8f2;padding:12px}
+.guestbook-list article header{display:flex;justify-content:space-between;align-items:center}.guestbook-list article header b{font-size:11px}.guestbook-list time{font-size:8px;color:var(--muted)}
+.guestbook-list article p{font-size:11px;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere;margin:8px 0 0}
+@media (min-width:800px){
+  .guestbook-form{grid-template-columns:220px 1fr auto;align-items:end;padding:18px}.guestbook-form label>span{font-size:12px}
+  .guestbook-form input,.guestbook-form textarea{font-size:13px}.guestbook-form textarea{min-height:76px}.guestbook-form>button{font-size:13px;padding:12px 20px}
+  .guestbook-error{grid-column:1/-1;font-size:12px}.guestbook-list{grid-template-columns:1fr 1fr;gap:12px}.guestbook-list article header b,.guestbook-list article p{font-size:13px}.guestbook-list time{font-size:10px}
+}
+
 /* Student journey cinematics */
 .cinematic{width:min(760px,100%);min-height:100svh;margin:auto;background:#e9e5dc;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 0 70px #0003}
 .cinematic section{padding:34px 25px 30px}.cinematic section>small{font-size:10px;letter-spacing:.18em;color:var(--red);font-weight:900}.cinematic h1{font:900 clamp(42px,11vw,72px)/1.08 "Noto Serif SC";margin:12px 0 20px;letter-spacing:-.04em}.cinematic section>p{font-size:14px;line-height:1.8;color:#4d544f;max-width:620px}.cinematic .primary{margin-top:24px}
