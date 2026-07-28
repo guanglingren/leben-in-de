@@ -144,6 +144,33 @@ footer{display:flex;justify-content:space-between;padding:16px 24px;font-size:9p
   .toast{width:min(620px,calc(100% - 40px));font-size:12px}
 }
 
+/* Compact persistent dashboard — keep information visible without covering play space */
+.sticky-status .v2-head{height:58px;padding:7px 12px}
+.sticky-status .v2-head small{font-size:8px}.sticky-status .v2-head b{font-size:16px;margin-top:2px}
+.sticky-status .deadline b{font-size:14px}.sticky-status .head-tools{gap:7px}
+.sticky-status .lang-switch.compact{padding:2px}.sticky-status .lang-switch.compact button{padding:4px 6px;font-size:8px}
+.sticky-status .v2-stat{padding:5px 6px}.sticky-status .v2-stat>span{font-size:8px}.sticky-status .v2-stat>b{font-size:12px;margin-top:1px}
+.sticky-status .v2-stat>i{height:2px;margin-top:3px}
+.sticky-status .ability-stats{grid-template-columns:repeat(6,minmax(0,1fr));overflow:visible}
+.sticky-status .ability-stats>div{grid-column:auto;min-width:0;padding:5px 4px}
+.sticky-status .ability-stats span{font-size:8px;overflow:hidden;text-overflow:ellipsis}.sticky-status .ability-stats b{font-size:13px;margin-top:1px}
+.sticky-status .ability-stats small{font-size:7px;line-height:1.15;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sticky-status .ticker{min-height:32px;padding:5px 10px;gap:7px}.sticky-status .ticker b{font-size:8px;padding:4px 5px}
+.sticky-status .ticker span{font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sticky-status .time-rule{flex-wrap:nowrap;padding:5px 10px;gap:6px;overflow-x:auto;scrollbar-width:none}
+.sticky-status .time-rule::-webkit-scrollbar{display:none}.sticky-status .time-rule b,.sticky-status .time-rule span{font-size:7px;white-space:nowrap}
+.sticky-status .tabs{padding:4px 8px 0;gap:2px}.sticky-status .tabs button{min-height:34px;padding:5px 2px;font-size:9px}
+
+@media (min-width:800px){
+  .sticky-status .v2-head{height:64px;padding:9px 22px}.sticky-status .v2-head small{font-size:9px}.sticky-status .v2-head b{font-size:20px}
+  .sticky-status .deadline b{font-size:17px}.sticky-status .lang-switch.compact button{font-size:9px}
+  .sticky-status .v2-stat{padding:7px 14px}.sticky-status .v2-stat>span{font-size:9px}.sticky-status .v2-stat>b{font-size:15px}
+  .sticky-status .ability-stats>div{padding:6px 12px}.sticky-status .ability-stats span{font-size:9px}.sticky-status .ability-stats b{font-size:15px}.sticky-status .ability-stats small{font-size:8px}
+  .sticky-status .ticker{min-height:34px;padding:6px 22px}.sticky-status .ticker b{font-size:9px}.sticky-status .ticker span{font-size:10px}
+  .sticky-status .time-rule{padding:6px 22px}.sticky-status .time-rule b,.sticky-status .time-rule span{font-size:8px}
+  .sticky-status .tabs{padding:5px 18px 0}.sticky-status .tabs button{min-height:38px;padding:6px;font-size:11px}
+}
+
 /* Student journey cinematics */
 .cinematic{width:min(760px,100%);min-height:100svh;margin:auto;background:#e9e5dc;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 0 70px #0003}
 .cinematic section{padding:34px 25px 30px}.cinematic section>small{font-size:10px;letter-spacing:.18em;color:var(--red);font-weight:900}.cinematic h1{font:900 clamp(42px,11vw,72px)/1.08 "Noto Serif SC";margin:12px 0 20px;letter-spacing:-.04em}.cinematic section>p{font-size:14px;line-height:1.8;color:#4d544f;max-width:620px}.cinematic .primary{margin-top:24px}
