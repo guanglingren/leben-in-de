@@ -273,6 +273,7 @@ footer{display:flex;justify-content:space-between;padding:16px 24px;font-size:9p
 /* Named player setup and device-local autosave */
 .name-setup{margin:20px 0 14px}.name-setup>label{display:block;font:800 15px "Noto Serif SC";margin-bottom:7px}.name-setup>div{display:grid;grid-template-columns:1fr auto;gap:6px}.name-setup input{min-width:0;border:1px solid #aaa397;background:#faf8f2;padding:12px;font:inherit;font-size:13px}.name-setup button{border:0;background:#ded7ca;padding:0 12px;font-size:10px;font-weight:800;cursor:pointer}.name-setup>small{display:block;color:var(--muted);font-size:8px;margin-top:6px}
 .continue-card{border:2px solid var(--ink);border-left:6px solid var(--yellow);background:#f9f6ee;padding:12px;margin:18px 0}.continue-card>span,.continue-card>b,.continue-card>small{display:block}.continue-card>span{font-size:8px;color:var(--red);font-weight:900;letter-spacing:.13em}.continue-card>b{font-size:14px;margin-top:4px}.continue-card>small{font-size:8px;color:var(--muted);margin-top:3px}.continue-card>div{display:flex;gap:6px;margin-top:10px}.continue-card button{border:0;padding:8px 11px;background:var(--ink);color:white;font-size:10px;font-weight:800;cursor:pointer}.continue-card button:last-child{background:#ded8cc;color:var(--muted)}
+.market-shortcut,.back-to-actions{display:none}
 
 /* Mobile action cockpit: the complete weekly choice set fits in the first view. */
 @media (max-width:799px){
@@ -285,6 +286,8 @@ footer{display:flex;justify-content:space-between;padding:16px 24px;font-size:9p
   .panel-title{padding-bottom:6px}.panel-title h2{font-size:20px}.panel-title>span{font-size:7px}
   .current-job{grid-template-columns:22px 1fr auto auto;margin-top:7px;padding:5px 7px}
   .current-job>span{font-size:16px}.current-job small{display:none}.current-job b{font-size:9px;margin:0}.current-job strong,.current-job button{font-size:8px}.current-job button{grid-column:auto}
+  .market-shortcut{width:100%;display:grid;grid-template-columns:22px auto 1fr auto;align-items:center;gap:6px;border:0;border-left:4px solid var(--yellow);background:var(--ink);color:white;padding:7px 8px;margin-top:5px;text-align:left;cursor:pointer;box-shadow:0 2px 0 #d9a822}
+  .market-shortcut>span{font-size:15px}.market-shortcut>b{font-size:9px;color:var(--yellow)}.market-shortcut>small{font-size:7px;color:#d7ddd9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.market-shortcut>em{font-style:normal;font-size:7px;font-weight:800;white-space:nowrap}
   .stat-guide{display:none}
   .action-grid{grid-template-columns:1fr 1fr!important;gap:5px;margin-top:6px}
   .action-grid button{min-height:61px!important;padding:7px 5px;grid-template-columns:20px 1fr;gap:5px}
@@ -294,6 +297,8 @@ footer{display:flex;justify-content:space-between;padding:16px 24px;font-size:9p
   .month-cost{display:none}
   .progress-benefits{margin-top:12px}
   .weekly-market{margin-top:10px}
+  .back-to-actions{display:block;width:100%;border:0;border-bottom:1px solid #c5beb1;background:#fff4c7;padding:8px 12px;text-align:left;font-size:8px;font-weight:800;color:var(--red);cursor:pointer}
+  #weekly-actions,#weekly-market{scroll-margin-top:145px}
 }
 
 @media (max-width:420px){
