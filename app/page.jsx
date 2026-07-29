@@ -467,10 +467,14 @@ function Stat({label,value,type="bar",bad=false,onClick,hint}) {
 function WeeklyMarket({state,lang,prices,onTrade,onFinish}){
   const locked=state.marketVisitWeek===state.totalWeek;
   const totalQty=Object.values(state.inventory||{}).reduce((sum,n)=>sum+n,0);
+  const holdings=GOODS.filter(g=>(state.inventory?.[g.id]||0)>0);
+  const holdingValue=holdings.reduce((sum,g)=>sum+Math.round(prices[g.id]*.9)*(state.inventory[g.id]||0),0);
+  const holdingCost=holdings.reduce((sum,g)=>sum+(state.inventoryCost?.[g.id]||0),0);
   return <section className="weekly-market" id="weekly-market">
     <div className="weekly-market-head"><div><small>WOCHENMARKT · 统一交易平台</small><h3>{lang==="de"?"Alle Angebote auf einen Blick":"全部商品，一次看完"}</h3></div><span>{lang==="de"?`Lager ${totalQty}/${state.capacity}`:`储物 ${totalQty}/${state.capacity}`}</span></div>
     <button className="back-to-actions" onClick={()=>document.getElementById("weekly-actions")?.scrollIntoView({behavior:"smooth",block:"start"})}>← {lang==="de"?"Ohne Handel zurück":"不交易，返回本周选择"}</button>
     <p className="market-freedom">{locked?"本周已经成交：交易就是本周行动。可以继续调整货物，完成后推进一周。":"浏览全部报价不会推进时间。第一笔成交后，“交易”会成为本周行动。"}</p>
+    {holdings.length>0&&<section className="portfolio-spotlight"><header><div><small>MEIN BESTAND · 我的持仓</small><h4>手上的货，现在值多少？</h4></div><span>全部卖出 <b className={holdingValue-holdingCost>=0?"profit":"loss"}>{holdingValue-holdingCost>=0?"+":""}{Math.round(holdingValue-holdingCost)}€</b></span></header><div>{holdings.map(g=>{const qty=state.inventory[g.id],avg=(state.inventoryCost[g.id]||0)/qty,sell=Math.round(prices[g.id]*.9),profit=Math.round((sell-avg)*qty);return <article key={g.id}><i>{g.icon}</i><span><b>{g.name} × {qty}</b><small>买入均价 <strong>{Math.round(avg)}€</strong> → 现在卖出 <strong>{sell}€</strong></small></span><em className={profit>=0?"profit":"loss"}>{profit>=0?"+":""}{profit}€</em><button onClick={()=>onTrade(g,"sell",qty,"platform")}>全部卖出</button></article>})}</div></section>}
     <div className="trade-explain">💡 低风险商品波动较小；高回报商品通常价格更不稳定，并可能遭遇平台审核或查处。</div>
     <div className="weekly-goods">{GOODS.map(g=>{
       const qty=state.inventory?.[g.id]||0,totalCost=state.inventoryCost?.[g.id]||0,avg=qty?totalCost/qty:0;
