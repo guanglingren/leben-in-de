@@ -500,10 +500,11 @@ function TradeLedger({state,lang,prices}){
 }
 
 function ProgressBenefits({state,lang}){
-  const paperTier=state.papers>=80?"35%":state.papers>=60?"20%":"—";
-  const contactTier=state.reputation>=80?"25%":state.reputation>=60?"10%":"—";
+  const paperTier=state.papers>=80?"35%":state.papers>=60?"20%":state.papers>=45?"10%":"—";
+  const contactTier=state.reputation>=80?"25%":state.reputation>=60?"10%":state.reputation>=40?"5%":"—";
   const marketTier=(state.reputation>=75?8:state.reputation>=50?4:0)+(state.german>=75?4:state.german>=60?2:0);
-  return <div className="progress-benefits"><span><b>🗂️ {lang==="de"?"Akte":"档案"} {state.papers}</b><small>{lang==="de"?(paperTier==="—"?"Ab 60: weniger Energieverlust":`Energieverlust: −${paperTier}`):`事件精力减损：${paperTier==="—"?"60后解锁":`减少${paperTier}`}`}</small></span><span><b>🤝 {lang==="de"?"Kontakte":"人脉"} {state.reputation}</b><small>{lang==="de"?(contactTier==="—"?"Ab 60: weniger Geldverlust":`Geldverlust: −${contactTier}`):`事件资金减损：${contactTier==="—"?"60后解锁":`减少${contactTier}`}`}</small></span><span><b>🗣️ {lang==="de"?"Deutsch":"德语"} {state.german}</b><small>{lang==="de"?`Marktrabatt: ${marketTier}%`:`当前进货折扣：${marketTier}%`}</small></span></div>;
+  const studyTier=state.study>=75?"大学事件压力 −4":state.study>=60?"大学事件压力 −2":state.study>=40?"通过首次学业检查":"40 后通过首次检查";
+  return <div className="progress-benefits career-benefits"><span><b>🗂️ {lang==="de"?"Akte":"档案"} {state.papers}</b><small>{`事件精力损失：${paperTier==="—"?"45 后减少 10%":`减少 ${paperTier}`}`}</small></span><span><b>🤝 {lang==="de"?"Kontakte":"人脉"} {state.reputation}</b><small>{`事件资金损失：${contactTier==="—"?"40 后减少 5%":`减少 ${contactTier}`}`}</small></span><span><b>🎓 {lang==="de"?"Studium":"学业"} {state.study}</b><small>{studyTier}</small></span><span><b>🗣️ {lang==="de"?"Deutsch":"德语"} {state.german}</b><small>{`工资 +${Math.min(80,Math.max(0,state.german-40)*2)}€ · 进货折扣 ${marketTier}%`}</small></span></div>;
 }
 
 export default function Home() {
@@ -574,7 +575,7 @@ export default function Home() {
   function continueGame(){
     if(!savedGame?.state)return;
     setState(savedGame.state);
-    setTab(savedGame.tab||"actions");
+    setTab(savedGame.tab==="market"?"actions":savedGame.tab||"actions");
     setLang(savedGame.lang==="de"?"de":"zh");
     setScreen(["arrival","game","end"].includes(savedGame.screen)?savedGame.screen:"game");
     setModal(savedGame.modal||null);
@@ -720,9 +721,9 @@ export default function Home() {
     const academicRelief=academicOffice?(state.study>=75?4:state.study>=60?2:0):0;
     const adjusted={...choice.effect};
     if(adjusted.stress>0)adjusted.stress=Math.max(0,adjusted.stress-languageRelief-academicRelief);
-    if(adjusted.energy<0&&state.papers>=60)adjusted.energy=Math.round(adjusted.energy*(state.papers>=80?.65:.8));
+    if(adjusted.energy<0&&state.papers>=45)adjusted.energy=Math.round(adjusted.energy*(state.papers>=80?.65:state.papers>=60?.8:.9));
     if(adjusted.papers>0&&state.papers>=60)adjusted.papers=Math.max(1,Math.round(adjusted.papers*(state.papers>=80?.35:.65)));
-    if(adjusted.money<0&&state.reputation>=60)adjusted.money=Math.round(adjusted.money*(state.reputation>=80?.75:.9));
+    if(adjusted.money<0&&state.reputation>=40)adjusted.money=Math.round(adjusted.money*(state.reputation>=80?.75:state.reputation>=60?.9:.95));
     if(adjusted.stress>0&&state.reputation>=80)adjusted.stress=Math.max(0,adjusted.stress-2);
     let next=applyEffect(state,adjusted);
     if(choice.flag)next={...next,flags:{...next.flags,[choice.flag]:true}};
@@ -922,7 +923,7 @@ export default function Home() {
     <div className="academic-strip"><b>🎯 {lang==="de"?"Ziele für 48 Wochen":"48周目标"}</b><span>{lang==="de"?"Studium mindestens 65 · Schulden höchstens 600 €":"学业至少 65 · 债务降至 600€ 以下"}</span><small>{lang==="de"?"Studium 85 + schuldenfrei: bestes Ende; Akte 60 spart Energie, Kontakte 50 senken Einkaufspreise":"学业85＋债务清零可达成更好结局；档案60减少事件耗能，人脉50降低进货价"}</small><em>🎓 {state.study}/65 · 🏦 {Math.round(state.debt)}/600€</em></div>
     <div className="ticker"><b>本周消息</b><span>{lang==="de"?DE_NEWS[state.newsIndex]:news.text}</span></div>
     <div className="time-rule"><b>时间规则</b><span>⏳ 本周行动＝推进 1 周</span><span>{lang==="de"?"○ Ein Marktbesuch sowie Kauf, Verkauf und Jobwechsel kosten keine Zeit":"○ 每周访问一个市场；买卖与换职业不额外耗时"}</span></div>
-    <nav className="tabs">{[["actions","本周行动"],["market","副业账本"],["career","职业设定"],["journal","记录"],["guestbook","留言板"]].map(([id,label])=><button className={tab===id?"active":""} key={id} onClick={()=>setTab(id)}>{label}</button>)}</nav>
+    <nav className="tabs">{[["actions","本周行动"],["career","成长与职业"],["journal","记录"],["guestbook","留言板"]].map(([id,label])=><button className={tab===id?"active":""} key={id} onClick={()=>setTab(id)}>{label}</button>)}</nav>
     </div>
 
     <section className="v2-panel">
@@ -941,7 +942,7 @@ export default function Home() {
         {(state.ventureLedger||[]).length>0&&<div className="venture-ledger"><div className="subhead"><b>最近经营账本</b><span>投入 → 回收 → 净结果</span></div>{state.ventureLedger.slice(0,5).map((l,i)=><p key={i}><span>{l.good}<small>{l.channel}</small></span><b>{l.invested}€ → {l.returned}€</b><em className={l.profit>=0?"profit":"loss"}>{l.profit>=0?"+":""}{l.profit}€</em></p>)}</div>}</div>
       </>}
 
-      {tab==="career"&&<><div className="panel-title"><div><small>HAUPTBERUF & SCHULDEN</small><h2>设定本职工作</h2></div><span>德语 {state.german} · 档案 {state.papers} · 学业 {state.study}</span></div><p className="career-help">换职业不消耗时间。德语提高本职工资并降低事件压力；档案与学业共同决定能否获得办公室、HiWi 和学生事务岗位。</p><div className="language-bonus"><span>当前语言工资加成<b>+{languageBonus}€ / 周</b></span><span>大学事件减压<b>-{state.study>=75?4:state.study>=60?2:0} 压力</b></span></div><div className="jobs">{JOBS.map(j=>{const unlocked=state.german>=j.requirement&&state.papers>=j.paperRequirement&&state.study>=(j.studyRequirement||0);return <button key={j.id} className={state.jobId===j.id?"selected":""} onClick={()=>switchJob(j)}><i>{j.icon}</i><span><b>{j.name}</b><small>基础周薪 {j.wage}€ · 精力 {j.energy} · 健康 {j.health}{j.requirement?` · 德语 ${j.requirement} · 档案 ${j.paperRequirement}${j.studyRequirement?` · 学业 ${j.studyRequirement}`:""}`:""}</small></span><em>{state.jobId===j.id?"当前本职":unlocked?"设为本职":"未解锁"}</em></button>})}</div><div className="debt-box"><span><small>私人债务</small><b>{Math.round(state.debt)} €</b></span><p>每月增长 3.5%，每月最多偿还一次。不能在同一个月连续清空债务。</p><button onClick={payDebt} disabled={state.lastDebtPaymentMonth===state.month||state.debt<=0}>{state.debt<=0?"债务已还清":state.lastDebtPaymentMonth===state.month?"本月已还款":"本月偿还最多 250€"}</button></div></>}
+      {tab==="career"&&<><div className="panel-title"><div><small>ENTWICKLUNG & BERUF</small><h2>成长与职业</h2></div><span>能力不是分数，而是实际优势</span></div><p className="career-help">档案、人脉和学业会直接降低事件损失、通过学业检查并解锁更好的工作；德语同时提高工资和交易议价。达到门槛后可以立即换职业，不消耗一周。</p><ProgressBenefits state={state} lang={lang}/><div className="language-bonus"><span>当前语言工资加成<b>+{languageBonus}€ / 周</b></span><span>大学事件减压<b>-{state.study>=75?4:state.study>=60?2:0} 压力</b></span></div><div className="jobs">{JOBS.map(j=>{const unlocked=state.german>=j.requirement&&state.papers>=j.paperRequirement&&state.study>=(j.studyRequirement||0);return <button key={j.id} className={state.jobId===j.id?"selected":""} onClick={()=>switchJob(j)}><i>{j.icon}</i><span><b>{j.name}</b><small>基础周薪 {j.wage}€ · 精力 {j.energy} · 健康 {j.health}{j.requirement?` · 德语 ${j.requirement} · 档案 ${j.paperRequirement}${j.studyRequirement?` · 学业 ${j.studyRequirement}`:""}`:""}</small></span><em>{state.jobId===j.id?"当前本职":unlocked?"设为本职":"未解锁"}</em></button>})}</div><div className="debt-box"><span><small>私人债务</small><b>{Math.round(state.debt)} €</b></span><p>每月增长 3.5%，每月最多偿还一次。不能在同一个月连续清空债务。</p><button onClick={payDebt} disabled={state.lastDebtPaymentMonth===state.month||state.debt<=0}>{state.debt<=0?"债务已还清":state.lastDebtPaymentMonth===state.month?"本月已还款":"本月偿还最多 250€"}</button></div></>}
 
       {tab==="journal"&&<><div className="panel-title"><div><small>VERLAUF</small><h2>生活记录</h2></div><span>{state.seen.length} 个事件</span></div><div className="journal">{state.journal.length?state.journal.map((j,i)=><p key={i}><i>{String(state.journal.length-i).padStart(2,"0")}</i>{j}</p>):<div className="empty">你的档案目前还很薄。系统会设法改变这一点。</div>}</div></>}
     </section>

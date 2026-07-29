@@ -214,7 +214,9 @@ footer{display:flex;justify-content:space-between;padding:16px 24px;font-size:9p
   .journal p{font-size:13px}
 }
 
-.sticky-status .tabs{grid-template-columns:repeat(5,1fr)}
+.sticky-status .tabs{grid-template-columns:repeat(4,1fr)}
+.career-benefits{grid-template-columns:repeat(4,1fr);margin:14px 0}.career-benefits span{padding:12px}.career-benefits b{font-size:12px}.career-benefits small{font-size:9px;line-height:1.4}
+@media(max-width:620px){.career-benefits{grid-template-columns:1fr 1fr}}
 .academic-strip em{margin-left:auto;font-style:normal;font-size:8px;font-weight:800}
 .guestbook-form{display:grid;gap:11px;background:#e7e0d2;border-left:4px solid var(--yellow);padding:14px;margin:15px 0}
 .guestbook-form label,.guestbook-form label>span{display:block}.guestbook-form label>span{font-size:10px;font-weight:800;margin-bottom:5px}
