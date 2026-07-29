@@ -487,7 +487,15 @@ function ProgressBenefits({state,lang}){
 
 export default function Home() {
   const SAVE_KEY="aktenleben-save-v1";
-  const [lang,setLang]=useState("zh");
+  const readSavedGame=()=>{
+    try{
+      const saved=JSON.parse(localStorage.getItem(SAVE_KEY)||"null");
+      if(!saved?.state||!saved?.screen)return null;
+      return {...saved,version:2,lang:saved.lang==="de"?"de":"zh",modal:saved.modal||null};
+    }catch{return null;}
+  };
+  const initialSave=readSavedGame();
+  const [lang,setLang]=useState(initialSave?.lang||"zh");
   useEffect(()=>{
     document.documentElement.lang=lang==="de"?"de":"zh-CN";
     document.title=lang==="de"?"AKTENLEBEN｜48 Wochen Deutschland":"AKTENLEBEN｜留德浮生记";
@@ -512,12 +520,8 @@ export default function Home() {
   const [screen,setScreen]=useState("intro");
   const [state,setState]=useState(null);
   const [playerName,setPlayerName]=useState("");
-  const [savedGame,setSavedGame]=useState(()=>{
-    try{
-      const saved=JSON.parse(localStorage.getItem(SAVE_KEY)||"null");
-      return saved?.state&&saved?.screen?saved:null;
-    }catch{return null;}
-  });
+  const [savedGame,setSavedGame]=useState(initialSave);
+  const [saveError,setSaveError]=useState(false);
   const [tab,setTab]=useState("actions");
   const [modal,setModal]=useState(null);
   const [toast,setToast]=useState("");
@@ -526,11 +530,17 @@ export default function Home() {
   const [ventureAmount,setVentureAmount]=useState(150);
 
   useEffect(()=>{
-    if(!state||!["arrival","game"].includes(screen))return;
-    const saved={version:1,state,screen,tab,savedAt:Date.now()};
-    localStorage.setItem(SAVE_KEY,JSON.stringify(saved));
-    setSavedGame(saved);
-  },[state,screen,tab]);
+    if(!state||!["arrival","game","end"].includes(screen))return;
+    const persistentModal=["event","weekResult","ventureResult","result"].includes(modal?.type)?modal:null;
+    const saved={version:2,state,screen,tab,lang,modal:persistentModal,savedAt:Date.now()};
+    try{
+      localStorage.setItem(SAVE_KEY,JSON.stringify(saved));
+      setSavedGame(saved);
+      setSaveError(false);
+    }catch{
+      setSaveError(true);
+    }
+  },[state,screen,tab,lang,modal]);
 
   function randomizeName(){
     const zhNames=["林安","周宁","陈晓雨","王子涵","李明远","赵可欣","孙宇航","吴嘉禾"];
@@ -543,13 +553,15 @@ export default function Home() {
     if(!savedGame?.state)return;
     setState(savedGame.state);
     setTab(savedGame.tab||"actions");
-    setScreen(savedGame.screen==="arrival"?"arrival":"game");
-    setModal(null);
+    setLang(savedGame.lang==="de"?"de":"zh");
+    setScreen(["arrival","game","end"].includes(savedGame.screen)?savedGame.screen:"game");
+    setModal(savedGame.modal||null);
   }
 
   function clearSavedGame(){
-    localStorage.removeItem(SAVE_KEY);
+    try{localStorage.removeItem(SAVE_KEY);}catch{}
     setSavedGame(null);
+    setSaveError(false);
     setState(null);
     setScreen("intro");
   }
@@ -899,6 +911,7 @@ export default function Home() {
       {tab==="journal"&&<><div className="panel-title"><div><small>VERLAUF</small><h2>生活记录</h2></div><span>{state.seen.length} 个事件</span></div><div className="journal">{state.journal.length?state.journal.map((j,i)=><p key={i}><i>{String(state.journal.length-i).padStart(2,"0")}</i>{j}</p>):<div className="empty">你的档案目前还很薄。系统会设法改变这一点。</div>}</div></>}
     </section>
 
+    {saveError&&<div className="toast save-warning">{lang==="de"?"Automatisches Speichern ist in diesem Browser blockiert. Bitte erlaube Website-Daten.":"浏览器阻止了自动存档，请允许此网站保存本地数据。"}</div>}
     {toast&&<button className="toast" onClick={()=>setToast("")}>{toast}<span>×</span></button>}
     {modal?.type==="debtPay"&&<div className="modal-backdrop"><article className="event-modal debt-modal"><div className="modal-top"><span>SCHULDEN</span><b>{lang==="de"?"Schulden tilgen":"偿还债务"}</b></div><h2>{Math.round(state.debt)} €</h2><p>{lang==="de"?"Einmal pro Monat kannst du bis zu 250 € tilgen. Mindestens 200 € müssen für den Alltag auf dem Konto bleiben.":"每月可以还款一次，最多偿还 250€；账户必须至少保留 200€ 生活备用金。"}</p><div className="debt-preview"><span>{lang==="de"?"Verfügbares Geld":"当前现金"}<b>{Math.round(state.money)}€</b></span><span>{lang==="de"?"Tilgung jetzt":"本次可还"}<b>{Math.max(0,Math.round(Math.min(250,state.money-200,state.debt)))}€</b></span></div><button className="primary" onClick={payDebt} disabled={state.lastDebtPaymentMonth===state.month||state.debt<=0||state.money<=200}>{state.debt<=0?(lang==="de"?"Schulden abbezahlt":"债务已还清"):state.lastDebtPaymentMonth===state.month?(lang==="de"?"Diesen Monat bereits getilgt":"本月已经还款"):state.money<=200?(lang==="de"?"Nicht genug Reserve":"现金不足，需保留 200€"):(lang==="de"?"Jetzt tilgen":"立即还款")} <span>→</span></button><button className="secondary" onClick={()=>setModal(null)}>{lang==="de"?"Schließen":"暂不还款"}</button></article></div>}
     {modal&&modal.type!=="debtPay"&&<div className="modal-backdrop"><article className="event-modal">
