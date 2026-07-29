@@ -777,6 +777,12 @@ export default function Home() {
     window.scrollTo({top:Math.max(0,target.getBoundingClientRect().top+window.scrollY-offset),behavior:"smooth"});
   }
 
+  function finishTradeWeek(){
+    const target=document.getElementById("weekly-actions");
+    if(target)window.scrollTo({top:Math.max(0,target.getBoundingClientRect().top+window.scrollY-12),behavior:"auto"});
+    doAction(TRADE_WEEK_ACTION);
+  }
+
   function payDebt(){
     if(state.lastDebtPaymentMonth===state.month){setToast("本月已经还过一次债务了。下个月才能再次还款。");return;}
     const amount=Math.min(250,state.money-200,state.debt);
@@ -941,7 +947,7 @@ export default function Home() {
     </section>
 
     {saveError&&<div className="toast save-warning">{lang==="de"?"Automatisches Speichern ist in diesem Browser blockiert. Bitte erlaube Website-Daten.":"浏览器阻止了自动存档，请允许此网站保存本地数据。"}</div>}
-    {state.marketVisitWeek===state.totalWeek&&!modal&&<div className="trade-finish-dock"><span><small>本周已选择交易</small><b>还可以继续买卖</b></span><button onClick={()=>doAction(TRADE_WEEK_ACTION)}>结束本周，查看新价格 →</button></div>}
+    {state.marketVisitWeek===state.totalWeek&&!modal&&<div className="trade-finish-dock"><span><small>本周已选择交易</small><b>还可以继续买卖</b></span><button onClick={finishTradeWeek}>结束本周，进入周末事件 →</button></div>}
     {toast&&<button className="toast" onClick={()=>setToast("")}>{toast}<span>×</span></button>}
     {modal?.type==="debtPay"&&<div className="modal-backdrop"><article className="event-modal debt-modal"><div className="modal-top"><span>SCHULDEN</span><b>{lang==="de"?"Schulden tilgen":"偿还债务"}</b></div><h2>{Math.round(state.debt)} €</h2><p>{lang==="de"?"Einmal pro Monat kannst du bis zu 250 € tilgen. Mindestens 200 € müssen für den Alltag auf dem Konto bleiben.":"每月可以还款一次，最多偿还 250€；账户必须至少保留 200€ 生活备用金。"}</p><div className="debt-preview"><span>{lang==="de"?"Verfügbares Geld":"当前现金"}<b>{Math.round(state.money)}€</b></span><span>{lang==="de"?"Tilgung jetzt":"本次可还"}<b>{Math.max(0,Math.round(Math.min(250,state.money-200,state.debt)))}€</b></span></div><button className="primary" onClick={payDebt} disabled={state.lastDebtPaymentMonth===state.month||state.debt<=0||state.money<=200}>{state.debt<=0?(lang==="de"?"Schulden abbezahlt":"债务已还清"):state.lastDebtPaymentMonth===state.month?(lang==="de"?"Diesen Monat bereits getilgt":"本月已经还款"):state.money<=200?(lang==="de"?"Nicht genug Reserve":"现金不足，需保留 200€"):(lang==="de"?"Jetzt tilgen":"立即还款")} <span>→</span></button><button className="secondary" onClick={()=>setModal(null)}>{lang==="de"?"Schließen":"暂不还款"}</button></article></div>}
     {modal?.type==="event"&&modal.minimized&&<button className="pending-event" onClick={()=>setModal({...modal,minimized:false})}><span>{modal.event.office}</span><b>待处理：{modal.event.title}</b><em>继续处理 →</em></button>}
