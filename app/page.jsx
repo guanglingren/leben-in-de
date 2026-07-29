@@ -379,9 +379,9 @@ const WEEKLY_BETS = [
 function weeklyChoices(state){
   const work=ACTIONS.find(a=>a.id==="work");
   const progress=state.study<=state.german
-    ? {...ACTIONS.find(a=>a.id==="study"),category:"自我提升",name:"提升留德能力",sub:"本周侧重课程与考试，稳定推进留德能力"}
-    : {...ACTIONS.find(a=>a.id==="learn"),category:"自我提升",name:"提升留德能力",sub:"本周侧重德语与沟通，稳定推进留德能力"};
-  const social={...ACTIONS.find(a=>a.id==="social"),category:"经营关系",name:"经营社会资源",sub:"参加社区活动，积累联系人并练习沟通"};
+    ? {...ACTIONS.find(a=>a.id==="study"),category:"补补短板",name:"把落下的课补回来",sub:"去图书馆坐一周，至少别让下一次检查太难看"}
+    : {...ACTIONS.find(a=>a.id==="learn"),category:"补补短板",name:"把德语再练顺一点",sub:"多开几次口，下回碰到窗口和客服少卡壳"};
+  const social={...ACTIONS.find(a=>a.id==="social"),category:"出去走走",name:"去混个脸熟",sub:"参加社区活动，练练德语；以后碰上麻烦，也许能找到人问"};
   return [
     {...work,category:"工作"},
     progress,
@@ -561,6 +561,14 @@ Object.assign(DE_UI,{
   ,"你没有持有这只股票。":"Du hältst diese Aktie nicht."
   ,"本周已经发生交易；请完成交易并推进一周。":"Du hast diese Woche bereits gehandelt. Schließe den Handel ab und gehe eine Woche weiter."
   ,"储物空间满了。":"Dein Lager ist voll."
+  ,"补补短板":"Lücken schließen"
+  ,"把落下的课补回来":"Beim Studium wieder aufholen"
+  ,"去图书馆坐一周，至少别让下一次检查太难看":"Eine Woche in der Bibliothek – damit die nächste Kontrolle nicht ganz so wehtut"
+  ,"把德语再练顺一点":"Das Deutsch etwas flüssiger bekommen"
+  ,"多开几次口，下回碰到窗口和客服少卡壳":"Mehr sprechen, damit es beim nächsten Amt oder Kundendienst weniger hakt"
+  ,"出去走走":"Unter Leute"
+  ,"去混个脸熟":"Sich mal blicken lassen"
+  ,"参加社区活动，练练德语；以后碰上麻烦，也许能找到人问":"Beim Nachbarschaftstreffen Deutsch üben und Leute kennenlernen – vielleicht weiß später jemand Rat"
   ,"先查看":"Erst ansehen"
   ,"利润高，Abmahnung 也很贵":"Hohe Marge – aber eine Abmahnung kann sehr teuer werden"
   ,"本周已经成交：交易就是本周行动。可以继续调整货物，完成后推进一周。":"Du hast diese Woche bereits gehandelt. Damit steht Handel als Wochenaktion fest; du kannst den Bestand noch anpassen und anschließend die Woche abschließen."
