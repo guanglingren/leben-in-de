@@ -141,10 +141,6 @@ const OPPORTUNITY_EVENTS = [
   {id:"opp-paperwork",office:"AKTE VOLLSTÄNDIG",title:"柜台发现你的材料居然一次齐全",text:"工作人员翻了两遍，最后承认没有缺少任何附件。隔壁窗口甚至过来看了一眼。",choices:[
     {label:"顺便把另一件事一起办了",effect:{papers:5,packs:1,energy:6,stress:-8},result:"两个事项在同一天完成。你怀疑这可能违反某条自然规律。"},
     {label:"见好就收，早点回家",effect:{energy:15,health:5,stress:-10},result:"你在天黑之前离开了政府大楼，并拥有了一个完整的下午。"}
-  ]},
-  {id:"opp-market",office:"KLEINANZEIGEN",title:"你记住的价格区间终于派上用场",text:"有人急着搬家，愿意低价处理一批状态不错的东西；你恰好知道正常价格。",choices:[
-    {label:"转手赚一笔稳妥差价",effect:{money:190,reputation:4,energy:-5},result:"没有暴富，但这笔利润来自判断，而不是自动抽奖。"},
-    {label:"留一部分自用并帮助新生",effect:{money:70,reputation:12,health:4,stress:-5},result:"你少赚了一点，却成了别人通讯录里“可能知道怎么办”的那个人。"}
   ]}
 ];
 
@@ -350,11 +346,9 @@ const ACTIONS = [
 ];
 
 const WEEKLY_BETS = [
-  {id:"bet-bike",icon:"🚲",name:"吃下这批急售自行车",sub:"毕业生今晚清仓；下周罢工传闻未证实",risk:"中风险 · 可能小赚或压货",run:s=>{const roll=(s.totalWeek*37+Math.round(s.money)+s.newsIndex*19)%100;return roll<58?{money:260,energy:-12,stress:-3,reputation:4}:{money:-145,energy:-10,stress:8};}},
   {id:"bet-shift",icon:"🌙",name:"替人顶三晚夜班",sub:"主管暗示会记住你，但没有写进合同",risk:"低风险 · 稳定现金，透支身体",run:s=>({money:380+Math.round(s.german*.8),energy:-27,health:-7,stress:10,reputation:7})},
   {id:"bet-refund",icon:"🧾",name:"追一笔可能存在的退费",sub:"论坛说同类账单有人拿回了钱，也有人等了半年",risk:"中风险 · 成功会连本带利追回",run:s=>{const roll=(s.totalWeek*23+s.papers*3+s.german)%100;return roll<48+Math.round(s.papers/5)?{money:330,papers:7,energy:-12,stress:-5}:{money:-35,papers:4,energy:-14,stress:9};}},
   {id:"bet-exam",icon:"🎓",name:"押教授最后一节课的重点",sub:"用一周冲刺三道题，押错就来不及补",risk:"高风险 · 学业可能大幅推进",run:s=>{const roll=(s.totalWeek*31+s.study*2+s.german)%100;return roll<54?{study:20,german:3,energy:-16,stress:-4}:{study:3,energy:-17,stress:15};}},
-  {id:"bet-market",icon:"📦",name:"跟着本周消息倒一批货",sub:"消息方向有利，但市场从不保证兑现",risk:"高风险 · 现金结果下周揭晓",run:s=>{const roll=(s.totalWeek*41+s.newsIndex*17+Math.round(s.money))%100;return roll<52?{money:460,energy:-15,reputation:5,stress:-4}:{money:-260,energy:-11,stress:14,reputation:-2};}},
   {id:"bet-contact",icon:"🤝",name:"替同学解决一件麻烦事",sub:"没有工资；这份人情也许很快就能变现",risk:"未知回报 · 押人脉",run:s=>{const roll=(s.totalWeek*29+s.reputation*5)%100;return roll<62?{money:180,reputation:14,german:3,energy:-12}:{reputation:8,energy:-14,stress:7,money:-25};}}
 ];
 
@@ -642,7 +636,7 @@ export default function Home() {
   function drawEvent(current){
     if(current.totalWeek%6===0){
       const opportunities=lang==="de"?DE_OPPORTUNITY_EVENTS:OPPORTUNITY_EVENTS;
-      const opportunityUnlocked=e=>e.id==="opp-refund"?current.papers>=50:e.id==="opp-contact"?current.reputation>=45:e.id==="opp-paperwork"?current.papers>=65:e.id==="opp-market"?(current.tradeLedger||[]).filter(item=>item.mode==="sell").length>=2:true;
+      const opportunityUnlocked=e=>e.id==="opp-refund"?current.papers>=50:e.id==="opp-contact"?current.reputation>=45:e.id==="opp-paperwork"?current.papers>=65:true;
       const unlocked=opportunities.filter(e=>opportunityUnlocked(e)&&!current.seen.slice(-14).includes(e.id));
       if(unlocked.length)return unlocked[(current.totalWeek/6-1)%unlocked.length];
     }
