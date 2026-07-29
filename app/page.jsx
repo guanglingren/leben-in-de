@@ -139,7 +139,7 @@ const OPPORTUNITY_EVENTS = [
     {label:"换成教授的推荐与辅导",effect:{study:12,german:4,reputation:8,stress:-3},result:"没有即时收入，但下一次学业检查突然没那么可怕了。"}
   ]},
   {id:"opp-paperwork",office:"AKTE VOLLSTÄNDIG",title:"柜台发现你的材料居然一次齐全",text:"工作人员翻了两遍，最后承认没有缺少任何附件。隔壁窗口甚至过来看了一眼。",choices:[
-    {label:"顺便把另一件事一起办了",effect:{papers:5,packs:1,energy:6,stress:-8},result:"两个事项在同一天完成。你怀疑这可能违反某条自然规律。"},
+    {label:"顺便把另一件事一起办了",effect:{papers:5,reputation:4,energy:6,stress:-8},result:"两个事项在同一天完成。你不仅补齐了记录，也认识了一个以后能问手续的人。"},
     {label:"见好就收，早点回家",effect:{energy:15,health:5,stress:-10},result:"你在天黑之前离开了政府大楼，并拥有了一个完整的下午。"}
   ]}
 ];
@@ -366,8 +366,8 @@ function weeklyChoices(state){
 const TRADE_WEEK_ACTION={id:"trade-week",icon:"🛒",name:"完成本周交易",sub:"成交已经发生；推进一周，查看新行情",run:()=>({energy:-9,stress:2,reputation:2})};
 
 const PAPER_TASKS = [
-  { id:"folder", icon:"🗂️", name:"整理标准材料包", sub:"获得 1 份可在事件中消耗的完整材料包", effect:{packs:1,papers:6,german:1,energy:-10,stress:3} },
-  { id:"termin", icon:"📅", name:"抢一次 Behörden-Termin", sub:"预约、复印、排队，把档案推进一大截", effect:{packs:1,papers:10,energy:-14,stress:6} },
+  { id:"folder", icon:"🗂️", name:"整理个人档案", sub:"补齐文件并建立办事记录，直接提升社会资源", effect:{papers:8,reputation:3,energy:-10,stress:3} },
+  { id:"termin", icon:"📅", name:"抢一次 Behörden-Termin", sub:"预约、复印、排队，同时积累档案与办事关系", effect:{papers:10,reputation:5,energy:-14,stress:6} },
   { id:"refund", icon:"🧾", name:"核对旧账并申请退费", sub:"翻出一笔重复扣款，同时补全往来记录", effect:{money:90,papers:5,energy:-12,stress:4} }
 ];
 
@@ -666,7 +666,7 @@ export default function Home() {
     const progressNotes=[];
     if(action.id==="learn"){
       if(state.german<50&&next.german>=50){next=applyEffect(next,{stress:-4,papers:3});progressNotes.push("德语达到50：日常沟通更顺，压力降低并补全了一部分档案。");}
-      if(state.german<60&&next.german>=60){next=applyEffect(next,{packs:1,reputation:3});progressNotes.push("德语达到60：获得一份双语材料模板，行政事件与市场议价开始受益。");}
+      if(state.german<60&&next.german>=60){next=applyEffect(next,{papers:4,reputation:4});progressNotes.push("留德能力取得突破：你更能看懂往来文件，也积累了一批可靠联系人。");}
       if(state.german<75&&next.german>=75){next=applyEffect(next,{stress:-6,reputation:6});progressNotes.push("德语达到75：复杂沟通不再完全依赖运气，社会关系也更稳定。");}
     }
     let log=lang==="de"?`Monat ${state.month}, Woche ${state.week}: ${deText(action.name)}`:`第 ${state.month} 月第 ${state.week} 周：${action.name}`;
@@ -922,7 +922,6 @@ export default function Home() {
       <div title="行动会消耗精力；低于 18 时不能工作或接零工"><span>⚡ 精力</span><b>{state.energy}</b><small>{state.energy<18?"无法工作":state.energy<35?"需要休息":"可正常行动"}</small></div>
       <div title="由学业与德语共同构成；影响工资、检查和职业"><span>🎓 留德能力</span><b>{ability}</b><small>{lang==="de"?"Lohn":"工资"} +{languageBonus}€</small></div>
       <div title="由人脉与档案共同构成；影响事件损失和职业"><span>🤝 社会资源</span><b>{social}</b><small>{social>=45?"事件减损已生效":"45 后降低损失"}</small></div>
-      <div title="在官僚事件中消耗一份，可显著降低损失"><span>📦 材料包</span><b>{state.packs}</b><small>事件减损</small></div>
     </section>
     <div className="academic-strip"><b>🎯 {lang==="de"?"Ziele für 48 Wochen":"48周目标"}</b><span>{lang==="de"?"Ankommen mindestens 65 · Schulden höchstens 600 €":"留德能力至少 65 · 债务降至 600€ 以下"}</span><small>{lang==="de"?"85 + schuldenfrei: bestes Ende":"留德能力85＋债务清零可达成更好结局"}</small><em>🎓 {ability}/65 · 🏦 {Math.round(state.debt)}/600€</em></div>
     <div className="ticker"><b>本周消息</b><span>{lang==="de"?DE_NEWS[state.newsIndex]:news.text}</span></div>
