@@ -349,6 +349,26 @@ const ACTIONS = [
   { id:"doctor", icon:"🩺", name:"照顾身体", sub:"花钱治疗 · 恢复健康", run:()=>({money:-95,health:18,energy:8,stress:-5}) }
 ];
 
+const WEEKLY_BETS = [
+  {id:"bet-bike",icon:"🚲",name:"吃下这批急售自行车",sub:"毕业生今晚清仓；下周罢工传闻未证实",risk:"中风险 · 可能小赚或压货",run:s=>{const roll=(s.totalWeek*37+Math.round(s.money)+s.newsIndex*19)%100;return roll<58?{money:260,energy:-12,stress:-3,reputation:4}:{money:-145,energy:-10,stress:8};}},
+  {id:"bet-shift",icon:"🌙",name:"替人顶三晚夜班",sub:"主管暗示会记住你，但没有写进合同",risk:"低风险 · 稳定现金，透支身体",run:s=>({money:380+Math.round(s.german*.8),energy:-27,health:-7,stress:10,reputation:7})},
+  {id:"bet-refund",icon:"🧾",name:"追一笔可能存在的退费",sub:"论坛说同类账单有人拿回了钱，也有人等了半年",risk:"中风险 · 成功会连本带利追回",run:s=>{const roll=(s.totalWeek*23+s.papers*3+s.german)%100;return roll<48+Math.round(s.papers/5)?{money:330,papers:7,energy:-12,stress:-5}:{money:-35,papers:4,energy:-14,stress:9};}},
+  {id:"bet-exam",icon:"🎓",name:"押教授最后一节课的重点",sub:"用一周冲刺三道题，押错就来不及补",risk:"高风险 · 学业可能大幅推进",run:s=>{const roll=(s.totalWeek*31+s.study*2+s.german)%100;return roll<54?{study:20,german:3,energy:-16,stress:-4}:{study:3,energy:-17,stress:15};}},
+  {id:"bet-market",icon:"📦",name:"跟着本周消息倒一批货",sub:"消息方向有利，但市场从不保证兑现",risk:"高风险 · 现金结果下周揭晓",run:s=>{const roll=(s.totalWeek*41+s.newsIndex*17+Math.round(s.money))%100;return roll<52?{money:460,energy:-15,reputation:5,stress:-4}:{money:-260,energy:-11,stress:14,reputation:-2};}},
+  {id:"bet-contact",icon:"🤝",name:"替同学解决一件麻烦事",sub:"没有工资；这份人情也许很快就能变现",risk:"未知回报 · 押人脉",run:s=>{const roll=(s.totalWeek*29+s.reputation*5)%100;return roll<62?{money:180,reputation:14,german:3,energy:-12}:{reputation:8,energy:-14,stress:7,money:-25};}}
+];
+
+function weeklyChoices(state){
+  const recovery=state.energy<35||state.health<45||state.stress>65
+    ? ACTIONS.find(a=>a.id==="rest")
+    : ACTIONS.find(a=>a.id==="work");
+  const progress=state.study<45
+    ? ACTIONS.find(a=>a.id==="study")
+    : state.german<60?ACTIONS.find(a=>a.id==="learn"):ACTIONS.find(a=>a.id==="paper");
+  const bet=WEEKLY_BETS[(state.totalWeek+state.newsIndex*2)%WEEKLY_BETS.length];
+  return [recovery,progress,bet];
+}
+
 const PAPER_TASKS = [
   { id:"folder", icon:"🗂️", name:"整理标准材料包", sub:"获得 1 份可在事件中消耗的完整材料包", effect:{packs:1,papers:6,german:1,energy:-10,stress:3} },
   { id:"termin", icon:"📅", name:"抢一次 Behörden-Termin", sub:"预约、复印、排队，把档案推进一大截", effect:{packs:1,papers:10,energy:-14,stress:6} },
@@ -685,7 +705,7 @@ export default function Home() {
       return;
     }
     if(commitState(next))return;
-    const event=(next.totalWeek%2===0||next.stress>68)?drawEvent(next):null;
+    const event=drawEvent(next);
     const timeLabel=`${periodLabel(state)} → ${periodLabel(next)}`;
     if(event)setModal({type:"event",event,timeLabel,actionName:action.name,monthSummary});
     else setModal({type:"weekResult",actionName:action.name,timeLabel,monthSummary});
@@ -871,6 +891,7 @@ export default function Home() {
   const currentJob=JOBS.find(j=>j.id===state.jobId)||JOBS[0];
   const languageBonus=Math.min(80,Math.max(0,state.german-40)*2);
   const currentWage=currentJob.wage+languageBonus+(state.flags.promotion?70:0);
+  const featuredChoices=weeklyChoices(state);
   const nextPeriod=lang==="de"?(state.week===4?`Monat ${state.month+1} · Woche 1`:`Monat ${state.month} · Woche ${state.week+1}`):(state.week===4?`第 ${state.month+1} 月 · 第 1 周`:`第 ${state.month} 月 · 第 ${state.week+1} 周`);
   return <Localize lang={lang}><main className="v2-game">
     <div className="sticky-status">
@@ -896,7 +917,7 @@ export default function Home() {
         <form className="guestbook-form" onSubmit={submitGuestbook}><label><span>{lang==="de"?"Name":"昵称"}</span><input maxLength="24" value={guestbookForm.nickname} onChange={event=>setGuestbookForm({...guestbookForm,nickname:event.target.value})} placeholder={lang==="de"?"Maximal 24 Zeichen":"最多24个字"}/></label><label><span>{lang==="de"?"Nachricht":"留言"}</span><textarea maxLength="300" rows="4" value={guestbookForm.message} onChange={event=>setGuestbookForm({...guestbookForm,message:event.target.value})} placeholder={lang==="de"?"Was möchtest du anderen Studierenden sagen?":"想对其他留学生或作者说些什么？"}/><small>{guestbookForm.message.length}/300</small></label><button disabled={guestbookLoading}>{guestbookLoading?(lang==="de"?"Wird gespeichert…":"正在提交…"):(lang==="de"?"Nachricht hinterlassen":"提交留言")}</button>{guestbookError&&<p className="guestbook-error">{guestbookError}</p>}</form>
         <div className="guestbook-list">{guestbookLoading&&!messages.length?<div className="empty">{lang==="de"?"Gästebuch wird geladen…":"正在读取留言…"}</div>:messages.length?messages.map(item=><article key={item.id}><header><b>{item.nickname}</b><time>{new Date(item.created_at).toLocaleDateString(lang==="de"?"de-DE":"zh-CN")}</time></header><p>{item.message}</p></article>):!guestbookError&&<div className="empty">{lang==="de"?"Noch keine Einträge. Schreib den ersten.":"还没有留言，来写下第一条吧。"}</div>}</div>
       </>}
-      {tab==="actions"&&<div id="weekly-actions"><div className="panel-title"><div><small>WOCHE {state.totalWeek+1}</small><h2>这一周怎么过？</h2></div><span>每次只能选 1 项</span></div><div className="week-flow"><div className="week-node current"><small>现在</small><b>{lang==="de"?`Monat ${state.month} · Woche ${state.week}`:<>第 {state.month} 月 · 第 {state.week} 周</>}</b></div><div className="flow-arrow"><span>选择行动</span><b>→</b><small>消耗整整一周</small></div><div className="week-node next"><small>行动结束</small><b>{nextPeriod}</b></div><div className="month-weeks"><span>本月进度</span>{[1,2,3,4].map(w=><i key={w} className={w<state.week?"done":w===state.week?"active":""}><b>{w}</b><small>{lang==="de"?"Wo.":"周"}</small></i>)}</div></div><div className="current-job"><span>{currentJob.icon}</span><div><small>当前本职工作</small><b>{currentJob.name}</b></div><strong>{lang==="de"?`Wochenlohn ${currentWage}€`:`本周工资 ${currentWage}€`}</strong><button onClick={()=>setTab("career")}>更换职业</button></div><button className="market-shortcut" onClick={()=>document.getElementById("weekly-market")?.scrollIntoView({behavior:"smooth",block:"start"})}><span>🛒</span><b>{lang==="de"?"Wochenmarkt":"本周市场"}</b><small>{state.marketLocation?(lang==="de"?"Markt gewählt · Kaufen und verkaufen":"已选市场 · 可继续买卖"):(lang==="de"?"Erst handeln, dann Wochenaktion":"先买卖再行动，不消耗时间")}</small><em>{lang==="de"?"Zum Markt ↓":"前往市场 ↓"}</em></button><div className="stat-guide"><b>这些数值会怎样影响生活？</b><p><span>⚡ 精力</span>低于 18 不能工作或接零工；<span>🤝 人脉</span>达到 45 可能出现稳定岗位；<span>🗂️ 档案</span>与德语共同解锁职业；<span>📦 材料包</span>可在官僚事件中抵消约 55% 的主要损失。</p></div><div className="action-grid">{ACTIONS.map(a=>{const effect=a.planner?null:a.run(state);return <button key={a.id} onClick={()=>a.planner?setModal({type:"paperPlanner"}):doAction(a)} disabled={(a.id==="work"||a.id==="gig")&&state.energy<18}><i>{a.icon}</i><span><b>{a.name}</b><small>{a.id==="work"?`${currentJob.name} · 按当前工资结算`:a.sub}</small>{effect?<EffectBadges effect={effect} lang={lang}/>:<EffectBadges lang={lang} effect={{packs:1,papers:1,energy:-1,stress:1,money:1}}/>}</span><em>⏳ 推进1周</em></button>})}</div><div className="month-cost"><b>月末还会自动结算</b><span>{lang==="de"?"Nach Woche 4 beginnt ein neuer Monat: 780 € Lebenshaltungskosten und 3,5 % Schuldzinsen. Ereignisse verbrauchen keine zusätzliche Woche.":"第 4 周行动结束后进入下个月，并扣除生活费 780€、增加债务利息 3.5%。随机事件发生在已经消耗的这一周内，不会额外再走一周。"}</span></div></div>}
+      {tab==="actions"&&<div id="weekly-actions"><div className="panel-title decision-title"><div><small>WOCHE {state.totalWeek+1} · 还剩 {48-state.totalWeek} 周</small><h2>这周，押哪一边？</h2></div><span>选择后立即揭晓</span></div><div className="weekly-pressure"><b>必须在第 48 周前留下来</b><span>🎓 学业 {state.study}/65</span><span>🏦 债务 {Math.round(state.debt)}/600€</span><em>{state.week===4?"⚠ 本周结束扣生活费 780€":"下一次月末结算还有 "+(5-state.week)+" 周"}</em></div><div className="rumor-card"><small>本周线索 · 消息可能是真的，也可能已经过时</small><p>{lang==="de"?DE_NEWS[state.newsIndex]:news.text}</p></div><div className="featured-actions">{featuredChoices.map((a,index)=>{const isBet=a.id.startsWith("bet-");return <button key={a.id} className={isBet?"temptation":index===0?"safe":""} onClick={()=>a.planner?setModal({type:"paperPlanner"}):doAction(a)} disabled={(a.id==="work"&&state.energy<18)}><span className="choice-kind">{isBet?"机会":index===0?"保底":"成长"}</span><i>{a.icon}</i><b>{a.id==="work"?`去做 ${currentJob.name}`:a.name}</b><small>{a.id==="work"?`确定拿到约 ${currentWage}€，但会消耗大量精力`:a.sub}</small><strong>{isBet?a.risk:index===0?"结果较确定 · 保住基本盘":"稳定推进 · 放弃本周赚钱机会"}</strong><em>押这一周 →</em></button>})}</div><details className="more-actions"><summary>不想押？展开其他生活安排</summary><div className="action-grid">{ACTIONS.filter(a=>!featuredChoices.some(f=>f.id===a.id)).map(a=><button key={a.id} onClick={()=>a.planner?setModal({type:"paperPlanner"}):doAction(a)} disabled={(a.id==="work"||a.id==="gig")&&state.energy<18}><i>{a.icon}</i><span><b>{a.name}</b><small>{a.sub}</small></span><em>⏳ 推进1周</em></button>)}</div></details><div className="month-cost"><b>每一周都会发生一件事</b><span>行动只是你的计划；生活会在结算时插手。你做过的选择也可能在几周后回来找你。</span></div></div>}
       {tab==="actions"&&<><ProgressBenefits state={state} lang={lang}/><WeeklyMarket state={state} lang={lang} prices={prices} onVisit={visitMarket} onTrade={trade}/></>}
 
       {tab==="market"&&<><div className="panel-title"><div><small>NEBENGEWERBE</small><h2>副业账本与进阶经营</h2></div><span>可选的进阶玩法</span></div><p className="market-tip">不想研究复杂规则，可以直接在“本周行动”选择“经营本周推荐商品”，系统会依据本周消息完成进货和销售。这里保留给想自己挑商品、渠道和投入金额的玩家。</p>
