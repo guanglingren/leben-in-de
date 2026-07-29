@@ -468,14 +468,17 @@ function Stat({label,value,type="bar",bad=false,onClick,hint}) {
   return onClick?<button type="button" className="v2-stat stat-button" onClick={onClick}>{content}</button>:<div className="v2-stat">{content}</div>;
 }
 
-function WeeklyMarket({state,lang,prices,onVisit,onTrade}){
-  const chosen=state.marketVisitWeek===state.totalWeek?MARKETS.find(m=>m.id===state.marketLocation):null;
+function WeeklyMarket({state,lang,prices,previewMarket,onPreview,onTrade}){
+  const locked=state.marketVisitWeek===state.totalWeek;
+  const chosen=MARKETS.find(m=>m.id===(locked?state.marketLocation:previewMarket));
   const totalQty=Object.values(state.inventory||{}).reduce((sum,n)=>sum+n,0);
   return <section className="weekly-market" id="weekly-market">
-    <div className="weekly-market-head"><div><small>WOCHENMARKT</small><h3>{lang==="de"?"Handel vor der Wochenaktion":"先逛市场，再安排本周生活"}</h3></div><span>{lang==="de"?`Lager ${totalQty}/${state.capacity}`:`储物 ${totalQty}/${state.capacity}`}</span></div>
-    <button className="back-to-actions" onClick={()=>document.getElementById("weekly-actions")?.scrollIntoView({behavior:"smooth",block:"start"})}>↑ {lang==="de"?"Zurück zu den Wochenaktionen":"返回本周行动"}</button>
-    {!chosen?<><p>{lang==="de"?"Wähle diese Woche genau einen Markt. Danach kannst du hier kaufen und verkaufen; erst die Wochenaktion lässt die Preise weiterlaufen.":"本周只能选择一个市场。进入后可以自由买卖；完成下面的本周行动后，价格才会刷新。"}</p><div className="trade-explain">💡 {lang==="de"?"Der Einkaufspreis ist höher als der sofortige Verkaufspreis. Kaufe günstig, warte auf spätere Wochen und verkaufe erst über deinem durchschnittlichen Einstandspreis.":"同一周立刻转卖通常会亏钱：低价进货后，需要推进时间，等未来“本周可卖价”高于你的平均成本再卖出。"}</div><div className="market-places">{MARKETS.map(m=><button key={m.id} onClick={()=>onVisit(m.id)}><i>{m.icon}</i><b>{m.name}</b><small>{m.note}</small></button>)}</div></>:
-    <><div className="chosen-market"><span>{chosen.icon}</span><div><small>{lang==="de"?"DIESER MARKT IST FÜR DIESE WOCHE FEST":"本周市场已锁定"}</small><b>{chosen.name}</b></div><em>{lang==="de"?"Neue Auswahl nächste Woche":"下周可重新选择"}</em></div><div className="weekly-goods">{GOODS.filter(g=>chosen.goods.includes(g.id)).map(g=>{
+    <div className="weekly-market-head"><div><small>本周计划 · 可选准备</small><h3>{lang==="de"?"Erst ansehen, dann entscheiden":"先看行情，再决定这周做什么"}</h3></div><span>{lang==="de"?`Lager ${totalQty}/${state.capacity}`:`储物 ${totalQty}/${state.capacity}`}</span></div>
+    <button className="back-to-actions" onClick={()=>document.getElementById("weekly-actions")?.scrollIntoView({behavior:"smooth",block:"start"})}>← {lang==="de"?"Ohne Handel zurück":"不交易，返回本周选择"}</button>
+    <p className="market-freedom">{locked?"本周已经成交，交易地点因此锁定；你仍可返回选择其他本周行动。":"可以查看所有市场，随时返回。只有实际买入或卖出后，才会锁定本周交易地点。"}</p>
+    {!locked&&<div className="market-places compact">{MARKETS.map(m=><button className={chosen?.id===m.id?"selected":""} key={m.id} onClick={()=>onPreview(m.id)}><i>{m.icon}</i><b>{m.name}</b><small>{m.note}</small></button>)}</div>}
+    {!chosen?<div className="trade-explain">💡 先选一个市场查看报价。浏览不会推进时间，也不会锁定选择。</div>:
+    <><div className="chosen-market"><span>{chosen.icon}</span><div><small>{locked?"本周成交地点已锁定":"正在查看 · 尚未承诺"}</small><b>{chosen.name}</b></div><em>{locked?"下周可重新选择":"可切换其他市场"}</em></div><div className="weekly-goods">{GOODS.filter(g=>chosen.goods.includes(g.id)).map(g=>{
       const qty=state.inventory?.[g.id]||0,totalCost=state.inventoryCost?.[g.id]||0,avg=qty?totalCost/qty:0;
       const contactDiscount=(state.reputation>=75?.08:state.reputation>=50?.04:0)+(state.german>=75?.04:state.german>=60?.02:0);
       const buy=Math.max(1,Math.round(prices[g.id]*(1-contactDiscount))),sell=Math.max(1,Math.round(prices[g.id]*.9));
@@ -485,7 +488,7 @@ function WeeklyMarket({state,lang,prices,onVisit,onTrade}){
       const maxBuy=Math.max(0,Math.min(state.capacity-totalQty,Math.floor((state.money-200)/buy)));
       const potential=qty?Math.round((sell-avg)*qty):0;
       const breakEven=qty?Math.max(0,Math.ceil(avg-sell)):0;
-      return <article key={g.id} className={g.risk>=30?"risky":""}><header><i>{g.icon}</i><div><b>{g.name}</b><small>{g.note}</small></div><em className={change>0?"market-up":change<0?"market-down":"market-flat"}>{direction} {change===0?"0":`${change>0?"+":""}${change}€`} ({changePct>0?"+":""}{changePct}%)</em></header><div className="quote-row"><span>{lang==="de"?"Einkauf diese Woche":"本周进货价"}<b>{buy}€</b><small>{lang==="de"?"Das zahlst du":"买一件支付"}</small></span><span>{lang==="de"?"Verkaufswert diese Woche":"本周可卖价"}<b>{sell}€</b><small>{lang==="de"?"Das erhältst du":"卖一件收到"}</small></span><span>{lang==="de"?"Bestand / Ø-Kosten":"库存 / 平均成本"}<b>{qty} / {qty?`${Math.round(avg)}€`:"—"}</b><small>{qty?(lang==="de"?`Einstand ${Math.round(avg)}€`:`回本基准 ${Math.round(avg)}€`):"—"}</small></span><span className={potential>=0?"profit":"loss"}>{lang==="de"?"Gewinn bei Verkauf":"现在全部卖出"}<b>{qty?`${potential>=0?"+":""}${potential}€`:"—"}</b><small>{qty?`${sell}€ − ${Math.round(avg)}€ × ${qty}`:"当前没有库存"}</small></span></div>{qty>0&&<div className={breakEven>0?"break-even waiting":"break-even ready"}>{breakEven>0?(lang==="de"?`Noch ${breakEven}€ pro Stück bis zur Gewinnschwelle`:`每件可卖价还需上涨 ${breakEven}€ 才能回本`):(lang==="de"?"Der aktuelle Verkaufswert liegt über deinen Kosten.":"当前可卖价已经达到或超过平均成本，可以考虑卖出。")}</div>}{g.risk>=30&&<div className="risk-line">⚠ {lang==="de"?`Kontrollrisiko ${g.risk}/100`:`查处风险 ${g.risk}/100`}</div>}<div className="quantity-trade"><button disabled={maxBuy<1} onClick={()=>onTrade(g,"buy",1)}>+1 {lang==="de"?"kaufen":"买入"}</button><button disabled={maxBuy<2} onClick={()=>onTrade(g,"buy",maxBuy)}>{lang==="de"?"Max kaufen":"尽量买"}</button><button disabled={qty<1} onClick={()=>onTrade(g,"sell",1)}>-1 {lang==="de"?"verkaufen":"卖出"}</button><button disabled={qty<1} onClick={()=>onTrade(g,"sell",qty)}>{lang==="de"?"Alles verkaufen":"全部卖"}</button></div></article>
+      return <article key={g.id} className={g.risk>=30?"risky":""}><header><i>{g.icon}</i><div><b>{g.name}</b><small>{g.note}</small></div><em className={change>0?"market-up":change<0?"market-down":"market-flat"}>{direction} {change===0?"0":`${change>0?"+":""}${change}€`} ({changePct>0?"+":""}{changePct}%)</em></header><div className="quote-row"><span>{lang==="de"?"Einkauf diese Woche":"本周进货价"}<b>{buy}€</b><small>{lang==="de"?"Das zahlst du":"买一件支付"}</small></span><span>{lang==="de"?"Verkaufswert diese Woche":"本周可卖价"}<b>{sell}€</b><small>{lang==="de"?"Das erhältst du":"卖一件收到"}</small></span><span>{lang==="de"?"Bestand / Ø-Kosten":"库存 / 平均成本"}<b>{qty} / {qty?`${Math.round(avg)}€`:"—"}</b><small>{qty?(lang==="de"?`Einstand ${Math.round(avg)}€`:`回本基准 ${Math.round(avg)}€`):"—"}</small></span><span className={potential>=0?"profit":"loss"}>{lang==="de"?"Gewinn bei Verkauf":"现在全部卖出"}<b>{qty?`${potential>=0?"+":""}${potential}€`:"—"}</b><small>{qty?`${sell}€ − ${Math.round(avg)}€ × ${qty}`:"当前没有库存"}</small></span></div>{qty>0&&<div className={breakEven>0?"break-even waiting":"break-even ready"}>{breakEven>0?(lang==="de"?`Noch ${breakEven}€ pro Stück bis zur Gewinnschwelle`:`每件可卖价还需上涨 ${breakEven}€ 才能回本`):(lang==="de"?"Der aktuelle Verkaufswert liegt über deinen Kosten.":"当前可卖价已经达到或超过平均成本，可以考虑卖出。")}</div>}{g.risk>=30&&<div className="risk-line">⚠ {lang==="de"?`Kontrollrisiko ${g.risk}/100`:`查处风险 ${g.risk}/100`}</div>}<div className="quantity-trade"><button disabled={maxBuy<1} onClick={()=>onTrade(g,"buy",1,chosen.id)}>+1 {lang==="de"?"kaufen":"买入"}</button><button disabled={maxBuy<2} onClick={()=>onTrade(g,"buy",maxBuy,chosen.id)}>{lang==="de"?"Max kaufen":"尽量买"}</button><button disabled={qty<1} onClick={()=>onTrade(g,"sell",1,chosen.id)}>-1 {lang==="de"?"verkaufen":"卖出"}</button><button disabled={qty<1} onClick={()=>onTrade(g,"sell",qty,chosen.id)}>{lang==="de"?"Alles verkaufen":"全部卖"}</button></div></article>
     })}</div></>}
   </section>;
 }
@@ -548,6 +551,7 @@ export default function Home() {
   const [ventureGood,setVentureGood]=useState("phones");
   const [ventureChannel,setVentureChannel]=useState("ebay");
   const [ventureAmount,setVentureAmount]=useState(150);
+  const [previewMarket,setPreviewMarket]=useState(null);
 
   useEffect(()=>{
     if(!state||!["arrival","game","end"].includes(screen))return;
@@ -744,12 +748,7 @@ export default function Home() {
     setModal({type:"result",choice:{label:"提交完整材料包快速处理",result:"你拿出了原件、复印件、回执、Aktenzeichen 和按日期排列的往来信件。工作人员短暂沉默后，事情居然办下来了。"},event,timeLabel:modal?.timeLabel,prepared:true});
   }
 
-  function visitMarket(marketId){
-    if(state.marketVisitWeek===state.totalWeek&&state.marketLocation!==marketId){setToast("本周已经去过一个市场，下周才能换地方。");return;}
-    setState({...state,marketVisitWeek:state.totalWeek,marketLocation:marketId});
-  }
-
-  function trade(good,mode,requested=1){
+  function trade(good,mode,requested=1,marketId=state.marketLocation){
     const qty=state.inventory?.[good.id]||0;
     const totalCost=state.inventoryCost?.[good.id]||0;
     const avgCost=qty>0?totalCost/qty:0;
@@ -763,8 +762,8 @@ export default function Home() {
     const inventory={...state.inventory,[good.id]:qty+(mode==="buy"?amount:-amount)};
     const inventoryCost={...state.inventoryCost,[good.id]:mode==="buy"?totalCost+unitPrice*amount:Math.max(0,totalCost-avgCost*amount)};
     const realized=Math.round((unitPrice-avgCost)*amount);
-    const entry={week:state.totalWeek,market:state.marketLocation,good:good.name,mode,qty:amount,unitPrice,result:mode==="sell"?realized:null};
-    setState({...state,money:state.money+(mode==="buy"?-unitPrice*amount:unitPrice*amount),inventory,inventoryCost,tradeLedger:[entry,...(state.tradeLedger||[])].slice(0,30)});
+    const entry={week:state.totalWeek,market:marketId,good:good.name,mode,qty:amount,unitPrice,result:mode==="sell"?realized:null};
+    setState({...state,money:state.money+(mode==="buy"?-unitPrice*amount:unitPrice*amount),inventory,inventoryCost,marketVisitWeek:state.totalWeek,marketLocation:marketId,tradeLedger:[entry,...(state.tradeLedger||[])].slice(0,30)});
     setToast(mode==="buy"
       ?`买入 ${amount} 件 ${good.name}：共 ${unitPrice*amount}€`
       :`卖出 ${amount} 件 ${good.name}：收入 ${unitPrice*amount}€，实际${realized>=0?"赚":"亏"} ${Math.abs(realized)}€`);
@@ -918,7 +917,7 @@ export default function Home() {
         <div className="guestbook-list">{guestbookLoading&&!messages.length?<div className="empty">{lang==="de"?"Gästebuch wird geladen…":"正在读取留言…"}</div>:messages.length?messages.map(item=><article key={item.id}><header><b>{item.nickname}</b><time>{new Date(item.created_at).toLocaleDateString(lang==="de"?"de-DE":"zh-CN")}</time></header><p>{item.message}</p></article>):!guestbookError&&<div className="empty">{lang==="de"?"Noch keine Einträge. Schreib den ersten.":"还没有留言，来写下第一条吧。"}</div>}</div>
       </>}
       {tab==="actions"&&<div id="weekly-actions"><div className="panel-title decision-title"><div><small>WOCHE {state.totalWeek+1} · 还剩 {48-state.totalWeek} 周</small><h2>这周，押哪一边？</h2></div><span>选择后立即揭晓</span></div><div className="weekly-pressure"><b>必须在第 48 周前留下来</b><span>🎓 学业 {state.study}/65</span><span>🏦 债务 {Math.round(state.debt)}/600€</span><em>{state.week===4?"⚠ 本周结束扣生活费 780€":"下一次月末结算还有 "+(5-state.week)+" 周"}</em></div><div className="rumor-card"><small>本周线索 · 消息可能是真的，也可能已经过时</small><p>{lang==="de"?DE_NEWS[state.newsIndex]:news.text}</p></div><div className="featured-actions">{featuredChoices.map((a,index)=>{const isBet=a.id.startsWith("bet-");return <button key={a.id} className={isBet?"temptation":index===0?"safe":""} onClick={()=>a.planner?setModal({type:"paperPlanner"}):doAction(a)} disabled={(a.id==="work"&&state.energy<18)}><span className="choice-kind">{isBet?"机会":index===0?"保底":"成长"}</span><i>{a.icon}</i><b>{a.id==="work"?`去做 ${currentJob.name}`:a.name}</b><small>{a.id==="work"?`确定拿到约 ${currentWage}€，但会消耗大量精力`:a.sub}</small><strong>{isBet?a.risk:index===0?"结果较确定 · 保住基本盘":"稳定推进 · 放弃本周赚钱机会"}</strong><em>押这一周 →</em></button>})}</div><details className="more-actions"><summary>不想押？展开其他生活安排</summary><div className="action-grid">{ACTIONS.filter(a=>!featuredChoices.some(f=>f.id===a.id)).map(a=><button key={a.id} onClick={()=>a.planner?setModal({type:"paperPlanner"}):doAction(a)} disabled={(a.id==="work"||a.id==="gig")&&state.energy<18}><i>{a.icon}</i><span><b>{a.name}</b><small>{a.sub}</small></span><em>⏳ 推进1周</em></button>)}</div></details><div className="month-cost"><b>每一周都会发生一件事</b><span>行动只是你的计划；生活会在结算时插手。你做过的选择也可能在几周后回来找你。</span></div></div>}
-      {tab==="actions"&&<><ProgressBenefits state={state} lang={lang}/><WeeklyMarket state={state} lang={lang} prices={prices} onVisit={visitMarket} onTrade={trade}/></>}
+      {tab==="actions"&&<><div className="plan-bridge"><b>本周可以组合决策</b><span>① 先看行情，可买卖也可不交易</span><i>→</i><span>② 返回上方，选择唯一的本周行动</span></div><ProgressBenefits state={state} lang={lang}/><WeeklyMarket state={state} lang={lang} prices={prices} previewMarket={previewMarket} onPreview={setPreviewMarket} onTrade={trade}/></>}
 
       {tab==="market"&&<><div className="panel-title"><div><small>NEBENGEWERBE</small><h2>副业账本与进阶经营</h2></div><span>可选的进阶玩法</span></div><p className="market-tip">不想研究复杂规则，可以直接在“本周行动”选择“经营本周推荐商品”，系统会依据本周消息完成进货和销售。这里保留给想自己挑商品、渠道和投入金额的玩家。</p>
         <div className="venture-block"><div className="subhead"><b>① 选择要卖的东西</b><span>消息改变概率，不保证赚钱</span></div><div className="venture-goods">{HUSTLE_GOODS.map(g=>{const factor=ventureMarketFactor(state.newsIndex,g.id);const label=ventureMarketLabel(factor);return <button key={g.id} className={ventureGood===g.id?"selected":""} onClick={()=>setVentureGood(g.id)}><i>{g.icon}</i><b>{g.name}</b><small>预期毛利 {Math.round(g.margin*100)}% · 风险 {g.risk}</small><em className={factor>1.08?"market-up":factor<.93?"market-down":"market-flat"}>{label}{factor!==1?" · 盈利概率变化":""}</em></button>})}</div>
