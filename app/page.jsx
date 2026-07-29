@@ -72,12 +72,12 @@ const ACADEMIC_MILESTONES = [
 const GOODS = [
   { id: "bike", name: "二手自行车", icon: "🚲", base: 95, note: "罢工和好天气时走俏", risk:2 },
   { id: "heater", name: "电暖器", icon: "♨️", base: 70, note: "寒潮时价格暴涨", risk:2 },
-  { id: "ticket", name: "来路不明的 Deutschlandticket", icon: "🎫", base: 49, note: "便宜，但查票和实名制都不是摆设", risk:32 },
+  { id: "ticket", name: "来路不明的 Deutschlandticket", icon: "🎫", base: 49, note: "便宜，但查票和实名制都不是摆设", risk:32, active:false },
   { id: "phone", name: "翻新旧手机", icon: "📱", base: 120, note: "办线上手续的刚需", risk:8 },
-  { id: "furniture", name: "宜家小桌", icon: "🪑", base: 45, note: "开学季需求上升", risk:1 },
+  { id: "furniture", name: "宜家小桌", icon: "🪑", base: 45, note: "开学季需求上升", risk:1, active:false },
   { id: "printer", name: "家用打印机", icon: "🖨️", base: 85, note: "任何手续都可能需要它", risk:4 },
   { id: "shoes", name: "高仿名牌鞋", icon: "👟", base: 135, note: "利润高，Abmahnung 也很贵", risk:55 },
-  { id: "sticks", name: "破解电视棒", icon: "📺", base: 90, note: "畅销，但平台与权利人都可能来信", risk:68 }
+  { id: "sticks", name: "破解电视棒", icon: "📺", base: 90, note: "畅销，但平台与权利人都可能来信", risk:68, active:false }
 ];
 
 const MARKETS = [
@@ -358,12 +358,10 @@ function weeklyChoices(state){
     ? {...ACTIONS.find(a=>a.id==="study"),category:"自我提升",name:"提升留德能力",sub:"本周侧重课程与考试，稳定推进留德能力"}
     : {...ACTIONS.find(a=>a.id==="learn"),category:"自我提升",name:"提升留德能力",sub:"本周侧重德语与沟通，稳定推进留德能力"};
   const social={...ACTIONS.find(a=>a.id==="social"),category:"经营关系",name:"经营社会资源",sub:"参加社区活动，积累联系人并练习沟通"};
-  const bet=WEEKLY_BETS[(state.totalWeek+state.newsIndex*2)%WEEKLY_BETS.length];
   return [
     {...work,category:"工作"},
     progress,
-    social,
-    {...bet,category:"本周际遇"}
+    social
   ];
 }
 
@@ -482,7 +480,7 @@ function WeeklyMarket({state,lang,prices,onTrade}){
     <p className="market-freedom">{locked?"本周已经成交：交易就是本周行动。可以继续调整货物，完成后推进一周。":"浏览全部报价不会推进时间。第一笔成交后，“交易”会成为本周行动。"}</p>
     {holdings.length>0&&<section className="portfolio-spotlight" id="portfolio-spotlight"><header><div><small>MEIN BESTAND · 我的持仓</small><h4>手上的货，现在值多少？</h4></div><span>全部卖出 <b className={holdingValue-holdingCost>=0?"profit":"loss"}>{holdingValue-holdingCost>=0?"+":""}{Math.round(holdingValue-holdingCost)}€</b></span></header><div>{holdings.map(g=>{const qty=state.inventory[g.id],avg=(state.inventoryCost[g.id]||0)/qty,sell=Math.round(prices[g.id]*.9),profit=Math.round((sell-avg)*qty);return <article key={g.id}><i>{g.icon}</i><span><b>{g.name} × {qty}</b><small>买入均价 <strong>{Math.round(avg)}€</strong> → 现在卖出 <strong>{sell}€</strong></small></span><em className={profit>=0?"profit":"loss"}>{profit>=0?"+":""}{profit}€</em><button onClick={()=>onTrade(g,"sell",qty,"platform")}>全部卖出</button></article>})}</div></section>}
     <div className="trade-explain">💡 低风险商品波动较小；高回报商品通常价格更不稳定，并可能遭遇平台审核或查处。</div>
-    <div className="weekly-goods">{GOODS.map(g=>{
+    <div className="weekly-goods">{GOODS.filter(g=>g.active!==false).map(g=>{
       const qty=state.inventory?.[g.id]||0,totalCost=state.inventoryCost?.[g.id]||0,avg=qty?totalCost/qty:0;
       const tradeAbility=integrationScore(state),tradeSocial=socialScore(state);
       const contactDiscount=(tradeSocial>=75?.08:tradeSocial>=50?.04:0)+(tradeAbility>=75?.04:tradeAbility>=60?.02:0);
@@ -716,7 +714,11 @@ export default function Home() {
     }
     if(commitState(next))return;
     const timeLabel=`${periodLabel(state)} → ${periodLabel(next)}`;
-    setModal({type:"weekResult",actionName:action.name,timeLabel,monthSummary});
+    const event=drawEvent(next);
+    const eventRoll=(next.totalWeek*37+next.newsIndex*11+Math.round(next.stress))%100;
+    const shouldEvent=next.totalWeek%6===0||eventRoll<62;
+    if(event&&shouldEvent)setModal({type:"event",event,timeLabel,actionName:action.name,monthSummary});
+    else setModal({type:"weekResult",actionName:action.name,timeLabel,monthSummary});
   }
 
   function chooseEvent(choice,event){
@@ -939,7 +941,7 @@ export default function Home() {
         <form className="guestbook-form" onSubmit={submitGuestbook}><label><span>{lang==="de"?"Name":"昵称"}</span><input maxLength="24" value={guestbookForm.nickname} onChange={event=>setGuestbookForm({...guestbookForm,nickname:event.target.value})} placeholder={lang==="de"?"Maximal 24 Zeichen":"最多24个字"}/></label><label><span>{lang==="de"?"Nachricht":"留言"}</span><textarea maxLength="300" rows="4" value={guestbookForm.message} onChange={event=>setGuestbookForm({...guestbookForm,message:event.target.value})} placeholder={lang==="de"?"Was möchtest du anderen Studierenden sagen?":"想对其他留学生或作者说些什么？"}/><small>{guestbookForm.message.length}/300</small></label><button disabled={guestbookLoading}>{guestbookLoading?(lang==="de"?"Wird gespeichert…":"正在提交…"):(lang==="de"?"Nachricht hinterlassen":"提交留言")}</button>{guestbookError&&<p className="guestbook-error">{guestbookError}</p>}</form>
         <div className="guestbook-list">{guestbookLoading&&!messages.length?<div className="empty">{lang==="de"?"Gästebuch wird geladen…":"正在读取留言…"}</div>:messages.length?messages.map(item=><article key={item.id}><header><b>{item.nickname}</b><time>{new Date(item.created_at).toLocaleDateString(lang==="de"?"de-DE":"zh-CN")}</time></header><p>{item.message}</p></article>):!guestbookError&&<div className="empty">{lang==="de"?"Noch keine Einträge. Schreib den ersten.":"还没有留言，来写下第一条吧。"}</div>}</div>
       </>}
-      {tab==="actions"&&<div id="weekly-actions"><div className="panel-title decision-title"><div><small>WOCHE {state.totalWeek+1} · 还剩 {48-state.totalWeek} 周</small><h2>{state.marketVisitWeek===state.totalWeek?"这周，你选择了交易":"这周，把时间花在哪里？"}</h2></div><span>{state.marketVisitWeek===state.totalWeek?"完成交易后进入下一周":"五种方向，只能最终执行一种"}</span></div><div className="weekly-pressure"><b>必须在第 48 周前留下来</b><span>🎓 留德能力 {ability}/65</span><span>🏦 债务 {Math.round(state.debt)}/600€</span><em>{state.week===4?"⚠ 本周结束扣生活费 780€":"下一次月末结算还有 "+(5-state.week)+" 周"}</em></div><div className="rumor-card"><small>本周线索 · 会影响际遇和市场，但不保证准确</small><p>{lang==="de"?DE_NEWS[state.newsIndex]:news.text}</p></div><div className="featured-actions five-actions">{[...featuredChoices,tradeChoice].map(a=>{const isTrade=a.id==="browse-trade";return <button key={a.id} className={isTrade?"trade-choice":a.category==="本周际遇"?"temptation":""} onClick={()=>isTrade?openTrading():previewAction(a)} disabled={!isTrade&&state.marketVisitWeek===state.totalWeek}><span className="choice-kind">{isTrade?"交易":a.id==="work"?"精力":a.category}</span><i>{a.id==="work"&&state.energy<35?"🛌":a.icon}</i><b>{a.id==="work"?state.energy<35?"工作或休息":`工作 / 休息`:a.name}</b><small>{a.id==="work"?state.energy<18?`当前精力不足以工作，可休息恢复约 34 点精力`:`工作可得约 ${currentWage}€；也可选择休息恢复精力`:a.sub}</small>{(a.risk||isTrade)&&<strong>{isTrade?a.risk:a.risk}</strong>}<em>{isTrade?(state.marketVisitWeek===state.totalWeek?"继续查看持仓 →":totalInventory>0?"查看持仓盈亏 →":"查看全部报价 →"):"先查看详情 →"}</em></button>})}</div><details className="more-actions"><summary>展开看病与其他生活安排</summary><div className="action-grid">{ACTIONS.filter(a=>!["work","rest","study","learn","social"].includes(a.id)).map(a=><button key={a.id} onClick={()=>a.planner?setModal({type:"paperPlanner"}):previewAction(a)} disabled={(a.id==="gig"&&state.energy<18)||state.marketVisitWeek===state.totalWeek}><i>{a.icon}</i><span><b>{a.name}</b><small>{a.sub}</small></span><em>先查看</em></button>)}</div></details><div className="month-cost"><b>查看不会推进时间</b><span>进入任一方案都可以返回；只有点击“确定执行”或完成一笔交易，才会锁定本周选择。</span></div></div>}
+      {tab==="actions"&&<div id="weekly-actions"><div className="panel-title decision-title"><div><small>WOCHE {state.totalWeek+1} · 还剩 {48-state.totalWeek} 周</small><h2>{state.marketVisitWeek===state.totalWeek?"这周，你选择了交易":"这周，把时间花在哪里？"}</h2></div><span>{state.marketVisitWeek===state.totalWeek?"完成交易后进入下一周":"四种主动方向，只能最终执行一种"}</span></div><div className="weekly-pressure"><b>必须在第 48 周前留下来</b><span>🎓 留德能力 {ability}/65</span><span>🏦 债务 {Math.round(state.debt)}/600€</span><em>{state.week===4?"⚠ 本周结束扣生活费 780€":"下一次月末结算还有 "+(5-state.week)+" 周"}</em></div><div className="rumor-card"><small>本周线索 · 会影响际遇和市场，但不保证准确</small><p>{lang==="de"?DE_NEWS[state.newsIndex]:news.text}</p></div><div className="featured-actions five-actions">{[...featuredChoices,tradeChoice].map(a=>{const isTrade=a.id==="browse-trade";return <button key={a.id} className={isTrade?"trade-choice":""} onClick={()=>isTrade?openTrading():previewAction(a)} disabled={!isTrade&&state.marketVisitWeek===state.totalWeek}><span className="choice-kind">{isTrade?"交易":a.id==="work"?"精力":a.category}</span><i>{a.id==="work"&&state.energy<35?"🛌":a.icon}</i><b>{a.id==="work"?state.energy<35?"工作或休息":`工作 / 休息`:a.name}</b><small>{a.id==="work"?state.energy<18?`当前精力不足以工作，可休息恢复约 34 点精力`:`工作可得约 ${currentWage}€；也可选择休息恢复精力`:a.sub}</small>{(a.risk||isTrade)&&<strong>{isTrade?a.risk:a.risk}</strong>}<em>{isTrade?(state.marketVisitWeek===state.totalWeek?"继续查看持仓 →":totalInventory>0?"查看持仓盈亏 →":"查看全部报价 →"):"先查看详情 →"}</em></button>})}</div><details className="more-actions"><summary>展开看病与其他生活安排</summary><div className="action-grid">{ACTIONS.filter(a=>!["work","rest","study","learn","social"].includes(a.id)).map(a=><button key={a.id} onClick={()=>a.planner?setModal({type:"paperPlanner"}):previewAction(a)} disabled={(a.id==="gig"&&state.energy<18)||state.marketVisitWeek===state.totalWeek}><i>{a.icon}</i><span><b>{a.name}</b><small>{a.sub}</small></span><em>先查看</em></button>)}</div></details><div className="month-cost"><b>行动之后，生活仍可能找上门</b><span>查看和返回不推进时间；确定行动后，约六成周次会随机遇到办事推诿、系统矛盾或教条规定。</span></div></div>}
       {tab==="actions"&&<>{state.marketVisitWeek===state.totalWeek&&<div className="trade-selected-action compact"><i>🛒</i><span><small>本周行动已锁定</small><b>交易进行中</b><p>可以继续买卖；完成入口已固定在屏幕底部。</p></span></div>}<WeeklyMarket state={state} lang={lang} prices={prices} onTrade={trade}/></>}
 
       {tab==="market"&&<><div className="panel-title"><div><small>NEBENGEWERBE</small><h2>副业账本与进阶经营</h2></div><span>可选的进阶玩法</span></div><p className="market-tip">不想研究复杂规则，可以直接在“本周行动”选择“经营本周推荐商品”，系统会依据本周消息完成进货和销售。这里保留给想自己挑商品、渠道和投入金额的玩家。</p>
