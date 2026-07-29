@@ -10,7 +10,7 @@ const DE_EVENTS = [
     {label:"Mit drei Screenshots zum Dozenten",effect:{energy:-8,stress:5,study:8,papers:5},result:"Du wirst handschriftlich ergänzt. Handschriftliche Listen gelten allerdings nicht im System."},
     {label:"Teilnehmen und weiter mailen",effect:{energy:-5,stress:8,study:5,german:2},result:"Du lernst etwas und erhältst zugleich die Bitte, keine doppelten Anfragen zu senden."}
   ]},
-  {id:"de-exam",title:"Die Prüfungsanmeldung schloss zwei Minuten zu früh",office:"PRÜFUNGSAMT",text:"Auf der Website stand 23:59. Der Server lebte offenbar in einer anderen Zeitzone.",choices:[
+  {id:"de-exam",title:"Das Prüfungsportal macht zwei Minuten zu früh dicht",office:"PRÜFUNGSAMT",text:"Auf der Website steht 23:59 Uhr. Der Server hält sich offenbar an eine andere Zeitzone.",choices:[
     {label:"Härtefallantrag stellen",effect:{papers:14,energy:-15,stress:10,study:4},result:"Der Antrag ist eingegangen. Die Entscheidung kommt nach dem Prüfungstermin."},
     {label:"Auf das nächste Semester verschieben",effect:{stress:4,study:10,health:2},result:"Dein Studienplan verschiebt sich, aber du hörst auf, die Seite neu zu laden."}
   ]},
@@ -34,11 +34,11 @@ const DE_EVENTS = [
     {label:"Taxi nehmen und die Schicht retten",effect:{money:-68,stress:3,reputation:4},result:"Der Arbeitgeber zeigt Verständnis und empfiehlt künftig mehr Verkehrspuffer."},
     {label:"Warten und Beweise sammeln",effect:{energy:-13,stress:9,papers:6},result:"Der Support erklärt, ein Screenshot beweise nicht, dass du im Zug warst."}
   ]},
-  {id:"de-permit",title:"Die Aufenthaltserlaubnis braucht eine Aufenthaltserlaubnis",office:"AUSLÄNDERBEHÖRDE",text:"Der Arbeitgeber braucht die Genehmigung. Die Behörde braucht zuerst den Arbeitsvertrag.",choices:[
+  {id:"de-permit",title:"Für den Job brauchst du die Erlaubnis – für die Erlaubnis den Vertrag",office:"AUSLÄNDERBEHÖRDE",text:"Der Arbeitgeber will erst die Arbeitserlaubnis sehen. Die Behörde verlangt vorher den unterschriebenen Arbeitsvertrag.",choices:[
     {label:"Alle Stellen gleichzeitig anschreiben",effect:{energy:-15,stress:11,papers:18},result:"Nach der siebten Mail landen beide Anhänge endlich in derselben Akte."},
     {label:"Eine Fiktionsbescheinigung beantragen",effect:{money:-80,stress:7,papers:12},result:"Die Bank kennt das Dokument nicht und fragt die Zentrale."}
   ]},
-  {id:"de-radio",title:"Doppelter Rundfunkbeitrag für dieselbe Wohnung",office:"BEITRAGSSERVICE",text:"Du und dein Mitbewohner teilen eine Beitragsnummer. Das System hat trotzdem ein zweites Konto eröffnet.",choices:[
+  {id:"de-radio",title:"Zweimal Rundfunkbeitrag für dieselbe Wohnung",office:"BEITRAGSSERVICE",text:"Du und dein Mitbewohner nutzen bereits dieselbe Beitragsnummer. Das System hat vorsorglich trotzdem ein zweites Beitragskonto angelegt.",choices:[
     {label:"Schriftlich widersprechen",effect:{energy:-8,stress:10,papers:11},result:"Sechs Wochen keine Antwort. Die Mahnung kommt pünktlich."},
     {label:"Zahlen und später zurückfordern",effect:{money:-55,stress:-3},result:"Die Rückforderung benötigt nun die Nummer des geschlossenen Kontos."}
   ]},
@@ -70,7 +70,7 @@ const DE_EVENTS = [
     {label:"Küchenabfälle in Zeitungspapier wickeln",effect:{energy:-4,papers:3,reputation:4},result:"Auf der Zeitung steht, dass die Stadt papierlos werden will."},
     {label:"Amtlich anerkannte Papiertüten kaufen",effect:{money:-12,stress:3},result:"Die Tüte ist undicht, bevor du den Müllraum erreichst."}
   ]},
-  {id:"de-parcelshop",title:"Der Paketshop ist offen, aber die Paketperson ist nicht da",office:"PAKETSHOP",text:"Der Laden ist geöffnet und der Inhaber ist da. Nur der Kollege, der das Paketsystem bedienen kann, hat frei.",choices:[
+  {id:"de-parcelshop",title:"Der Paketshop ist offen – nur Pakete gehen heute nicht",office:"PAKETSHOP",text:"Der Laden ist geöffnet, der Inhaber ist da. Nur der Kollege, der sich mit dem Paketsystem auskennt, hat heute frei.",choices:[
     {label:"Morgen wiederkommen",effect:{energy:-5,stress:4},result:"Morgen wird das System gewartet, übermorgen ist Sonntag."},
     {label:"Das Gerät gemeinsam untersuchen",effect:{energy:-9,reputation:5,papers:3},result:"Du startest das Gerät neu und leistest kostenlos zehn Minuten IT-Support."}
   ]},
@@ -473,7 +473,7 @@ Object.assign(DE_UI,{
   ,"本周行动已经完成":"Die Wochenaktion ist abgeschlossen"
   ,"这个事件必须处理；可以暂时收起查看状态，但不能改选本周行动。":"Dieses Ereignis muss geklärt werden. Du kannst es kurz minimieren, aber die Wochenaktion nicht mehr ändern."
   ,"暂时收起查看状态 · 之后仍需处理":"Kurz minimieren · später weiterbearbeiten"
-  ,"留德能力":"Perspektive"
+  ,"留德能力":"Bleibeperspektive"
   ,"社会资源":"Soziale Ressourcen"
   ,"成长与职业":"Entwicklung und Beruf"
   ,"记录":"Verlauf"
@@ -486,8 +486,8 @@ Object.assign(DE_UI,{
   ,"45 后降低损失":"Ab 45 sinken Verluste"
   ,"工资":"Lohn"
   ,"只关注两个成长指标":"Zwei zentrale Entwicklungswerte"
-  ,"“留德能力”整合学业与德语，“社会资源”整合人脉与档案。它们直接决定事件减损、学业检查、工资成长和职业解锁。":"„Perspektive“ verbindet Studium und Deutsch; „Soziale Ressourcen“ verbinden Kontakte und Akte. Beide beeinflussen Ereignisschutz, Studienkontrollen, Lohnentwicklung und Jobzugang."
-  ,"留德能力工资加成":"Lohnbonus durch Perspektive"
+  ,"“留德能力”整合学业与德语，“社会资源”整合人脉与档案。它们直接决定事件减损、学业检查、工资成长和职业解锁。":"Die „Bleibeperspektive“ verbindet Studienfortschritt und Deutschkenntnisse; „Soziale Ressourcen“ bündeln Kontakte und Aktenlage. Beide beeinflussen Ereignisschutz, Studienkontrollen, Lohnentwicklung und Jobzugang."
+  ,"留德能力工资加成":"Lohnbonus durch Bleibeperspektive"
   ,"事件综合减损":"Gesamter Ereignisschutz"
   ,"已生效":"aktiv"
   ,"社会资源45后生效":"ab 45 sozialen Ressourcen"
@@ -500,11 +500,81 @@ Object.assign(DE_UI,{
   ,"本周已选择交易":"Handel als Wochenaktion gewählt"
   ,"还可以继续买卖":"Du kannst noch weiter handeln"
   ,"结束交易，进入下一周 →":"Handel beenden und nächste Woche beginnen →"
+  ,"自动存档":"Automatischer Spielstand"
+  ,"外国大学生":"Internationaler Student"
+  ,"刚下飞机 · 德语 B1 · 学籍待激活 · 一叠陌生的信":"Gerade gelandet · Deutsch B1 · Immatrikulation offen · ein Stapel unbekannter Briefe"
+  ,"统一交易平台":"Handelsplattform"
+  ,"我的持仓":"Mein Bestand"
+  ,"手上的货，现在值多少？":"Was ist dein Bestand heute wert?"
+  ,"全部卖出":"Alles verkaufen"
+  ,"买入均价":"Durchschnittlicher Kaufpreis"
+  ,"现在卖出":"Verkauf heute"
+  ,"本周进货价":"Einkaufspreis diese Woche"
+  ,"本周可卖价":"Verkaufspreis diese Woche"
+  ,"卖一件收到":"Erlös pro Stück"
+  ,"库存 / 平均成本":"Bestand / Durchschnittskosten"
+  ,"现在全部卖出":"Gewinn bei Komplettverkauf"
+  ,"当前没有库存":"Derzeit kein Bestand"
+  ,"查看持仓盈亏 →":"Bestand und Ergebnis ansehen →"
+  ,"查看全部报价 →":"Alle Preise ansehen →"
+  ,"继续查看持仓 →":"Bestand weiter ansehen →"
+  ,"不交易，返回本周选择":"Ohne Handel zurück zur Wochenwahl"
+  ,"副业账本与进阶经营":"Nebengewerbe und Handelsbuch"
+  ,"可选的进阶玩法":"Optionale vertiefte Spielweise"
+  ,"① 选择要卖的东西":"① Ware auswählen"
+  ,"② 选择销售渠道":"② Verkaufskanal auswählen"
+  ,"③ 开始经营批次":"③ Handelsprojekt starten"
+  ,"进行中的经营批次":"Laufendes Handelsprojekt"
+  ,"已投入":"Investiert"
+  ,"现在可以结算":"Jetzt abrechenbar"
+  ,"还需推进 1 周":"Noch eine Woche"
+  ,"查看行情并结算":"Marktlage prüfen und abrechnen"
+  ,"等待时间推进":"Auf die nächste Woche warten"
+  ,"投入本金":"Eingesetztes Kapital"
+  ,"最近经营账本":"Letzte Handelsprojekte"
+  ,"投入 → 回收 → 净结果":"Einsatz → Rückfluss → Ergebnis"
+  ,"生活记录":"Verlauf"
+  ,"待处理：":"Offen: "
+  ,"继续处理 →":"Weiterbearbeiten →"
+  ,"生活安排":"Alltagsplanung"
+  ,"行动方案 · 尚未执行":"Aktionsplan · noch nicht ausgeführt"
+  ,"尚未消耗时间，可以返回改选工作、学习、休息或交易。":"Es ist noch keine Zeit vergangen. Du kannst zurückgehen und Arbeit, Lernen, Erholung oder Handel wählen."
+  ,"← 返回本周选择 · 不推进时间":"← Zurück zur Wochenwahl · keine Zeit vergeht"
+  ,"进入新的一周":"In die nächste Woche"
+  ,"事件发生在已经消耗的这一周":"Das Ereignis gehört zur bereits vergangenen Woche"
+  ,"德语能力令本次压力额外减少":"Deine Deutschkenntnisse senken den Stress zusätzlich um"
+  ,"点":"Punkte"
+  ,"持有":"Gehalten"
+  ,"周后结算":"Wochen bis zur Abrechnung"
+  ,"开始和结算本身均不耗时间":"Start und Abrechnung kosten keine zusätzliche Zeit"
+  ,"本金":"Kapital"
+  ,"回收金额":"Rückfluss"
+  ,"实际回到账户的价值":"Tatsächlich gutgeschriebener Betrag"
+  ,"净利润":"Nettogewinn"
+  ,"回收 − 总投入":"Rückfluss minus Gesamteinsatz"
+  ,"至少要留下 200€ 生活费。":"Mindestens 200 € müssen für den Alltag auf dem Konto bleiben."
+  ,"已有一个经营批次在进行中。先推进时间并结算。":"Es läuft bereits ein Handelsprojekt. Lass erst Zeit vergehen und rechne es anschließend ab."
+  ,"至少要留下 200€ 生活费，并支付渠道成本。":"Mindestens 200 € müssen als Reserve bleiben; zusätzlich fallen Kanalkosten an."
+  ,"已备货。完成下一次本周行动后将自动结算。":"Die Ware ist beschafft. Nach der nächsten Wochenaktion wird automatisch abgerechnet."
+  ,"当前没有等待结算的经营批次。":"Es wartet kein Handelsprojekt auf die Abrechnung."
+  ,"买入后至少要保留 250€ 现金。":"Nach dem Kauf müssen mindestens 250 € verfügbar bleiben."
+  ,"你没有持有这只股票。":"Du hältst diese Aktie nicht."
+  ,"本周已经发生交易；请完成交易并推进一周。":"Du hast diese Woche bereits gehandelt. Schließe den Handel ab und gehe eine Woche weiter."
+  ,"储物空间满了。":"Dein Lager ist voll."
+  ,"先查看":"Erst ansehen"
+  ,"利润高，Abmahnung 也很贵":"Hohe Marge – aber eine Abmahnung kann sehr teuer werden"
+  ,"本周已经成交：交易就是本周行动。可以继续调整货物，完成后推进一周。":"Du hast diese Woche bereits gehandelt. Damit steht Handel als Wochenaktion fest; du kannst den Bestand noch anpassen und anschließend die Woche abschließen."
+  ,"第一笔成交后，本周行动确定为交易":"Mit dem ersten Abschluss wird Handel zur Wochenaktion"
+  ,"当前可卖价已经达到或超过平均成本，可以考虑卖出。":"Der aktuelle Verkaufspreis deckt deine Durchschnittskosten; ein Verkauf wäre jetzt ohne Verlust möglich."
+  ,"新的市场价格和生活状态已经更新。":"Marktpreise und Lebenssituation wurden aktualisiert."
+  ,"这一周结束了":"Die Woche ist vorbei"
+  ,"完成结算":"Abrechnung abschließen"
 });
 
 function deText(value){
   let translated=value
     .replace(/第 (\d+) 月 · 第 (\d+) 周/g,"Monat $1 · Woche $2")
+    .replace(/第 (\d+) 月第 (\d+) 周/g,"Monat $1, Woche $2")
     .replace(/第 (\d+) 月/g,"Monat $1")
     .replace(/第 (\d+) 周/g,"Woche $1")
     .replace(/本周工资 (\d+)€/g,"Wochenlohn $1 €")
@@ -522,6 +592,15 @@ function deText(value){
     .replace(/周薪 (\d+)€/g,"Wochenlohn $1 €")
     .replace(/社会资源(\d+)后生效/g,"aktiv ab $1 sozialen Ressourcen")
     .replace(/(\d+) 个事件/g,"$1 Ereignisse")
+    .replace(/需要留德能力 (\d+)、社会资源 (\d+)/g,"Benötigt Bleibeperspektive $1 und soziale Ressourcen $2")
+    .replace(/下周开始做：(.+)/g,"Ab nächster Woche: $1")
+    .replace(/还需推进 (\d+) 周才能结算。/g,"Noch $1 Woche(n) bis zur Abrechnung.")
+    .replace(/本月偿还债务 (\d+)€/g,"Diesen Monat $1 € Schulden getilgt")
+    .replace(/买入 (\d+) 件 (.+)：共 (\d+)€/g,"$1 × $2 für insgesamt $3 € gekauft")
+    .replace(/卖出 (\d+) 件 (.+)：收入 (\d+)€，实际赚 (\d+)€/g,"$1 × $2 verkauft: $3 € Erlös, $4 € Gewinn")
+    .replace(/卖出 (\d+) 件 (.+)：收入 (\d+)€，实际亏 (\d+)€/g,"$1 × $2 verkauft: $3 € Erlös, $4 € Verlust")
+    .replace(/月末已扣生活费 (\d+)€，债务增加利息 (\d+)€。/g,"Zum Monatsende wurden $1 € Lebenshaltungskosten abgebucht; die Schulden stiegen um $2 € Zinsen.")
+    .replace(/留德能力 (\d+)\/(\d+)/g,"Bleibeperspektive $1/$2")
     .replace(/消耗 1 份材料包/g,"Verbraucht 1 Unterlagenpaket")
     .replace(/当前不足/g,"nicht vorhanden")
     .replace(/投入 (\d+)€ 开始批次/g,"$1 € einsetzen und Projekt starten");
@@ -1002,7 +1081,7 @@ export default function Home() {
     const endingText=lang==="de"
       ?outcome==="excellent"?"Studium im Plan, schuldenfrei und trotzdem liegt schon der nächste Behördenbrief im Kasten. Angekommen ist vielleicht kein Zustand, sondern eine fortlaufende Akte.":outcome==="stable"?"Du hast 48 Wochen geschafft, den Anschluss gehalten und die Schulden unter Kontrolle gebracht. Das Leben geht weiter.":outcome==="probation"?`Du hast überlebt, aber ${finalAbility<65?"deine Ankommensfähigkeit reicht nicht":"deine Schulden sind noch zu hoch"}. Deutschland gibt dir keine Niederlage, sondern eine weitere Frist.`:state.health<=0?"Dein Körper konnte nicht mehr.":state.stress>=100?"Der Stress hat die Grenze überschritten.":"Das Konto ist leer. Dein Leben in Deutschland endet vorerst hier."
       :outcome==="excellent"?"留德能力达标、债务清零，信箱里却已经躺着下一封政府来信。所谓安顿下来，也许只是学会继续处理下一份档案。":outcome==="stable"?"你坚持了48周，留德能力达标，也把债务控制在可承受范围内。Das Leben geht weiter。":outcome==="probation"?`你活过了48周，但${finalAbility<65?"留德能力尚未达到要求":"债务仍然过高"}。德国没有立即让你离开，只给了你下一份限期整改通知。`:state.health<=0?"身体先撑不住了。":state.stress>=100?"压力突破了极限。":"账户见底，留德生活暂时在这里结束。";
-    return <Localize lang={lang}><main className={`cinematic departure-scene ${outcome==="excellent"||outcome==="stable"?"continue":"farewell"}`}><div className="departure-sky"><div className="city-silhouette">▥ ▥ ▰ ▥ ▰ ▥</div><span className="departure-plane">✈</span></div><section><small>{survived?"48 WOCHEN GESCHAFFT":"ABFLUG"}</small><h1>{endingTitle}</h1><p>{endingText}</p><div className="score"><span>{lang==="de"?"Nettovermögen":"净资产"}<b>{net}€</b></span><span>{lang==="de"?"Ankommen":"留德能力"}<b>{finalAbility}</b></span><span>{lang==="de"?"Schulden":"剩余债务"}<b>{Math.round(state.debt)}€</b></span></div><button className="primary" onClick={()=>{clearSavedGame();setPlayerName(state.name||"");}}>{lang==="de"?"Noch einmal einsteigen":"重新登机"} <span>↻</span></button></section></main></Localize>;
+    return <Localize lang={lang}><main className={`cinematic departure-scene ${outcome==="excellent"||outcome==="stable"?"continue":"farewell"}`}><div className="departure-sky"><div className="city-silhouette">▥ ▥ ▰ ▥ ▰ ▥</div><span className="departure-plane">✈</span></div><section><small>{survived?"48 WOCHEN GESCHAFFT":"ABFLUG"}</small><h1>{endingTitle}</h1><p>{endingText}</p><div className="score"><span>{lang==="de"?"Nettovermögen":"净资产"}<b>{net}€</b></span><span>{lang==="de"?"Bleibeperspektive":"留德能力"}<b>{finalAbility}</b></span><span>{lang==="de"?"Schulden":"剩余债务"}<b>{Math.round(state.debt)}€</b></span></div><button className="primary" onClick={()=>{clearSavedGame();setPlayerName(state.name||"");}}>{lang==="de"?"Noch einmal einsteigen":"重新登机"} <span>↻</span></button></section></main></Localize>;
   }
 
   const totalInventory=Object.values(state.inventory).reduce((a,b)=>a+b,0);
@@ -1025,7 +1104,7 @@ export default function Home() {
       <div title="由学业与德语共同构成；影响工资、检查和职业"><span>🎓 留德能力</span><b>{ability}</b><small>{lang==="de"?"Lohn":"工资"} +{languageBonus}€</small></div>
       <div title="由人脉与档案共同构成；影响事件损失和职业"><span>🤝 社会资源</span><b>{social}</b><small>{social>=45?"事件减损已生效":"45 后降低损失"}</small></div>
     </section>
-    <div className="academic-strip"><b>🎯 {lang==="de"?"Ziele für 48 Wochen":"48周目标"}</b><span>{lang==="de"?"Ankommen mindestens 65 · Schulden höchstens 600 €":"留德能力至少 65 · 债务降至 600€ 以下"}</span><small>{lang==="de"?"85 + schuldenfrei: bestes Ende":"留德能力85＋债务清零可达成更好结局"}</small><em>🎓 {ability}/65 · 🏦 {Math.round(state.debt)}/600€</em></div>
+    <div className="academic-strip"><b>🎯 {lang==="de"?"Ziele für 48 Wochen":"48周目标"}</b><span>{lang==="de"?"Bleibeperspektive mindestens 65 · Schulden höchstens 600 €":"留德能力至少 65 · 债务降至 600€ 以下"}</span><small>{lang==="de"?"85 Punkte und schuldenfrei: bestes Ende":"留德能力85＋债务清零可达成更好结局"}</small><em>🎓 {ability}/65 · 🏦 {Math.round(state.debt)}/600€</em></div>
     <div className="ticker"><b>本周消息</b><span>{lang==="de"?DE_NEWS[state.newsIndex]:news.text}</span></div>
     <div className="time-rule"><b>时间规则</b><span>⏳ 本周行动＝推进 1 周</span><span>{lang==="de"?"○ Ein Marktbesuch sowie Kauf, Verkauf und Jobwechsel kosten keine Zeit":"○ 每周访问一个市场；买卖与换职业不额外耗时"}</span></div>
     <nav className="tabs">{[["actions","本周行动"],["career","成长与职业"],["journal","记录"],["guestbook","留言板"]].map(([id,label])=><button className={tab===id?"active":""} key={id} onClick={()=>setTab(id)}>{label}</button>)}</nav>
