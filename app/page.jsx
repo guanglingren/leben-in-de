@@ -57,11 +57,11 @@ const DE_EVENTS = [
 ];
 
 const JOBS = [
-  { id: "shift", name: "仓库夜班", wage: 470, energy: -22, health: -4, stress: 6, requirement: 0, paperRequirement:0, icon: "📦" },
-  { id: "delivery", name: "外卖接单", wage: 340, energy: -20, health: -6, stress: 4, requirement: 0, paperRequirement:0, icon: "🚲" },
-  { id: "office", name: "大学办公室助理", wage: 560, energy: -17, health: -2, stress: 7, requirement: 58, paperRequirement:50, icon: "🏫" },
-  { id: "hiwi", name: "大学 HiWi 学生助理", wage: 590, energy: -15, health: -1, stress: 4, requirement: 60, paperRequirement:45, studyRequirement:60, icon: "🔬" },
-  { id: "agency", name: "学生事务翻译", wage: 640, energy: -16, health: -1, stress: 5, requirement: 78, paperRequirement:68, studyRequirement:45, icon: "🗣️" }
+  { id: "shift", name: "仓库夜班", wage: 520, energy: -24, health: -6, stress: 7, abilityReq:0, socialReq:0, icon: "📦" },
+  { id: "delivery", name: "外卖接单", wage: 450, energy: -17, health: -3, stress: 4, abilityReq:0, socialReq:0, icon: "🚲" },
+  { id: "office", name: "大学办公室助理", wage: 590, energy: -16, health: -1, stress: 5, abilityReq:55, socialReq:45, icon: "🏫" },
+  { id: "hiwi", name: "大学 HiWi 学生助理", wage: 630, energy: -14, health: 0, stress: 3, abilityReq:60, socialReq:50, icon: "🔬" },
+  { id: "agency", name: "学生事务翻译", wage: 700, energy: -15, health: -1, stress: 5, abilityReq:72, socialReq:65, icon: "🗣️" }
 ];
 
 const ACADEMIC_MILESTONES = [
@@ -331,7 +331,7 @@ const BASE_EVENTS = [
 ];
 
 const ACTIONS = [
-  { id:"work", icon:"💼", name:"做本职工作", sub:"按当前职业结算工资", run:s=>{const job=JOBS.find(j=>j.id===s.jobId)||JOBS[0];const languageBonus=Math.min(80,Math.max(0,s.german-40)*2);return {money:job.wage+languageBonus+(s.flags.promotion?70:0),energy:job.energy,health:job.health,stress:job.stress,reputation:3};}},
+  { id:"work", icon:"💼", name:"做本职工作", sub:"按当前职业结算工资", run:s=>{const job=JOBS.find(j=>j.id===s.jobId)||JOBS[0];const abilityBonus=Math.min(80,Math.max(0,integrationScore(s)-40)*2);return {money:job.wage+abilityBonus+(s.flags.promotion?70:0),energy:job.energy,health:job.health,stress:job.stress,reputation:3};}},
   { id:"gig", icon:"🚲", name:"接一次临时零工", sub:"不改变本职 · 德语越好收入越高", run:s=>({money:190+Math.round(s.german*.9),energy:-19,health:-6,stress:7}) },
   { id:"paper", icon:"🏛️", name:"处理积压手续", sub:"选择一项具体行政任务", planner:true },
   { id:"learn", icon:"📚", name:"学德语", sub:"解锁好工作 · 费脑", run:()=>({german:7,energy:-11,stress:2,money:-25}) },
@@ -372,6 +372,8 @@ const PAPER_TASKS = [
 ];
 
 const clamp = n => Math.max(0, Math.min(100, Math.round(n)));
+const integrationScore=s=>Math.round(((s.study||0)+(s.german||0))/2);
+const socialScore=s=>Math.round(((s.reputation||0)+(s.papers||0))/2);
 const effectNames = {money:"资金",debt:"债务",energy:"精力",health:"健康",stress:"压力",german:"德语",papers:"档案",packs:"材料包",reputation:"人脉",study:"学业"};
 const effectNamesDe = {money:"Geld",debt:"Schulden",energy:"Energie",health:"Gesundheit",stress:"Stress",german:"Deutsch",papers:"Akte",packs:"Unterlagen",reputation:"Kontakte",study:"Studium"};
 const effectIcons = {money:"💶",debt:"🏦",energy:"⚡",health:"❤️",stress:"🧠",german:"🗣️",papers:"🗂️",packs:"📦",reputation:"🤝",study:"🎓"};
@@ -478,7 +480,8 @@ function WeeklyMarket({state,lang,prices,onTrade}){
     <div className="trade-explain">💡 低风险商品波动较小；高回报商品通常价格更不稳定，并可能遭遇平台审核或查处。</div>
     <div className="weekly-goods">{GOODS.map(g=>{
       const qty=state.inventory?.[g.id]||0,totalCost=state.inventoryCost?.[g.id]||0,avg=qty?totalCost/qty:0;
-      const contactDiscount=(state.reputation>=75?.08:state.reputation>=50?.04:0)+(state.german>=75?.04:state.german>=60?.02:0);
+      const tradeAbility=integrationScore(state),tradeSocial=socialScore(state);
+      const contactDiscount=(tradeSocial>=75?.08:tradeSocial>=50?.04:0)+(tradeAbility>=75?.04:tradeAbility>=60?.02:0);
       const buy=Math.max(1,Math.round(prices[g.id]*(1-contactDiscount))),sell=Math.max(1,Math.round(prices[g.id]*.9));
       const old=seededPrice(g,Math.max(0,state.totalWeek-1),NEWS[Math.floor(Math.max(0,state.totalWeek-1)/4)%NEWS.length]);
       const change=buy-old,changePct=old?Math.round(change/old*100):0;
@@ -500,11 +503,10 @@ function TradeLedger({state,lang,prices}){
 }
 
 function ProgressBenefits({state,lang}){
-  const paperTier=state.papers>=80?"35%":state.papers>=60?"20%":state.papers>=45?"10%":"—";
-  const contactTier=state.reputation>=80?"25%":state.reputation>=60?"10%":state.reputation>=40?"5%":"—";
-  const marketTier=(state.reputation>=75?8:state.reputation>=50?4:0)+(state.german>=75?4:state.german>=60?2:0);
-  const studyTier=state.study>=75?"大学事件压力 −4":state.study>=60?"大学事件压力 −2":state.study>=40?"通过首次学业检查":"40 后通过首次检查";
-  return <div className="progress-benefits career-benefits"><span><b>🗂️ {lang==="de"?"Akte":"档案"} {state.papers}</b><small>{`事件精力损失：${paperTier==="—"?"45 后减少 10%":`减少 ${paperTier}`}`}</small></span><span><b>🤝 {lang==="de"?"Kontakte":"人脉"} {state.reputation}</b><small>{`事件资金损失：${contactTier==="—"?"40 后减少 5%":`减少 ${contactTier}`}`}</small></span><span><b>🎓 {lang==="de"?"Studium":"学业"} {state.study}</b><small>{studyTier}</small></span><span><b>🗣️ {lang==="de"?"Deutsch":"德语"} {state.german}</b><small>{`工资 +${Math.min(80,Math.max(0,state.german-40)*2)}€ · 进货折扣 ${marketTier}%`}</small></span></div>;
+  const social=socialScore(state),ability=integrationScore(state);
+  const lossTier=social>=80?"25%":social>=60?"15%":social>=45?"8%":"—";
+  const abilityTier=ability>=75?"事件压力 −4":ability>=60?"事件压力 −2":ability>=40?"可通过首次检查":"40 后通过首次检查";
+  return <div className="progress-benefits career-benefits"><span><b>🤝 社会资源 {social}</b><small>{`整合人脉与档案 · 事件损失${lossTier==="—"?"在45后降低":`降低 ${lossTier}`}`}</small></span><span><b>🎓 留德能力 {ability}</b><small>{`整合学业与德语 · ${abilityTier} · 工资 +${Math.min(80,Math.max(0,ability-40)*2)}€`}</small></span></div>;
 }
 
 export default function Home() {
@@ -681,9 +683,9 @@ export default function Home() {
     next={...next,week:nextWeek,month:nextMonth,totalWeek:state.totalWeek+1,newsIndex,journal:[log,...state.journal].slice(0,20)};
     const milestone=ACADEMIC_MILESTONES.find(item=>item.week===next.totalWeek);
     if(milestone){
-      const passed=next.study>=milestone.required;
+      const passed=integrationScore(next)>=milestone.required;
       next=applyEffect(next,passed?milestone.reward:milestone.penalty);
-      next={...next,academicWarnings:(next.academicWarnings||0)+(passed?0:1),journal:[`${milestone.title}：学业 ${next.study}/${milestone.required}，${passed?"进度达标":"进度不足，收到书面警告"}`,...next.journal].slice(0,20)};
+      next={...next,academicWarnings:(next.academicWarnings||0)+(passed?0:1),journal:[`${milestone.title}：留德能力 ${integrationScore(next)}/${milestone.required}，${passed?"进度达标":"进度不足，收到书面警告"}`,...next.journal].slice(0,20)};
       const academicSummary=passed?`${milestone.title}通过，学校确认学业进度正常。`:`${milestone.title}未通过：扣除补办费用并增加压力，学业需达到 ${milestone.required}。`;
       monthSummary=`${monthSummary} ${academicSummary}`.trim();
     }
@@ -716,14 +718,15 @@ export default function Home() {
   }
 
   function chooseEvent(choice,event){
-    const languageRelief=state.german>=75?4:state.german>=60?2:0;
+    const languageRelief=integrationScore(state)>=75?4:integrationScore(state)>=60?2:0;
     const academicOffice=["UNIVERSITÄT","PRÜFUNGSAMT","SEMINAR","BIBLIOTHEK"].includes(event.office);
-    const academicRelief=academicOffice?(state.study>=75?4:state.study>=60?2:0):0;
+    const ability=integrationScore(state),social=socialScore(state);
+    const academicRelief=academicOffice?(ability>=75?4:ability>=60?2:0):0;
     const adjusted={...choice.effect};
     if(adjusted.stress>0)adjusted.stress=Math.max(0,adjusted.stress-languageRelief-academicRelief);
-    if(adjusted.energy<0&&state.papers>=45)adjusted.energy=Math.round(adjusted.energy*(state.papers>=80?.65:state.papers>=60?.8:.9));
+    if(adjusted.energy<0&&social>=45)adjusted.energy=Math.round(adjusted.energy*(social>=80?.65:social>=60?.8:.92));
     if(adjusted.papers>0&&state.papers>=60)adjusted.papers=Math.max(1,Math.round(adjusted.papers*(state.papers>=80?.35:.65)));
-    if(adjusted.money<0&&state.reputation>=40)adjusted.money=Math.round(adjusted.money*(state.reputation>=80?.75:state.reputation>=60?.9:.95));
+    if(adjusted.money<0&&social>=45)adjusted.money=Math.round(adjusted.money*(social>=80?.75:social>=60?.88:.95));
     if(adjusted.stress>0&&state.reputation>=80)adjusted.stress=Math.max(0,adjusted.stress-2);
     let next=applyEffect(state,adjusted);
     if(choice.flag)next={...next,flags:{...next.flags,[choice.flag]:true}};
@@ -753,7 +756,8 @@ export default function Home() {
     const totalCost=state.inventoryCost?.[good.id]||0;
     const avgCost=qty>0?totalCost/qty:0;
     const totalQty=Object.values(state.inventory).reduce((a,b)=>a+b,0);
-    const contactDiscount=(state.reputation>=75?.08:state.reputation>=50?.04:0)+(state.german>=75?.04:state.german>=60?.02:0);
+    const tradeAbility=integrationScore(state),tradeSocial=socialScore(state);
+    const contactDiscount=(tradeSocial>=75?.08:tradeSocial>=50?.04:0)+(tradeAbility>=75?.04:tradeAbility>=60?.02:0);
     const unitPrice=mode==="buy"?Math.max(1,Math.round(prices[good.id]*(1-contactDiscount))):Math.max(1,Math.round(prices[good.id]*.9));
     const reserveLimit=Math.max(0,Math.floor((state.money-200)/unitPrice));
     const amount=mode==="buy"?Math.max(0,Math.min(requested,state.capacity-totalQty,reserveLimit)):Math.max(0,Math.min(requested,qty));
@@ -794,7 +798,7 @@ export default function Home() {
   }
 
   function switchJob(job){
-    if(state.german<job.requirement||state.papers<job.paperRequirement||state.study<(job.studyRequirement||0)){setToast(`需要德语 ${job.requirement}、档案 ${job.paperRequirement}${job.studyRequirement?`、学业 ${job.studyRequirement}`:""}`);return;}
+    if(integrationScore(state)<job.abilityReq||socialScore(state)<job.socialReq){setToast(`需要留德能力 ${job.abilityReq}、社会资源 ${job.socialReq}`);return;}
     setState({...state,jobId:job.id});setToast(`下周开始做：${job.name}`);
   }
 
@@ -890,20 +894,22 @@ export default function Home() {
 
   if(screen==="end"){
     const survived=state.month>12&&state.health>0&&state.stress<100&&state.money>0;
-    const excellent=survived&&state.study>=85&&state.debt<=0&&state.health>=45&&state.stress<=70;
-    const stable=survived&&state.study>=65&&state.debt<=600;
+    const finalAbility=integrationScore(state);
+    const excellent=survived&&finalAbility>=85&&state.debt<=0&&state.health>=45&&state.stress<=70;
+    const stable=survived&&finalAbility>=65&&state.debt<=600;
     const outcome=excellent?"excellent":stable?"stable":survived?"probation":"failed";
     const endingTitle=outcome==="excellent"?"Angekommen?":outcome==="stable"?"Das Leben geht weiter":outcome==="probation"?"Auf Bewährung":"Tschüss Deutschland";
     const net=Math.round(state.money-state.debt+Object.entries(state.inventory).reduce((sum,[id,q])=>sum+(prices[id]||0)*q,0));
     const endingText=lang==="de"
-      ?outcome==="excellent"?"Studium im Plan, schuldenfrei und trotzdem liegt schon der nächste Behördenbrief im Kasten. Angekommen ist vielleicht kein Zustand, sondern eine fortlaufende Akte.":outcome==="stable"?"Du hast 48 Wochen geschafft, den Studienanschluss gehalten und die Schulden unter Kontrolle gebracht. Das Leben geht weiter.":outcome==="probation"?`Du hast überlebt, aber ${state.study<65?"dein Studienfortschritt reicht nicht":"deine Schulden sind noch zu hoch"}. Deutschland gibt dir keine Niederlage, sondern eine weitere Frist.`:state.health<=0?"Dein Körper konnte nicht mehr.":state.stress>=100?"Der Stress hat die Grenze überschritten.":"Das Konto ist leer. Dein Leben in Deutschland endet vorerst hier."
-      :outcome==="excellent"?"学业达标、债务清零，信箱里却已经躺着下一封政府来信。所谓安顿下来，也许只是学会继续处理下一份档案。":outcome==="stable"?"你坚持了48周，守住了学业，也把债务控制在可承受范围内。Das Leben geht weiter。":outcome==="probation"?`你活过了48周，但${state.study<65?"学业进度尚未达到续注册要求":"债务仍然过高"}。德国没有立即让你离开，只给了你下一份限期整改通知。`:state.health<=0?"身体先撑不住了。":state.stress>=100?"压力突破了极限。":"账户见底，留德生活暂时在这里结束。";
-    return <Localize lang={lang}><main className={`cinematic departure-scene ${outcome==="excellent"||outcome==="stable"?"continue":"farewell"}`}><div className="departure-sky"><div className="city-silhouette">▥ ▥ ▰ ▥ ▰ ▥</div><span className="departure-plane">✈</span></div><section><small>{survived?"48 WOCHEN GESCHAFFT":"ABFLUG"}</small><h1>{endingTitle}</h1><p>{endingText}</p><div className="score"><span>{lang==="de"?"Nettovermögen":"净资产"}<b>{net}€</b></span><span>{lang==="de"?"Studium":"学业进度"}<b>{state.study}</b></span><span>{lang==="de"?"Schulden":"剩余债务"}<b>{Math.round(state.debt)}€</b></span></div><button className="primary" onClick={()=>{clearSavedGame();setPlayerName(state.name||"");}}>{lang==="de"?"Noch einmal einsteigen":"重新登机"} <span>↻</span></button></section></main></Localize>;
+      ?outcome==="excellent"?"Studium im Plan, schuldenfrei und trotzdem liegt schon der nächste Behördenbrief im Kasten. Angekommen ist vielleicht kein Zustand, sondern eine fortlaufende Akte.":outcome==="stable"?"Du hast 48 Wochen geschafft, den Anschluss gehalten und die Schulden unter Kontrolle gebracht. Das Leben geht weiter.":outcome==="probation"?`Du hast überlebt, aber ${finalAbility<65?"deine Ankommensfähigkeit reicht nicht":"deine Schulden sind noch zu hoch"}. Deutschland gibt dir keine Niederlage, sondern eine weitere Frist.`:state.health<=0?"Dein Körper konnte nicht mehr.":state.stress>=100?"Der Stress hat die Grenze überschritten.":"Das Konto ist leer. Dein Leben in Deutschland endet vorerst hier."
+      :outcome==="excellent"?"留德能力达标、债务清零，信箱里却已经躺着下一封政府来信。所谓安顿下来，也许只是学会继续处理下一份档案。":outcome==="stable"?"你坚持了48周，留德能力达标，也把债务控制在可承受范围内。Das Leben geht weiter。":outcome==="probation"?`你活过了48周，但${finalAbility<65?"留德能力尚未达到要求":"债务仍然过高"}。德国没有立即让你离开，只给了你下一份限期整改通知。`:state.health<=0?"身体先撑不住了。":state.stress>=100?"压力突破了极限。":"账户见底，留德生活暂时在这里结束。";
+    return <Localize lang={lang}><main className={`cinematic departure-scene ${outcome==="excellent"||outcome==="stable"?"continue":"farewell"}`}><div className="departure-sky"><div className="city-silhouette">▥ ▥ ▰ ▥ ▰ ▥</div><span className="departure-plane">✈</span></div><section><small>{survived?"48 WOCHEN GESCHAFFT":"ABFLUG"}</small><h1>{endingTitle}</h1><p>{endingText}</p><div className="score"><span>{lang==="de"?"Nettovermögen":"净资产"}<b>{net}€</b></span><span>{lang==="de"?"Ankommen":"留德能力"}<b>{finalAbility}</b></span><span>{lang==="de"?"Schulden":"剩余债务"}<b>{Math.round(state.debt)}€</b></span></div><button className="primary" onClick={()=>{clearSavedGame();setPlayerName(state.name||"");}}>{lang==="de"?"Noch einmal einsteigen":"重新登机"} <span>↻</span></button></section></main></Localize>;
   }
 
   const totalInventory=Object.values(state.inventory).reduce((a,b)=>a+b,0);
   const currentJob=JOBS.find(j=>j.id===state.jobId)||JOBS[0];
-  const languageBonus=Math.min(80,Math.max(0,state.german-40)*2);
+  const ability=integrationScore(state),social=socialScore(state);
+  const languageBonus=Math.min(80,Math.max(0,ability-40)*2);
   const currentWage=currentJob.wage+languageBonus+(state.flags.promotion?70:0);
   const featuredChoices=weeklyChoices(state);
   const tradeChoice={id:"browse-trade",icon:"🛒",name:totalInventory>0?"看看手上的货":"去交易平台看看",sub:totalInventory>0?"先查看之前买入的商品现在赚了还是赔了":"浏览全部商品与本周报价；查看不消耗时间",risk:"第一笔成交后，本周行动确定为交易"};
@@ -914,13 +920,11 @@ export default function Home() {
     <section className="v2-stats"><Stat label={lang==="de"?"Geld":"现金"} value={state.money} type="money"/><Stat label={lang==="de"?"Schulden":"债务"} value={state.debt} type="money" onClick={()=>setModal({type:"debtPay"})} hint={state.debt<=0?(lang==="de"?"Abbezahlt":"已还清"):(lang==="de"?"Zum Tilgen antippen":"点击还款")}/><Stat label={lang==="de"?"❤️ Gesundheit":"❤️ 健康"} value={state.health}/><Stat label={lang==="de"?"🧠 Stress":"🧠 压力"} value={state.stress} bad/></section>
     <section className="ability-stats" aria-label="能力与行政资源">
       <div title="行动会消耗精力；低于 18 时不能工作或接零工"><span>⚡ 精力</span><b>{state.energy}</b><small>{state.energy<18?"无法工作":state.energy<35?"需要休息":"可正常行动"}</small></div>
-      <div title="提高周薪、解锁职业，并降低事件压力"><span>🗣️ 德语</span><b>{state.german}</b><small>{lang==="de"?"Lohn":"工资"} +{languageBonus}€</small></div>
-      <div title="代表社会关系；达到 45 后，随机事件中可能出现稳定岗位的晋升机会"><span>🤝 人脉</span><b>{state.reputation}</b><small>{state.reputation>=45?"可能触发晋升事件":"45 后可能触发晋升"}</small></div>
-      <div title="代表行政记录完整度；高级职业要求档案达标"><span>🗂️ 档案</span><b>{state.papers}</b><small>解锁职业</small></div>
+      <div title="由学业与德语共同构成；影响工资、检查和职业"><span>🎓 留德能力</span><b>{ability}</b><small>{lang==="de"?"Lohn":"工资"} +{languageBonus}€</small></div>
+      <div title="由人脉与档案共同构成；影响事件损失和职业"><span>🤝 社会资源</span><b>{social}</b><small>{social>=45?"事件减损已生效":"45 后降低损失"}</small></div>
       <div title="在官僚事件中消耗一份，可显著降低损失"><span>📦 材料包</span><b>{state.packs}</b><small>事件减损</small></div>
-      <div title="代表课程、作业与考试的总体进展"><span>🎓 学业</span><b>{state.study}</b><small>课程进度</small></div>
     </section>
-    <div className="academic-strip"><b>🎯 {lang==="de"?"Ziele für 48 Wochen":"48周目标"}</b><span>{lang==="de"?"Studium mindestens 65 · Schulden höchstens 600 €":"学业至少 65 · 债务降至 600€ 以下"}</span><small>{lang==="de"?"Studium 85 + schuldenfrei: bestes Ende; Akte 60 spart Energie, Kontakte 50 senken Einkaufspreise":"学业85＋债务清零可达成更好结局；档案60减少事件耗能，人脉50降低进货价"}</small><em>🎓 {state.study}/65 · 🏦 {Math.round(state.debt)}/600€</em></div>
+    <div className="academic-strip"><b>🎯 {lang==="de"?"Ziele für 48 Wochen":"48周目标"}</b><span>{lang==="de"?"Ankommen mindestens 65 · Schulden höchstens 600 €":"留德能力至少 65 · 债务降至 600€ 以下"}</span><small>{lang==="de"?"85 + schuldenfrei: bestes Ende":"留德能力85＋债务清零可达成更好结局"}</small><em>🎓 {ability}/65 · 🏦 {Math.round(state.debt)}/600€</em></div>
     <div className="ticker"><b>本周消息</b><span>{lang==="de"?DE_NEWS[state.newsIndex]:news.text}</span></div>
     <div className="time-rule"><b>时间规则</b><span>⏳ 本周行动＝推进 1 周</span><span>{lang==="de"?"○ Ein Marktbesuch sowie Kauf, Verkauf und Jobwechsel kosten keine Zeit":"○ 每周访问一个市场；买卖与换职业不额外耗时"}</span></div>
     <nav className="tabs">{[["actions","本周行动"],["career","成长与职业"],["journal","记录"],["guestbook","留言板"]].map(([id,label])=><button className={tab===id?"active":""} key={id} onClick={()=>setTab(id)}>{label}</button>)}</nav>
@@ -932,7 +936,7 @@ export default function Home() {
         <form className="guestbook-form" onSubmit={submitGuestbook}><label><span>{lang==="de"?"Name":"昵称"}</span><input maxLength="24" value={guestbookForm.nickname} onChange={event=>setGuestbookForm({...guestbookForm,nickname:event.target.value})} placeholder={lang==="de"?"Maximal 24 Zeichen":"最多24个字"}/></label><label><span>{lang==="de"?"Nachricht":"留言"}</span><textarea maxLength="300" rows="4" value={guestbookForm.message} onChange={event=>setGuestbookForm({...guestbookForm,message:event.target.value})} placeholder={lang==="de"?"Was möchtest du anderen Studierenden sagen?":"想对其他留学生或作者说些什么？"}/><small>{guestbookForm.message.length}/300</small></label><button disabled={guestbookLoading}>{guestbookLoading?(lang==="de"?"Wird gespeichert…":"正在提交…"):(lang==="de"?"Nachricht hinterlassen":"提交留言")}</button>{guestbookError&&<p className="guestbook-error">{guestbookError}</p>}</form>
         <div className="guestbook-list">{guestbookLoading&&!messages.length?<div className="empty">{lang==="de"?"Gästebuch wird geladen…":"正在读取留言…"}</div>:messages.length?messages.map(item=><article key={item.id}><header><b>{item.nickname}</b><time>{new Date(item.created_at).toLocaleDateString(lang==="de"?"de-DE":"zh-CN")}</time></header><p>{item.message}</p></article>):!guestbookError&&<div className="empty">{lang==="de"?"Noch keine Einträge. Schreib den ersten.":"还没有留言，来写下第一条吧。"}</div>}</div>
       </>}
-      {tab==="actions"&&<div id="weekly-actions"><div className="panel-title decision-title"><div><small>WOCHE {state.totalWeek+1} · 还剩 {48-state.totalWeek} 周</small><h2>{state.marketVisitWeek===state.totalWeek?"这周，你选择了交易":"这周，押哪一边？"}</h2></div><span>{state.marketVisitWeek===state.totalWeek?"完成交易后揭晓":"每周选择一种主要行动"}</span></div><div className="weekly-pressure"><b>必须在第 48 周前留下来</b><span>🎓 学业 {state.study}/65</span><span>🏦 债务 {Math.round(state.debt)}/600€</span><em>{state.week===4?"⚠ 本周结束扣生活费 780€":"下一次月末结算还有 "+(5-state.week)+" 周"}</em></div><div className="rumor-card"><small>本周线索 · 消息可能是真的，也可能已经过时</small><p>{lang==="de"?DE_NEWS[state.newsIndex]:news.text}</p></div><div className="featured-actions">{[...featuredChoices,tradeChoice].map((a,index)=>{const isBet=a.id.startsWith("bet-"),isTrade=a.id==="browse-trade";return <button key={a.id} className={isBet?"temptation":index===0?"safe":isTrade?"trade-choice":""} onClick={()=>isTrade?openTrading():a.planner?setModal({type:"paperPlanner"}):doAction(a)} disabled={!isTrade&&((a.id==="work"&&state.energy<18)||state.marketVisitWeek===state.totalWeek)}><span className="choice-kind">{isTrade?"交易":isBet?"机会":index===0?"保底":"成长"}</span><i>{a.icon}</i><b>{a.id==="work"?`去做 ${currentJob.name}`:a.name}</b><small>{a.id==="work"?`确定拿到约 ${currentWage}€，但会消耗大量精力`:a.sub}</small>{isTrade&&<strong>{a.risk}</strong>}<em>{isTrade?(state.marketVisitWeek===state.totalWeek?"继续查看持仓 →":totalInventory>0?"查看持仓盈亏 →":"查看全部报价 →"):state.marketVisitWeek===state.totalWeek?"本周已选择交易":"押这一周 →"}</em></button>})}</div><details className="more-actions"><summary>展开其他生活安排</summary><div className="action-grid">{ACTIONS.filter(a=>!featuredChoices.some(f=>f.id===a.id)).map(a=><button key={a.id} onClick={()=>a.planner?setModal({type:"paperPlanner"}):doAction(a)} disabled={(a.id==="work"||a.id==="gig")&&state.energy<18||state.marketVisitWeek===state.totalWeek}><i>{a.icon}</i><span><b>{a.name}</b><small>{a.sub}</small></span><em>⏳ 推进1周</em></button>)}</div></details><div className="month-cost"><b>主动行动之后，生活事件仍会发生</b><span>工作、学习、休息、机会或交易决定你如何度过本周；周末事件负责揭晓生活如何回应。</span></div></div>}
+      {tab==="actions"&&<div id="weekly-actions"><div className="panel-title decision-title"><div><small>WOCHE {state.totalWeek+1} · 还剩 {48-state.totalWeek} 周</small><h2>{state.marketVisitWeek===state.totalWeek?"这周，你选择了交易":"这周，押哪一边？"}</h2></div><span>{state.marketVisitWeek===state.totalWeek?"完成交易后揭晓":"每周选择一种主要行动"}</span></div><div className="weekly-pressure"><b>必须在第 48 周前留下来</b><span>🎓 留德能力 {ability}/65</span><span>🏦 债务 {Math.round(state.debt)}/600€</span><em>{state.week===4?"⚠ 本周结束扣生活费 780€":"下一次月末结算还有 "+(5-state.week)+" 周"}</em></div><div className="rumor-card"><small>本周线索 · 消息可能是真的，也可能已经过时</small><p>{lang==="de"?DE_NEWS[state.newsIndex]:news.text}</p></div><div className="featured-actions">{[...featuredChoices,tradeChoice].map((a,index)=>{const isBet=a.id.startsWith("bet-"),isTrade=a.id==="browse-trade";return <button key={a.id} className={isBet?"temptation":index===0?"safe":isTrade?"trade-choice":""} onClick={()=>isTrade?openTrading():a.planner?setModal({type:"paperPlanner"}):doAction(a)} disabled={!isTrade&&((a.id==="work"&&state.energy<18)||state.marketVisitWeek===state.totalWeek)}><span className="choice-kind">{isTrade?"交易":isBet?"机会":index===0?"保底":"成长"}</span><i>{a.icon}</i><b>{a.id==="work"?`去做 ${currentJob.name}`:a.name}</b><small>{a.id==="work"?`确定拿到约 ${currentWage}€，但会消耗大量精力`:a.sub}</small>{isTrade&&<strong>{a.risk}</strong>}<em>{isTrade?(state.marketVisitWeek===state.totalWeek?"继续查看持仓 →":totalInventory>0?"查看持仓盈亏 →":"查看全部报价 →"):state.marketVisitWeek===state.totalWeek?"本周已选择交易":"押这一周 →"}</em></button>})}</div><details className="more-actions"><summary>展开其他生活安排</summary><div className="action-grid">{ACTIONS.filter(a=>!featuredChoices.some(f=>f.id===a.id)).map(a=><button key={a.id} onClick={()=>a.planner?setModal({type:"paperPlanner"}):doAction(a)} disabled={(a.id==="work"||a.id==="gig")&&state.energy<18||state.marketVisitWeek===state.totalWeek}><i>{a.icon}</i><span><b>{a.name}</b><small>{a.sub}</small></span><em>⏳ 推进1周</em></button>)}</div></details><div className="month-cost"><b>主动行动之后，生活事件仍会发生</b><span>工作、学习、休息、机会或交易决定你如何度过本周；周末事件负责揭晓生活如何回应。</span></div></div>}
       {tab==="actions"&&<>{state.marketVisitWeek===state.totalWeek&&<div className="trade-selected-action compact"><i>🛒</i><span><small>本周行动已锁定</small><b>交易进行中</b><p>可以继续买卖；完成入口已固定在屏幕底部。</p></span></div>}<WeeklyMarket state={state} lang={lang} prices={prices} onTrade={trade}/></>}
 
       {tab==="market"&&<><div className="panel-title"><div><small>NEBENGEWERBE</small><h2>副业账本与进阶经营</h2></div><span>可选的进阶玩法</span></div><p className="market-tip">不想研究复杂规则，可以直接在“本周行动”选择“经营本周推荐商品”，系统会依据本周消息完成进货和销售。这里保留给想自己挑商品、渠道和投入金额的玩家。</p>
@@ -942,7 +946,7 @@ export default function Home() {
         {(state.ventureLedger||[]).length>0&&<div className="venture-ledger"><div className="subhead"><b>最近经营账本</b><span>投入 → 回收 → 净结果</span></div>{state.ventureLedger.slice(0,5).map((l,i)=><p key={i}><span>{l.good}<small>{l.channel}</small></span><b>{l.invested}€ → {l.returned}€</b><em className={l.profit>=0?"profit":"loss"}>{l.profit>=0?"+":""}{l.profit}€</em></p>)}</div>}</div>
       </>}
 
-      {tab==="career"&&<><div className="panel-title"><div><small>ENTWICKLUNG & BERUF</small><h2>成长与职业</h2></div><span>能力不是分数，而是实际优势</span></div><p className="career-help">档案、人脉和学业会直接降低事件损失、通过学业检查并解锁更好的工作；德语同时提高工资和交易议价。达到门槛后可以立即换职业，不消耗一周。</p><ProgressBenefits state={state} lang={lang}/><div className="language-bonus"><span>当前语言工资加成<b>+{languageBonus}€ / 周</b></span><span>大学事件减压<b>-{state.study>=75?4:state.study>=60?2:0} 压力</b></span></div><div className="jobs">{JOBS.map(j=>{const unlocked=state.german>=j.requirement&&state.papers>=j.paperRequirement&&state.study>=(j.studyRequirement||0);return <button key={j.id} className={state.jobId===j.id?"selected":""} onClick={()=>switchJob(j)}><i>{j.icon}</i><span><b>{j.name}</b><small>基础周薪 {j.wage}€ · 精力 {j.energy} · 健康 {j.health}{j.requirement?` · 德语 ${j.requirement} · 档案 ${j.paperRequirement}${j.studyRequirement?` · 学业 ${j.studyRequirement}`:""}`:""}</small></span><em>{state.jobId===j.id?"当前本职":unlocked?"设为本职":"未解锁"}</em></button>})}</div><div className="debt-box"><span><small>私人债务</small><b>{Math.round(state.debt)} €</b></span><p>每月增长 3.5%，每月最多偿还一次。不能在同一个月连续清空债务。</p><button onClick={payDebt} disabled={state.lastDebtPaymentMonth===state.month||state.debt<=0}>{state.debt<=0?"债务已还清":state.lastDebtPaymentMonth===state.month?"本月已还款":"本月偿还最多 250€"}</button></div></>}
+      {tab==="career"&&<><div className="panel-title"><div><small>ENTWICKLUNG & BERUF</small><h2>成长与职业</h2></div><span>只关注两个成长指标</span></div><p className="career-help">“留德能力”整合学业与德语，“社会资源”整合人脉与档案。它们直接决定事件减损、学业检查、工资成长和职业解锁。</p><ProgressBenefits state={state} lang={lang}/><div className="language-bonus"><span>留德能力工资加成<b>+{languageBonus}€ / 周</b></span><span>事件综合减损<b>{social>=45?"已生效":"社会资源45后生效"}</b></span></div><div className="jobs">{JOBS.map(j=>{const unlocked=ability>=j.abilityReq&&social>=j.socialReq;return <button key={j.id} className={state.jobId===j.id?"selected":""} onClick={()=>switchJob(j)}><i>{j.icon}</i><span><b>{j.name}</b><small>周薪 {j.wage}€ · 精力 {j.energy} · 健康 {j.health} · 压力 {j.stress}{j.abilityReq?` · 留德能力 ${j.abilityReq} · 社会资源 ${j.socialReq}`:" · 无门槛"}</small></span><em>{state.jobId===j.id?"当前本职":unlocked?"设为本职":"未解锁"}</em></button>})}</div><div className="debt-box"><span><small>私人债务</small><b>{Math.round(state.debt)} €</b></span><p>每月增长 3.5%，每月最多偿还一次。不能在同一个月连续清空债务。</p><button onClick={payDebt} disabled={state.lastDebtPaymentMonth===state.month||state.debt<=0}>{state.debt<=0?"债务已还清":state.lastDebtPaymentMonth===state.month?"本月已还款":"本月偿还最多 250€"}</button></div></>}
 
       {tab==="journal"&&<><div className="panel-title"><div><small>VERLAUF</small><h2>生活记录</h2></div><span>{state.seen.length} 个事件</span></div><div className="journal">{state.journal.length?state.journal.map((j,i)=><p key={i}><i>{String(state.journal.length-i).padStart(2,"0")}</i>{j}</p>):<div className="empty">你的档案目前还很薄。系统会设法改变这一点。</div>}</div></>}
     </section>
