@@ -269,3 +269,34 @@ footer{display:flex;justify-content:space-between;padding:16px 24px;font-size:9p
 @media(max-width:719px){.market-places,.weekly-goods,.holding-grid{grid-template-columns:1fr}.weekly-market-head h3{font-size:15px}.quote-row{grid-template-columns:1fr 1fr}.quantity-trade{grid-template-columns:1fr 1fr}.chosen-market em{display:none}}
 .progress-benefits{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:#c7c0b3;margin-bottom:10px}.progress-benefits span{background:#eee9df;padding:8px 10px}.progress-benefits b,.progress-benefits small{display:block}.progress-benefits b{font-size:11px}.progress-benefits small{font-size:8px;color:var(--muted);margin-top:3px}
 @media(max-width:719px){.progress-benefits{grid-template-columns:1fr 1fr 1fr}.progress-benefits span{padding:6px}.progress-benefits b{font-size:9px}.progress-benefits small{font-size:7px}}
+
+/* Named player setup and device-local autosave */
+.name-setup{margin:20px 0 14px}.name-setup>label{display:block;font:800 15px "Noto Serif SC";margin-bottom:7px}.name-setup>div{display:grid;grid-template-columns:1fr auto;gap:6px}.name-setup input{min-width:0;border:1px solid #aaa397;background:#faf8f2;padding:12px;font:inherit;font-size:13px}.name-setup button{border:0;background:#ded7ca;padding:0 12px;font-size:10px;font-weight:800;cursor:pointer}.name-setup>small{display:block;color:var(--muted);font-size:8px;margin-top:6px}
+.continue-card{border:2px solid var(--ink);border-left:6px solid var(--yellow);background:#f9f6ee;padding:12px;margin:18px 0}.continue-card>span,.continue-card>b,.continue-card>small{display:block}.continue-card>span{font-size:8px;color:var(--red);font-weight:900;letter-spacing:.13em}.continue-card>b{font-size:14px;margin-top:4px}.continue-card>small{font-size:8px;color:var(--muted);margin-top:3px}.continue-card>div{display:flex;gap:6px;margin-top:10px}.continue-card button{border:0;padding:8px 11px;background:var(--ink);color:white;font-size:10px;font-weight:800;cursor:pointer}.continue-card button:last-child{background:#ded8cc;color:var(--muted)}
+
+/* Mobile action cockpit: the complete weekly choice set fits in the first view. */
+@media (max-width:799px){
+  .sticky-status .academic-strip,.sticky-status .ticker,.sticky-status .time-rule{display:none}
+  .sticky-status .ability-stats{grid-template-columns:repeat(6,1fr)}
+  .sticky-status .ability-stats>div{padding:4px 2px}
+  .sticky-status .ability-stats small{display:none}
+  .sticky-status .tabs button{min-height:27px}
+  .v2-panel{min-height:0;padding:10px;margin-inline:6px}
+  .panel-title{padding-bottom:6px}.panel-title h2{font-size:20px}.panel-title>span{font-size:7px}
+  .current-job{grid-template-columns:22px 1fr auto auto;margin-top:7px;padding:5px 7px}
+  .current-job>span{font-size:16px}.current-job small{display:none}.current-job b{font-size:9px;margin:0}.current-job strong,.current-job button{font-size:8px}.current-job button{grid-column:auto}
+  .stat-guide{display:none}
+  .action-grid{grid-template-columns:1fr 1fr!important;gap:5px;margin-top:6px}
+  .action-grid button{min-height:61px!important;padding:7px 5px;grid-template-columns:20px 1fr;gap:5px}
+  .action-grid button>i{font-size:17px}.action-grid b{font-size:10px}.action-grid small{display:none}
+  .action-grid button>em{font-size:5px;padding:1px 2px}
+  .effect-badges{margin-top:3px;gap:2px}.effect-badges strong{display:none}.effect-badges span{font-size:6px!important;padding:1px 2px}
+  .month-cost{display:none}
+  .progress-benefits{margin-top:12px}
+  .weekly-market{margin-top:10px}
+}
+
+@media (max-width:420px){
+  .v2-intro .hero{padding:26px 20px 20px}.v2-intro .hero h1{font-size:38px}.hero>p{font-size:13px;line-height:1.65;margin:20px 0}
+  .starting-file,.loop-preview{margin-block:13px}.name-setup{margin-block:14px 10px}
+}

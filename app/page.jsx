@@ -485,6 +485,7 @@ function ProgressBenefits({state,lang}){
 }
 
 export default function Home() {
+  const SAVE_KEY="aktenleben-save-v1";
   const [lang,setLang]=useState("zh");
   useEffect(()=>{
     document.documentElement.lang=lang==="de"?"de":"zh-CN";
@@ -509,12 +510,48 @@ export default function Home() {
   },[]);
   const [screen,setScreen]=useState("intro");
   const [state,setState]=useState(null);
+  const [playerName,setPlayerName]=useState("");
+  const [savedGame,setSavedGame]=useState(()=>{
+    try{
+      const saved=JSON.parse(localStorage.getItem(SAVE_KEY)||"null");
+      return saved?.state&&saved?.screen?saved:null;
+    }catch{return null;}
+  });
   const [tab,setTab]=useState("actions");
   const [modal,setModal]=useState(null);
   const [toast,setToast]=useState("");
   const [ventureGood,setVentureGood]=useState("phones");
   const [ventureChannel,setVentureChannel]=useState("ebay");
   const [ventureAmount,setVentureAmount]=useState(150);
+
+  useEffect(()=>{
+    if(!state||!["arrival","game"].includes(screen))return;
+    const saved={version:1,state,screen,tab,savedAt:Date.now()};
+    localStorage.setItem(SAVE_KEY,JSON.stringify(saved));
+    setSavedGame(saved);
+  },[state,screen,tab]);
+
+  function randomizeName(){
+    const zhNames=["林安","周宁","陈晓雨","王子涵","李明远","赵可欣","孙宇航","吴嘉禾"];
+    const deNames=["Mia Chen","Lina Wang","Leo Zhang","Noah Li","Emma Zhou","Felix Lin","Sophie Wu","Max Zhao"];
+    const names=lang==="de"?deNames:zhNames;
+    setPlayerName(names[Math.floor(Math.random()*names.length)]);
+  }
+
+  function continueGame(){
+    if(!savedGame?.state)return;
+    setState(savedGame.state);
+    setTab(savedGame.tab||"actions");
+    setScreen(savedGame.screen==="arrival"?"arrival":"game");
+    setModal(null);
+  }
+
+  function clearSavedGame(){
+    localStorage.removeItem(SAVE_KEY);
+    setSavedGame(null);
+    setState(null);
+    setScreen("intro");
+  }
 
   async function loadGuestbook(){
     setGuestbookLoading(true);setGuestbookError("");
@@ -546,8 +583,9 @@ export default function Home() {
   const prices=useMemo(()=>state?Object.fromEntries(GOODS.map(g=>[g.id,seededPrice(g,state.totalWeek,news)])): {},[state?.totalWeek,state?.newsIndex]);
   const stockPrices=useMemo(()=>state?Object.fromEntries(STOCKS.map(s=>[s.id,stockPrice(s,state.totalWeek)])): {},[state?.totalWeek]);
 
-  function start(profile){
-    setState({...profile,profileId:profile.id,month:1,week:1,totalWeek:0,jobId:"shift",inventory:{},inventoryCost:{},tradeLedger:[],marketVisitWeek:-1,marketLocation:null,stocks:{},stockCost:{},activeVenture:null,ventureLedger:[],packs:0,flags:{},seen:[],journal:[],newsIndex:0,capacity:6,businessRuns:0,lastDebtPaymentMonth:0,academicWarnings:0});
+  function start(profile,name=playerName){
+    const cleanName=name.trim()||(lang==="de"?"Mia Chen":"林安");
+    setState({...profile,name:cleanName,profileId:profile.id,month:1,week:1,totalWeek:0,jobId:"shift",inventory:{},inventoryCost:{},tradeLedger:[],marketVisitWeek:-1,marketLocation:null,stocks:{},stockCost:{},activeVenture:null,ventureLedger:[],packs:0,flags:{},seen:[],journal:[],newsIndex:0,capacity:6,businessRuns:0,lastDebtPaymentMonth:0,academicWarnings:0});
     setScreen("arrival"); setTab("actions"); setModal(null);
   }
 
@@ -794,7 +832,10 @@ export default function Home() {
   if(screen==="intro")return <Localize lang={lang}><main className="landing v2-intro">
     <div className="flagline"/>
     <nav><span className="brand"><b>AKTENLEBEN</b><small>{lang==="de"?"LEBEN IN AKTEN":"留德浮生记"}</small></span><div className="lang-switch"><button className={lang==="zh"?"active":""} onClick={()=>setLang("zh")}>中文</button><button className={lang==="de"?"active":""} onClick={()=>setLang("de")}>Deutsch</button></div></nav>
-    <section className="hero"><div className="kicker">{lang==="de"?"48 WOCHEN ZWISCHEN STUDIUM, ARBEIT UND AMT":"在学业、打工与官僚机构之间活过48周"}</div><h1>{lang==="de"?<>Ankommen.<br/><em>Ab Woche eins.</em></>:<>来到德国，<br/><em>从第一周开始。</em></>}</h1><p>{lang==="de"?"Du bist als internationaler Student gerade in Deutschland gelandet. Die Immatrikulation ist noch nicht vollständig, das Zimmer nur vorläufig und dein Deutsch gerade gut genug. Studium, Nebenjobs, Visum und jeder Brief können dieses Jahr verändern.":"你是一名刚抵达德国的外国大学生：学籍尚待激活、房间是临时的、德语勉强够用，还必须靠打工维持生活。课程、考试、签证和每一封信，都可能改变这一年。"}</p><div className="starting-file"><span>🎓</span><div><b>{lang==="de"?"Internationaler Student":"外国大学生"}</b><small>{lang==="de"?"1.900 € · 1.200 € Schulden · Deutsch B1 · Studienbeginn":"现金 1900€ · 债务 1200€ · 德语 B1 · 学业刚起步"}</small></div></div><div className="loop-preview"><span>{lang==="de"?"Studieren & jobben":"学习与打工"}</span><i>→</i><span>{lang==="de"?"Alltag bewältigen":"处理生活"}</span><i>→</i><span>{lang==="de"?"48 Wochen schaffen":"熬过 48 周"}</span></div><button className="primary" onClick={()=>start(PROFILES[0])}>{lang==="de"?"Flug nach Deutschland nehmen":"登上飞往德国的航班"} <span>✈</span></button></section>
+    <section className="hero"><div className="kicker">{lang==="de"?"48 WOCHEN ZWISCHEN STUDIUM, ARBEIT UND AMT":"在学业、打工与官僚机构之间活过48周"}</div><h1>{lang==="de"?<>Ankommen.<br/><em>Ab Woche eins.</em></>:<>来到德国，<br/><em>从第一周开始。</em></>}</h1><p>{lang==="de"?"Du bist als internationaler Student gerade in Deutschland gelandet. Die Immatrikulation ist noch nicht vollständig, das Zimmer nur vorläufig und dein Deutsch gerade gut genug. Studium, Nebenjobs, Visum und jeder Brief können dieses Jahr verändern.":"你是一名刚抵达德国的外国大学生：学籍尚待激活、房间是临时的、德语勉强够用，还必须靠打工维持生活。课程、考试、签证和每一封信，都可能改变这一年。"}</p>
+      {savedGame?.state&&<div className="continue-card"><span>自动存档</span><b>{savedGame.state.name} · {lang==="de"?`Monat ${savedGame.state.month}, Woche ${savedGame.state.week}`:`第 ${savedGame.state.month} 月 · 第 ${savedGame.state.week} 周`}</b><small>{lang==="de"?"Auf diesem Gerät gespeichert":"进度已保存在这台设备"}</small><div><button onClick={continueGame}>{lang==="de"?"Weiterspielen":"继续游戏"} →</button><button onClick={clearSavedGame}>{lang==="de"?"Löschen":"删除存档"}</button></div></div>}
+      <div className="name-setup"><label htmlFor="player-name">{lang==="de"?"Wie heißt du?":"给自己起个名字"}</label><div><input id="player-name" maxLength="18" value={playerName} onChange={event=>setPlayerName(event.target.value)} placeholder={lang==="de"?"Dein Name":"输入名字"}/><button type="button" onClick={randomizeName}>↻ {lang==="de"?"Zufällig":"随机生成"}</button></div><small>{lang==="de"?"Der Name erscheint in deiner Lebensakte.":"名字会显示在你的生活档案与自动存档中。"}</small></div>
+      <div className="starting-file"><span>🎓</span><div><b>{lang==="de"?"Internationaler Student":"外国大学生"}</b><small>{lang==="de"?"1.900 € · 1.200 € Schulden · Deutsch B1 · Studienbeginn":"现金 1900€ · 债务 1200€ · 德语 B1 · 学业刚起步"}</small></div></div><div className="loop-preview"><span>{lang==="de"?"Studieren & jobben":"学习与打工"}</span><i>→</i><span>{lang==="de"?"Alltag bewältigen":"处理生活"}</span><i>→</i><span>{lang==="de"?"48 Wochen schaffen":"熬过 48 周"}</span></div><button className="primary" onClick={()=>start(PROFILES[0])}>{lang==="de"?"Flug nach Deutschland nehmen":"登上飞往德国的航班"} <span>✈</span></button></section>
     <footer><span>{lang==="de"?"Kein Studienfach nötig":"无需预选专业"}</span><span>👁 {visitCount===null?"—":visitCount} {lang==="de"?"Besuche":"次访问"}</span><span>{lang==="de"?"Jede Woche formt dein Leben":"留德生活由每周选择形成"}</span></footer>
   </main></Localize>;
 
@@ -810,7 +851,7 @@ export default function Home() {
     const endingText=lang==="de"
       ?outcome==="excellent"?"Studium im Plan, schuldenfrei und trotzdem liegt schon der nächste Behördenbrief im Kasten. Angekommen ist vielleicht kein Zustand, sondern eine fortlaufende Akte.":outcome==="stable"?"Du hast 48 Wochen geschafft, den Studienanschluss gehalten und die Schulden unter Kontrolle gebracht. Das Leben geht weiter.":outcome==="probation"?`Du hast überlebt, aber ${state.study<65?"dein Studienfortschritt reicht nicht":"deine Schulden sind noch zu hoch"}. Deutschland gibt dir keine Niederlage, sondern eine weitere Frist.`:state.health<=0?"Dein Körper konnte nicht mehr.":state.stress>=100?"Der Stress hat die Grenze überschritten.":"Das Konto ist leer. Dein Leben in Deutschland endet vorerst hier."
       :outcome==="excellent"?"学业达标、债务清零，信箱里却已经躺着下一封政府来信。所谓安顿下来，也许只是学会继续处理下一份档案。":outcome==="stable"?"你坚持了48周，守住了学业，也把债务控制在可承受范围内。Das Leben geht weiter。":outcome==="probation"?`你活过了48周，但${state.study<65?"学业进度尚未达到续注册要求":"债务仍然过高"}。德国没有立即让你离开，只给了你下一份限期整改通知。`:state.health<=0?"身体先撑不住了。":state.stress>=100?"压力突破了极限。":"账户见底，留德生活暂时在这里结束。";
-    return <Localize lang={lang}><main className={`cinematic departure-scene ${outcome==="excellent"||outcome==="stable"?"continue":"farewell"}`}><div className="departure-sky"><div className="city-silhouette">▥ ▥ ▰ ▥ ▰ ▥</div><span className="departure-plane">✈</span></div><section><small>{survived?"48 WOCHEN GESCHAFFT":"ABFLUG"}</small><h1>{endingTitle}</h1><p>{endingText}</p><div className="score"><span>{lang==="de"?"Nettovermögen":"净资产"}<b>{net}€</b></span><span>{lang==="de"?"Studium":"学业进度"}<b>{state.study}</b></span><span>{lang==="de"?"Schulden":"剩余债务"}<b>{Math.round(state.debt)}€</b></span></div><button className="primary" onClick={()=>start(PROFILES[0])}>{lang==="de"?"Noch einmal einsteigen":"重新登机"} <span>↻</span></button></section></main></Localize>;
+    return <Localize lang={lang}><main className={`cinematic departure-scene ${outcome==="excellent"||outcome==="stable"?"continue":"farewell"}`}><div className="departure-sky"><div className="city-silhouette">▥ ▥ ▰ ▥ ▰ ▥</div><span className="departure-plane">✈</span></div><section><small>{survived?"48 WOCHEN GESCHAFFT":"ABFLUG"}</small><h1>{endingTitle}</h1><p>{endingText}</p><div className="score"><span>{lang==="de"?"Nettovermögen":"净资产"}<b>{net}€</b></span><span>{lang==="de"?"Studium":"学业进度"}<b>{state.study}</b></span><span>{lang==="de"?"Schulden":"剩余债务"}<b>{Math.round(state.debt)}€</b></span></div><button className="primary" onClick={()=>{clearSavedGame();setPlayerName(state.name||"");}}>{lang==="de"?"Noch einmal einsteigen":"重新登机"} <span>↻</span></button></section></main></Localize>;
   }
 
   const totalInventory=Object.values(state.inventory).reduce((a,b)=>a+b,0);
@@ -820,7 +861,7 @@ export default function Home() {
   const nextPeriod=lang==="de"?(state.week===4?`Monat ${state.month+1} · Woche 1`:`Monat ${state.month} · Woche ${state.week+1}`):(state.week===4?`第 ${state.month+1} 月 · 第 1 周`:`第 ${state.month} 月 · 第 ${state.week+1} 周`);
   return <Localize lang={lang}><main className="v2-game">
     <div className="sticky-status">
-    <header className="v2-head"><div className="current-period"><small>LEBENSAKTE · {lang==="de"?"Internationaler Student":state.name}</small><b>{lang==="de"?`Monat ${state.month} · Woche ${state.week}`:`第 ${state.month} 月 · 第 ${state.week} 周`}</b><em>{lang==="de"?"Nächste Aktion":"下次行动"} → {nextPeriod}</em></div><div className="head-tools"><div className="deadline"><small>{lang==="de"?"Jahresfortschritt":"年度进度"}</small><b>{Math.min(state.totalWeek,48)}/48</b><div className="header-weeks" aria-label={lang==="de"?"Monatsfortschritt":"本月进度"}>{[1,2,3,4].map(w=><i key={w} className={w<state.week?"done":w===state.week?"active":""}>{w}</i>)}</div></div><div className="lang-switch compact"><button className={lang==="zh"?"active":""} onClick={()=>setLang("zh")}>{lang==="de"?"ZH":"中"}</button><button className={lang==="de"?"active":""} onClick={()=>setLang("de")}>DE</button></div></div></header>
+    <header className="v2-head"><div className="current-period"><small>LEBENSAKTE · {state.name}</small><b>{lang==="de"?`Monat ${state.month} · Woche ${state.week}`:`第 ${state.month} 月 · 第 ${state.week} 周`}</b><em>{lang==="de"?"Nächste Aktion":"下次行动"} → {nextPeriod}</em></div><div className="head-tools"><div className="deadline"><small>{lang==="de"?"Jahresfortschritt":"年度进度"}</small><b>{Math.min(state.totalWeek,48)}/48</b><div className="header-weeks" aria-label={lang==="de"?"Monatsfortschritt":"本月进度"}>{[1,2,3,4].map(w=><i key={w} className={w<state.week?"done":w===state.week?"active":""}>{w}</i>)}</div></div><div className="lang-switch compact"><button className={lang==="zh"?"active":""} onClick={()=>setLang("zh")}>{lang==="de"?"ZH":"中"}</button><button className={lang==="de"?"active":""} onClick={()=>setLang("de")}>DE</button></div></div></header>
     <section className="v2-stats"><Stat label={lang==="de"?"Geld":"现金"} value={state.money} type="money"/><Stat label={lang==="de"?"Schulden":"债务"} value={state.debt} type="money" onClick={()=>setModal({type:"debtPay"})} hint={state.debt<=0?(lang==="de"?"Abbezahlt":"已还清"):(lang==="de"?"Zum Tilgen antippen":"点击还款")}/><Stat label={lang==="de"?"❤️ Gesundheit":"❤️ 健康"} value={state.health}/><Stat label={lang==="de"?"🧠 Stress":"🧠 压力"} value={state.stress} bad/></section>
     <section className="ability-stats" aria-label="能力与行政资源">
       <div title="行动会消耗精力；低于 18 时不能工作或接零工"><span>⚡ 精力</span><b>{state.energy}</b><small>{state.energy<18?"无法工作":state.energy<35?"需要休息":"可正常行动"}</small></div>
@@ -837,14 +878,13 @@ export default function Home() {
     </div>
 
     <section className="v2-panel">
-      {tab==="actions"&&<ProgressBenefits state={state} lang={lang}/>}
-      {tab==="actions"&&<WeeklyMarket state={state} lang={lang} prices={prices} onVisit={visitMarket} onTrade={trade}/>}
       {tab==="market"&&<TradeLedger state={state} lang={lang} prices={prices}/>}
       {tab==="guestbook"&&<><div className="panel-title"><div><small>GÄSTEBUCH</small><h2>{lang==="de"?"Gästebuch":"访客留言板"}</h2></div><span>👁 {visitCount===null?"—":visitCount} {lang==="de"?"Besuche":"次访问"}</span></div>
         <form className="guestbook-form" onSubmit={submitGuestbook}><label><span>{lang==="de"?"Name":"昵称"}</span><input maxLength="24" value={guestbookForm.nickname} onChange={event=>setGuestbookForm({...guestbookForm,nickname:event.target.value})} placeholder={lang==="de"?"Maximal 24 Zeichen":"最多24个字"}/></label><label><span>{lang==="de"?"Nachricht":"留言"}</span><textarea maxLength="300" rows="4" value={guestbookForm.message} onChange={event=>setGuestbookForm({...guestbookForm,message:event.target.value})} placeholder={lang==="de"?"Was möchtest du anderen Studierenden sagen?":"想对其他留学生或作者说些什么？"}/><small>{guestbookForm.message.length}/300</small></label><button disabled={guestbookLoading}>{guestbookLoading?(lang==="de"?"Wird gespeichert…":"正在提交…"):(lang==="de"?"Nachricht hinterlassen":"提交留言")}</button>{guestbookError&&<p className="guestbook-error">{guestbookError}</p>}</form>
         <div className="guestbook-list">{guestbookLoading&&!messages.length?<div className="empty">{lang==="de"?"Gästebuch wird geladen…":"正在读取留言…"}</div>:messages.length?messages.map(item=><article key={item.id}><header><b>{item.nickname}</b><time>{new Date(item.created_at).toLocaleDateString(lang==="de"?"de-DE":"zh-CN")}</time></header><p>{item.message}</p></article>):!guestbookError&&<div className="empty">{lang==="de"?"Noch keine Einträge. Schreib den ersten.":"还没有留言，来写下第一条吧。"}</div>}</div>
       </>}
       {tab==="actions"&&<><div className="panel-title"><div><small>WOCHE {state.totalWeek+1}</small><h2>这一周怎么过？</h2></div><span>每次只能选 1 项</span></div><div className="week-flow"><div className="week-node current"><small>现在</small><b>{lang==="de"?`Monat ${state.month} · Woche ${state.week}`:<>第 {state.month} 月 · 第 {state.week} 周</>}</b></div><div className="flow-arrow"><span>选择行动</span><b>→</b><small>消耗整整一周</small></div><div className="week-node next"><small>行动结束</small><b>{nextPeriod}</b></div><div className="month-weeks"><span>本月进度</span>{[1,2,3,4].map(w=><i key={w} className={w<state.week?"done":w===state.week?"active":""}><b>{w}</b><small>{lang==="de"?"Wo.":"周"}</small></i>)}</div></div><div className="current-job"><span>{currentJob.icon}</span><div><small>当前本职工作</small><b>{currentJob.name}</b></div><strong>{lang==="de"?`Wochenlohn ${currentWage}€`:`本周工资 ${currentWage}€`}</strong><button onClick={()=>setTab("career")}>更换职业</button></div><div className="stat-guide"><b>这些数值会怎样影响生活？</b><p><span>⚡ 精力</span>低于 18 不能工作或接零工；<span>🤝 人脉</span>达到 45 可能出现稳定岗位；<span>🗂️ 档案</span>与德语共同解锁职业；<span>📦 材料包</span>可在官僚事件中抵消约 55% 的主要损失。</p></div><div className="action-grid">{ACTIONS.map(a=>{const effect=a.planner?null:a.run(state);return <button key={a.id} onClick={()=>a.planner?setModal({type:"paperPlanner"}):doAction(a)} disabled={(a.id==="work"||a.id==="gig")&&state.energy<18}><i>{a.icon}</i><span><b>{a.name}</b><small>{a.id==="work"?`${currentJob.name} · 按当前工资结算`:a.sub}</small>{effect?<EffectBadges effect={effect} lang={lang}/>:<EffectBadges lang={lang} effect={{packs:1,papers:1,energy:-1,stress:1,money:1}}/>}</span><em>⏳ 推进1周</em></button>})}</div><div className="month-cost"><b>月末还会自动结算</b><span>{lang==="de"?"Nach Woche 4 beginnt ein neuer Monat: 780 € Lebenshaltungskosten und 3,5 % Schuldzinsen. Ereignisse verbrauchen keine zusätzliche Woche.":"第 4 周行动结束后进入下个月，并扣除生活费 780€、增加债务利息 3.5%。随机事件发生在已经消耗的这一周内，不会额外再走一周。"}</span></div></>}
+      {tab==="actions"&&<><ProgressBenefits state={state} lang={lang}/><WeeklyMarket state={state} lang={lang} prices={prices} onVisit={visitMarket} onTrade={trade}/></>}
 
       {tab==="market"&&<><div className="panel-title"><div><small>NEBENGEWERBE</small><h2>副业账本与进阶经营</h2></div><span>可选的进阶玩法</span></div><p className="market-tip">不想研究复杂规则，可以直接在“本周行动”选择“经营本周推荐商品”，系统会依据本周消息完成进货和销售。这里保留给想自己挑商品、渠道和投入金额的玩家。</p>
         <div className="venture-block"><div className="subhead"><b>① 选择要卖的东西</b><span>消息改变概率，不保证赚钱</span></div><div className="venture-goods">{HUSTLE_GOODS.map(g=>{const factor=ventureMarketFactor(state.newsIndex,g.id);const label=ventureMarketLabel(factor);return <button key={g.id} className={ventureGood===g.id?"selected":""} onClick={()=>setVentureGood(g.id)}><i>{g.icon}</i><b>{g.name}</b><small>预期毛利 {Math.round(g.margin*100)}% · 风险 {g.risk}</small><em className={factor>1.08?"market-up":factor<.93?"market-down":"market-flat"}>{label}{factor!==1?" · 盈利概率变化":""}</em></button>})}</div>
