@@ -303,12 +303,31 @@ footer{display:flex;justify-content:space-between;padding:16px 24px;font-size:9p
 /* Mobile action cockpit: the complete weekly choice set fits in the first view. */
 @media (max-width:799px){
   .sticky-status .academic-strip,.sticky-status .ticker,.sticky-status .time-rule{display:none}
+  .sticky-status .v2-head{height:48px;padding:5px 9px}
+  .sticky-status .current-period small{font-size:6px}.sticky-status .current-period b{font-size:14px;margin-top:1px}.sticky-status .current-period em{display:none}
+  .sticky-status .deadline small,.sticky-status .header-weeks{display:none}.sticky-status .deadline b{font-size:13px}
+  .sticky-status .v2-stat{padding:3px 5px}.sticky-status .v2-stat>span{font-size:7px}.sticky-status .v2-stat>b{font-size:11px}
   .sticky-status .ability-stats{grid-template-columns:repeat(3,1fr)}
-  .sticky-status .ability-stats>div{padding:4px 2px}
+  .sticky-status .ability-stats>div{padding:3px 2px}
+  .sticky-status .ability-stats span{font-size:7px}.sticky-status .ability-stats b{font-size:11px}
   .sticky-status .ability-stats small{display:none}
-  .sticky-status .tabs button{min-height:27px}
+  .sticky-status .tabs button{min-height:25px;font-size:8px}
   .v2-panel{min-height:0;padding:10px;margin-inline:6px}
-  .panel-title{padding-bottom:6px}.panel-title h2{font-size:20px}.panel-title>span{font-size:7px}
+  .panel-title{padding-bottom:5px}.panel-title h2{font-size:18px}.panel-title>span{font-size:7px}
+  .decision-title{margin-bottom:6px}.decision-title small{font-size:7px}.decision-title h2{margin-top:2px}
+  .weekly-pressure{grid-template-columns:1fr auto auto;padding:7px 8px;margin-bottom:6px;border-left-width:3px;gap:4px 6px}
+  .weekly-pressure b{font-size:9px}.weekly-pressure span{font-size:8px}.weekly-pressure em{display:none}
+  .rumor-card{padding:7px 8px;margin-bottom:7px}.rumor-card small{font-size:7px}.rumor-card p{font-size:10px;line-height:1.35;margin-top:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .featured-actions.five-actions{grid-template-columns:1fr 1fr;gap:6px}
+  .featured-actions.five-actions button{grid-template-columns:25px 1fr;gap:1px 6px;min-height:88px;padding:10px 8px;border-left-width:3px}
+  .featured-actions.five-actions i{grid-row:1/6;font-size:21px}.featured-actions.five-actions b{font-size:12px;padding-right:26px;line-height:1.25}
+  .featured-actions.five-actions small{font-size:8px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .featured-actions.five-actions strong{display:none}.featured-actions.five-actions em{font-size:8px;margin-top:3px}
+  .featured-actions.five-actions .choice-kind{right:5px;top:5px;padding:2px 4px;font-size:6px}
+  .featured-actions.five-actions .trade-choice{grid-column:1/-1;grid-template-columns:28px 1fr auto;min-height:66px;align-items:center}
+  .featured-actions.five-actions .trade-choice i{grid-row:1/4}.featured-actions.five-actions .trade-choice b{padding-right:32px}.featured-actions.five-actions .trade-choice small{-webkit-line-clamp:1}
+  .featured-actions.five-actions .trade-choice strong{display:block;grid-column:2;font-size:7px;color:#656a66}.featured-actions.five-actions .trade-choice em{grid-column:3;grid-row:1/4;align-self:center;white-space:nowrap;margin:0;padding-right:2px}
+  .more-actions{margin-top:7px}.more-actions summary{padding:7px 9px;font-size:8px}
   .current-job{grid-template-columns:22px 1fr auto auto;margin-top:7px;padding:5px 7px}
   .current-job>span{font-size:16px}.current-job small{display:none}.current-job b{font-size:9px;margin:0}.current-job strong,.current-job button{font-size:8px}.current-job button{grid-column:auto}
   .market-shortcut{width:100%;display:grid;grid-template-columns:22px auto 1fr auto;align-items:center;gap:6px;border:0;border-left:4px solid var(--yellow);background:var(--ink);color:white;padding:7px 8px;margin-top:5px;text-align:left;cursor:pointer;box-shadow:0 2px 0 #d9a822}
