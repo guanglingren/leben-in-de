@@ -53,6 +53,30 @@ const DE_EVENTS = [
   {id:"de-bread",title:"Du willst nur Brot und bekommst sieben Fragen",office:"BÄCKEREI",text:"Vollkorn, Roggen, Mischung; geschnitten oder ganz; dünn oder dick; bar oder Girocard.",choices:[
     {label:"Dasselbe wie die Person vor mir",effect:{money:-6,stress:-4,reputation:2},result:"Du bekommst ein zuverlässiges Brot, dessen Namen du nie erfahren wirst."},
     {label:"Jede Frage sorgfältig beantworten",effect:{money:-8,energy:-3,german:3},result:"Das war der reibungsloseste Verwaltungsvorgang deiner Woche."}
+  ]},
+  {id:"de-fax",title:"Die digitale Signatur ist ungültig, das Fax aber gültig",office:"AMT FÜR DIGITALISIERUNG",text:"Du hast ein digital signiertes PDF hochgeladen. Die Digitalisierungsstelle bittet dich, es auszudrucken, zu unterschreiben und zurückzufaxen.",choices:[
+    {label:"Im Schreibwarenladen faxen",effect:{money:-18,energy:-7,papers:10,stress:5},result:"Das Fax kommt an. Die Bestätigung wird per Briefpost verschickt."},
+    {label:"Die Vorschrift ausdrucken und mitschicken",effect:{money:-8,energy:-11,papers:13,stress:8},result:"Drei Wochen später kommt die Antwort: Dein Schreiben wurde als PDF eingescannt."}
+  ]},
+  {id:"de-termin2",title:"Dieser Termin dient nur dazu, einen anderen Termin zu buchen",office:"BÜRGERBÜRO",text:"Am Schalter erfährst du, dass heute nur deine Identität geprüft wird. Für den eigentlichen Vorgang brauchst du eine neue Wartenummer.",choices:[
+    {label:"Höflich eine neue Nummer nehmen",effect:{energy:-9,stress:8,papers:7},result:"Der neue Termin ist in acht Wochen – im selben Gebäude, am selben Schalter."},
+    {label:"Fragen, ob es heute gleich erledigt werden kann",effect:{energy:-14,stress:12,reputation:-2},result:"Man erklärt dir gewissenhaft, warum „gleich miterledigen“ kein Begriff des Verwaltungsrechts ist."}
+  ]},
+  {id:"de-letter",title:"Ein Brief kündigt an, dass ein weiterer Brief kommt",office:"VERSICHERUNG",text:"Seite eins erklärt, der eigentliche Bescheid werde separat verschickt. Seite zwei erklärt, gegen diese Mitteilung solle kein Widerspruch eingelegt werden.",choices:[
+    {label:"Einen neuen Aktenordner dafür anlegen",effect:{money:-6,papers:8,stress:4},result:"Der Ordnerrücken lautet: Noch nicht erhalten, aber aufbewahrungspflichtig."},
+    {label:"Den Brief erst einmal auf den Stapel legen",effect:{stress:7,papers:-4},result:"Drei Wochen später kommt der Bescheid. Nun fehlt die Nummer aus dem Ankündigungsbrief."}
+  ]},
+  {id:"de-bio",title:"Dein Biomüllbeutel ist nicht bio genug",office:"ABFALLBERATUNG",text:"Die Stadt empfiehlt kompostierbare Beutel. Der Entsorger erklärt, seine Anlage könne genau diese Beutel nicht erkennen.",choices:[
+    {label:"Küchenabfälle in Zeitungspapier wickeln",effect:{energy:-4,papers:3,reputation:4},result:"Auf der Zeitung steht, dass die Stadt papierlos werden will."},
+    {label:"Amtlich anerkannte Papiertüten kaufen",effect:{money:-12,stress:3},result:"Die Tüte ist undicht, bevor du den Müllraum erreichst."}
+  ]},
+  {id:"de-parcelshop",title:"Der Paketshop ist offen, aber die Paketperson ist nicht da",office:"PAKETSHOP",text:"Der Laden ist geöffnet und der Inhaber ist da. Nur der Kollege, der das Paketsystem bedienen kann, hat frei.",choices:[
+    {label:"Morgen wiederkommen",effect:{energy:-5,stress:4},result:"Morgen wird das System gewartet, übermorgen ist Sonntag."},
+    {label:"Das Gerät gemeinsam untersuchen",effect:{energy:-9,reputation:5,papers:3},result:"Du startest das Gerät neu und leistest kostenlos zehn Minuten IT-Support."}
+  ]},
+  {id:"de-internet",title:"Das Internetproblem lässt sich nur online melden",office:"INTERNETANBIETER",text:"Die Leitung ist ausgefallen. Die Hotline verweist auf den Onlinechat; der Onlinechat verlangt eine Verbindung mit deinem Heim-WLAN.",choices:[
+    {label:"Mit mobilen Daten einen Hotspot öffnen",effect:{money:-24,energy:-8,stress:6},result:"Die Diagnose bestätigt, dass deine Internetverbindung nicht funktioniert."},
+    {label:"Den Router zehn Sekunden vom Strom trennen",effect:{energy:-3,stress:-2},result:"Es funktioniert tatsächlich. Kurz darauf kommt die Zufriedenheitsumfrage."}
   ]}
 ];
 
@@ -414,6 +438,68 @@ Object.assign(DE_UI,{
   "未通过：扣除补办费用并增加压力，学业需达到 ":"nicht bestanden: zusätzliche Gebühren und Stress; erforderlich sind "
   ,"达到60解锁 HiWi，并降低大学事件压力":"Ab 60: HiWi-Job und weniger Stress bei Uni-Ereignissen"
   ,"留言板":"Gästebuch"
+  ,"这周，把时间花在哪里？":"Wofür nutzt du diese Woche?"
+  ,"四种主动方向，只能最终执行一种":"Vier Möglichkeiten – entscheide dich für eine"
+  ,"完成交易后进入下一周":"Schließe den Handel ab und gehe in die nächste Woche"
+  ,"必须在第 48 周前留下来":"Du musst bis Woche 48 eine Perspektive aufgebaut haben"
+  ,"本周线索 · 会影响际遇和市场，但不保证准确":"Hinweis der Woche · beeinflusst Ereignisse und Preise, ohne Garantie"
+  ,"精力":"Energie"
+  ,"自我提升":"Weiterentwicklung"
+  ,"经营关系":"Kontakte"
+  ,"工作 / 休息":"Arbeiten / Erholen"
+  ,"工作或休息":"Arbeiten oder erholen"
+  ,"提升留德能力":"Perspektive in Deutschland verbessern"
+  ,"本周侧重课程与考试，稳定推进留德能力":"Diese Woche liegt der Schwerpunkt auf Kursen und Prüfungen"
+  ,"本周侧重德语与沟通，稳定推进留德能力":"Diese Woche liegt der Schwerpunkt auf Deutsch und Kommunikation"
+  ,"经营社会资源":"Soziale Ressourcen aufbauen"
+  ,"参加社区活动，积累联系人并练习沟通":"An einer Nachbarschaftsaktion teilnehmen, Kontakte knüpfen und Deutsch üben"
+  ,"交易":"Handel"
+  ,"先查看详情 →":"Details ansehen →"
+  ,"查看不会推进时间":"Ansehen kostet keine Zeit"
+  ,"行动之后，生活仍可能找上门":"Nach der Aktion kann der Alltag dazwischenkommen"
+  ,"查看和返回不推进时间；确定行动后，约六成周次会随机遇到办事推诿、系统矛盾或教条规定。":"Ansehen und Zurückgehen kosten keine Zeit. Nach einer bestätigten Aktion tritt in etwa sechs von zehn Wochen ein unerwartetes Alltagsereignis ein."
+  ,"展开看病与其他生活安排":"Arztbesuch und weitere Alltagsoptionen anzeigen"
+  ,"本周方案 · 尚未执行":"Wochenplan · noch nicht ausgeführt"
+  ,"现在只是查看方案":"Du siehst dir den Plan nur an"
+  ,"可以返回比较其他选择；确认后才会推进一周。下方已计入每周自然恢复的 10 点精力。":"Du kannst zurückgehen und vergleichen. Erst die Bestätigung lässt eine Woche vergehen. Die natürliche Erholung von 10 Energie ist bereits eingerechnet."
+  ,"工作，还是先恢复精力？":"Arbeiten oder erst Energie tanken?"
+  ,"确定执行，推进一周":"Ausführen und eine Woche weiter"
+  ,"精力不足，无法工作":"Zu wenig Energie zum Arbeiten"
+  ,"🛌 这周休息":"🛌 Diese Woche erholen"
+  ,"精力共恢复 40 · 健康 +8 · 压力 -10 · 生活支出 18€":"Energie insgesamt +40 · Gesundheit +8 · Stress -10 · Ausgaben 18 €"
+  ,"恢复后再工作 →":"Erholen und später arbeiten →"
+  ,"← 返回比较其他选择":"← Zurück und andere Optionen vergleichen"
+  ,"周末事件 · 已经发生":"Unerwartetes Ereignis · bereits eingetreten"
+  ,"本周行动已经完成":"Die Wochenaktion ist abgeschlossen"
+  ,"这个事件必须处理；可以暂时收起查看状态，但不能改选本周行动。":"Dieses Ereignis muss geklärt werden. Du kannst es kurz minimieren, aber die Wochenaktion nicht mehr ändern."
+  ,"暂时收起查看状态 · 之后仍需处理":"Kurz minimieren · später weiterbearbeiten"
+  ,"留德能力":"Perspektive"
+  ,"社会资源":"Soziale Ressourcen"
+  ,"成长与职业":"Entwicklung und Beruf"
+  ,"记录":"Verlauf"
+  ,"工作":"Arbeit"
+  ,"能力与行政资源":"Fähigkeiten und soziale Ressourcen"
+  ,"行动会消耗精力；低于 18 时不能工作或接零工":"Aktionen kosten Energie; unter 18 kannst du weder arbeiten noch jobben"
+  ,"由学业与德语共同构成；影响工资、检查和职业":"Setzt sich aus Studium und Deutsch zusammen und beeinflusst Lohn, Kontrollen und Jobs"
+  ,"由人脉与档案共同构成；影响事件损失和职业":"Setzt sich aus Kontakten und Akte zusammen und beeinflusst Ereignisverluste und Jobs"
+  ,"事件减损已生效":"Ereignisschutz aktiv"
+  ,"45 后降低损失":"Ab 45 sinken Verluste"
+  ,"工资":"Lohn"
+  ,"只关注两个成长指标":"Zwei zentrale Entwicklungswerte"
+  ,"“留德能力”整合学业与德语，“社会资源”整合人脉与档案。它们直接决定事件减损、学业检查、工资成长和职业解锁。":"„Perspektive“ verbindet Studium und Deutsch; „Soziale Ressourcen“ verbinden Kontakte und Akte. Beide beeinflussen Ereignisschutz, Studienkontrollen, Lohnentwicklung und Jobzugang."
+  ,"留德能力工资加成":"Lohnbonus durch Perspektive"
+  ,"事件综合减损":"Gesamter Ereignisschutz"
+  ,"已生效":"aktiv"
+  ,"社会资源45后生效":"ab 45 sozialen Ressourcen"
+  ,"周薪":"Wochenlohn"
+  ,"无门槛":"Keine Voraussetzung"
+  ,"这周，你选择了交易":"Diese Woche hast du den Handel gewählt"
+  ,"本周行动已锁定":"Wochenaktion festgelegt"
+  ,"交易进行中":"Handel läuft"
+  ,"可以继续买卖；完成入口已固定在屏幕底部。":"Du kannst weiter handeln; der Abschluss bleibt unten am Bildschirm erreichbar."
+  ,"本周已选择交易":"Handel als Wochenaktion gewählt"
+  ,"还可以继续买卖":"Du kannst noch weiter handeln"
+  ,"结束交易，进入下一周 →":"Handel beenden und nächste Woche beginnen →"
 });
 
 function deText(value){
@@ -427,6 +513,15 @@ function deText(value){
     .replace(/持有 (\d+)/g,"Bestand $1")
     .replace(/均价 (\d+)€/g,"Einstand $1 €")
     .replace(/储物 (\d+)\/(\d+)/g,"Lager $1/$2")
+    .replace(/还剩 (\d+) 周/g,"noch $1 Wochen")
+    .replace(/下一次月末结算还有 (\d+) 周/g,"Nächste Monatsabrechnung in $1 Wochen")
+    .replace(/本周结束扣生活费 (\d+)€/g,"Am Wochenende werden $1 € Lebenshaltungskosten abgebucht")
+    .replace(/工作可得约 (\d+)€；也可选择休息恢复精力/g,"Arbeit bringt etwa $1 €; alternativ kannst du dich erholen")
+    .replace(/当前精力不足以工作，可休息恢复约 (\d+) 点精力/g,"Zu wenig Energie zum Arbeiten; Erholung bringt etwa $1 Energie")
+    .replace(/做 (.+) 预计获得约 (\d+)€；如果撑不住，也可以把这周用于休息。/g,"Im Job „$1“ erhältst du voraussichtlich etwa $2 €. Wenn es zu viel wird, kannst du diese Woche zur Erholung nutzen.")
+    .replace(/周薪 (\d+)€/g,"Wochenlohn $1 €")
+    .replace(/社会资源(\d+)后生效/g,"aktiv ab $1 sozialen Ressourcen")
+    .replace(/(\d+) 个事件/g,"$1 Ereignisse")
     .replace(/消耗 1 份材料包/g,"Verbraucht 1 Unterlagenpaket")
     .replace(/当前不足/g,"nicht vorhanden")
     .replace(/投入 (\d+)€ 开始批次/g,"$1 € einsetzen und Projekt starten");
@@ -664,7 +759,7 @@ export default function Home() {
     if(state.energy<minimumEnergy){setToast(lang==="de"?`Für diese Aktion brauchst du mindestens ${minimumEnergy} Energie.`:`精力至少需要 ${minimumEnergy} 才能进行这项行动。`);setModal(null);return;}
     const actionEffect=action.run(state);
     let next=applyEffect(state,actionEffect);
-    next=applyEffect(next,{energy:4});
+    next=applyEffect(next,{energy:10});
     const progressNotes=[];
     if(action.id==="learn"){
       if(state.german<50&&next.german>=50){next=applyEffect(next,{stress:-4,papers:3});progressNotes.push("德语达到50：日常沟通更顺，压力降低并补全了一部分档案。");}
@@ -919,6 +1014,7 @@ export default function Home() {
   const restAction=ACTIONS.find(a=>a.id==="rest");
   const tradeChoice={id:"browse-trade",icon:"🛒",name:totalInventory>0?"看看手上的货":"去交易平台看看",sub:totalInventory>0?"先查看之前买入的商品现在赚了还是赔了":"浏览全部商品与本周报价；查看不消耗时间",risk:"第一笔成交后，本周行动确定为交易"};
   const previewAction=action=>setModal({type:"actionPreview",action});
+  const previewEffect=action=>{const effect=action.run(state);return {...effect,energy:(effect.energy||0)+10};};
   const nextPeriod=lang==="de"?(state.week===4?`Monat ${state.month+1} · Woche 1`:`Monat ${state.month} · Woche ${state.week+1}`):(state.week===4?`第 ${state.month+1} 月 · 第 1 周`:`第 ${state.month} 月 · 第 ${state.week+1} 周`);
   return <Localize lang={lang}><main className="v2-game">
     <div className="sticky-status">
@@ -941,7 +1037,7 @@ export default function Home() {
         <form className="guestbook-form" onSubmit={submitGuestbook}><label><span>{lang==="de"?"Name":"昵称"}</span><input maxLength="24" value={guestbookForm.nickname} onChange={event=>setGuestbookForm({...guestbookForm,nickname:event.target.value})} placeholder={lang==="de"?"Maximal 24 Zeichen":"最多24个字"}/></label><label><span>{lang==="de"?"Nachricht":"留言"}</span><textarea maxLength="300" rows="4" value={guestbookForm.message} onChange={event=>setGuestbookForm({...guestbookForm,message:event.target.value})} placeholder={lang==="de"?"Was möchtest du anderen Studierenden sagen?":"想对其他留学生或作者说些什么？"}/><small>{guestbookForm.message.length}/300</small></label><button disabled={guestbookLoading}>{guestbookLoading?(lang==="de"?"Wird gespeichert…":"正在提交…"):(lang==="de"?"Nachricht hinterlassen":"提交留言")}</button>{guestbookError&&<p className="guestbook-error">{guestbookError}</p>}</form>
         <div className="guestbook-list">{guestbookLoading&&!messages.length?<div className="empty">{lang==="de"?"Gästebuch wird geladen…":"正在读取留言…"}</div>:messages.length?messages.map(item=><article key={item.id}><header><b>{item.nickname}</b><time>{new Date(item.created_at).toLocaleDateString(lang==="de"?"de-DE":"zh-CN")}</time></header><p>{item.message}</p></article>):!guestbookError&&<div className="empty">{lang==="de"?"Noch keine Einträge. Schreib den ersten.":"还没有留言，来写下第一条吧。"}</div>}</div>
       </>}
-      {tab==="actions"&&<div id="weekly-actions"><div className="panel-title decision-title"><div><small>WOCHE {state.totalWeek+1} · 还剩 {48-state.totalWeek} 周</small><h2>{state.marketVisitWeek===state.totalWeek?"这周，你选择了交易":"这周，把时间花在哪里？"}</h2></div><span>{state.marketVisitWeek===state.totalWeek?"完成交易后进入下一周":"四种主动方向，只能最终执行一种"}</span></div><div className="weekly-pressure"><b>必须在第 48 周前留下来</b><span>🎓 留德能力 {ability}/65</span><span>🏦 债务 {Math.round(state.debt)}/600€</span><em>{state.week===4?"⚠ 本周结束扣生活费 780€":"下一次月末结算还有 "+(5-state.week)+" 周"}</em></div><div className="rumor-card"><small>本周线索 · 会影响际遇和市场，但不保证准确</small><p>{lang==="de"?DE_NEWS[state.newsIndex]:news.text}</p></div><div className="featured-actions five-actions">{[...featuredChoices,tradeChoice].map(a=>{const isTrade=a.id==="browse-trade";return <button key={a.id} className={isTrade?"trade-choice":""} onClick={()=>isTrade?openTrading():previewAction(a)} disabled={!isTrade&&state.marketVisitWeek===state.totalWeek}><span className="choice-kind">{isTrade?"交易":a.id==="work"?"精力":a.category}</span><i>{a.id==="work"&&state.energy<35?"🛌":a.icon}</i><b>{a.id==="work"?state.energy<35?"工作或休息":`工作 / 休息`:a.name}</b><small>{a.id==="work"?state.energy<18?`当前精力不足以工作，可休息恢复约 34 点精力`:`工作可得约 ${currentWage}€；也可选择休息恢复精力`:a.sub}</small>{(a.risk||isTrade)&&<strong>{isTrade?a.risk:a.risk}</strong>}<em>{isTrade?(state.marketVisitWeek===state.totalWeek?"继续查看持仓 →":totalInventory>0?"查看持仓盈亏 →":"查看全部报价 →"):"先查看详情 →"}</em></button>})}</div><details className="more-actions"><summary>展开看病与其他生活安排</summary><div className="action-grid">{ACTIONS.filter(a=>!["work","rest","study","learn","social"].includes(a.id)).map(a=><button key={a.id} onClick={()=>a.planner?setModal({type:"paperPlanner"}):previewAction(a)} disabled={(a.id==="gig"&&state.energy<18)||state.marketVisitWeek===state.totalWeek}><i>{a.icon}</i><span><b>{a.name}</b><small>{a.sub}</small></span><em>先查看</em></button>)}</div></details><div className="month-cost"><b>行动之后，生活仍可能找上门</b><span>查看和返回不推进时间；确定行动后，约六成周次会随机遇到办事推诿、系统矛盾或教条规定。</span></div></div>}
+      {tab==="actions"&&<div id="weekly-actions"><div className="panel-title decision-title"><div><small>WOCHE {state.totalWeek+1} · 还剩 {48-state.totalWeek} 周</small><h2>{state.marketVisitWeek===state.totalWeek?"这周，你选择了交易":"这周，把时间花在哪里？"}</h2></div><span>{state.marketVisitWeek===state.totalWeek?"完成交易后进入下一周":"四种主动方向，只能最终执行一种"}</span></div><div className="weekly-pressure"><b>必须在第 48 周前留下来</b><span>🎓 留德能力 {ability}/65</span><span>🏦 债务 {Math.round(state.debt)}/600€</span><em>{state.week===4?"⚠ 本周结束扣生活费 780€":"下一次月末结算还有 "+(5-state.week)+" 周"}</em></div><div className="rumor-card"><small>本周线索 · 会影响际遇和市场，但不保证准确</small><p>{lang==="de"?DE_NEWS[state.newsIndex]:news.text}</p></div><div className="featured-actions five-actions">{[...featuredChoices,tradeChoice].map(a=>{const isTrade=a.id==="browse-trade";return <button key={a.id} className={isTrade?"trade-choice":""} onClick={()=>isTrade?openTrading():previewAction(a)} disabled={!isTrade&&state.marketVisitWeek===state.totalWeek}><span className="choice-kind">{isTrade?"交易":a.id==="work"?"精力":a.category}</span><i>{a.id==="work"&&state.energy<35?"🛌":a.icon}</i><b>{a.id==="work"?state.energy<35?"工作或休息":`工作 / 休息`:a.name}</b><small>{a.id==="work"?state.energy<18?`当前精力不足以工作，可休息恢复约 40 点精力`:`工作可得约 ${currentWage}€；也可选择休息恢复精力`:a.sub}</small>{(a.risk||isTrade)&&<strong>{isTrade?a.risk:a.risk}</strong>}<em>{isTrade?(state.marketVisitWeek===state.totalWeek?"继续查看持仓 →":totalInventory>0?"查看持仓盈亏 →":"查看全部报价 →"):"先查看详情 →"}</em></button>})}</div><details className="more-actions"><summary>展开看病与其他生活安排</summary><div className="action-grid">{ACTIONS.filter(a=>!["work","rest","study","learn","social"].includes(a.id)).map(a=><button key={a.id} onClick={()=>a.planner?setModal({type:"paperPlanner"}):previewAction(a)} disabled={(a.id==="gig"&&state.energy<18)||state.marketVisitWeek===state.totalWeek}><i>{a.icon}</i><span><b>{a.name}</b><small>{a.sub}</small></span><em>先查看</em></button>)}</div></details><div className="month-cost"><b>行动之后，生活仍可能找上门</b><span>查看和返回不推进时间；确定行动后，约六成周次会随机遇到办事推诿、系统矛盾或教条规定。</span></div></div>}
       {tab==="actions"&&<>{state.marketVisitWeek===state.totalWeek&&<div className="trade-selected-action compact"><i>🛒</i><span><small>本周行动已锁定</small><b>交易进行中</b><p>可以继续买卖；完成入口已固定在屏幕底部。</p></span></div>}<WeeklyMarket state={state} lang={lang} prices={prices} onTrade={trade}/></>}
 
       {tab==="market"&&<><div className="panel-title"><div><small>NEBENGEWERBE</small><h2>副业账本与进阶经营</h2></div><span>可选的进阶玩法</span></div><p className="market-tip">不想研究复杂规则，可以直接在“本周行动”选择“经营本周推荐商品”，系统会依据本周消息完成进货和销售。这里保留给想自己挑商品、渠道和投入金额的玩家。</p>
@@ -962,7 +1058,7 @@ export default function Home() {
     {modal?.type==="debtPay"&&<div className="modal-backdrop"><article className="event-modal debt-modal"><div className="modal-top"><span>SCHULDEN</span><b>{lang==="de"?"Schulden tilgen":"偿还债务"}</b></div><h2>{Math.round(state.debt)} €</h2><p>{lang==="de"?"Einmal pro Monat kannst du bis zu 250 € tilgen. Mindestens 200 € müssen für den Alltag auf dem Konto bleiben.":"每月可以还款一次，最多偿还 250€；账户必须至少保留 200€ 生活备用金。"}</p><div className="debt-preview"><span>{lang==="de"?"Verfügbares Geld":"当前现金"}<b>{Math.round(state.money)}€</b></span><span>{lang==="de"?"Tilgung jetzt":"本次可还"}<b>{Math.max(0,Math.round(Math.min(250,state.money-200,state.debt)))}€</b></span></div><button className="primary" onClick={payDebt} disabled={state.lastDebtPaymentMonth===state.month||state.debt<=0||state.money<=200}>{state.debt<=0?(lang==="de"?"Schulden abbezahlt":"债务已还清"):state.lastDebtPaymentMonth===state.month?(lang==="de"?"Diesen Monat bereits getilgt":"本月已经还款"):state.money<=200?(lang==="de"?"Nicht genug Reserve":"现金不足，需保留 200€"):(lang==="de"?"Jetzt tilgen":"立即还款")} <span>→</span></button><button className="secondary" onClick={()=>setModal(null)}>{lang==="de"?"Schließen":"暂不还款"}</button></article></div>}
     {modal?.type==="event"&&modal.minimized&&<button className="pending-event" onClick={()=>setModal({...modal,minimized:false})}><span>{modal.event.office}</span><b>待处理：{modal.event.title}</b><em>继续处理 →</em></button>}
     {modal&&!modal.minimized&&modal.type!=="debtPay"&&<div className="modal-backdrop"><article className="event-modal">
-      {modal.type==="actionPreview"?<><div className="modal-top"><span>{modal.action.category||"生活安排"}</span><b>本周方案 · 尚未执行</b></div><div className="decision-state optional"><b>现在只是查看方案</b><span>可以返回比较其他选择；确认后才会推进一周。</span></div><h2>{modal.action.id==="work"?`工作，还是先恢复精力？`:modal.action.name}</h2><p>{modal.action.id==="work"?`做 ${currentJob.name} 预计获得约 ${currentWage}€；如果撑不住，也可以把这周用于休息。`:modal.action.sub}</p><div className="action-effect-preview">{Object.entries(modal.action.run(state)).map(([k,v])=><span key={k}><small>{effectNames[k]}</small><b className={v>=0?"profit":"loss"}>{v>0?"+":""}{v}{k==="money"?"€":""}</b></span>)}</div>{modal.action.risk&&<div className="preview-risk">{modal.action.risk}</div>}<button className="primary" disabled={modal.action.id==="work"&&state.energy<18} onClick={()=>doAction(modal.action,true)}>{modal.action.id==="work"&&state.energy<18?"精力不足，无法工作":"确定执行，推进一周"} <span>→</span></button>{modal.action.id==="work"&&<button className="recovery-choice" onClick={()=>doAction(restAction,true)}><b>🛌 这周休息</b><span>精力 +30 · 健康 +8 · 压力 -10 · 生活支出 18€</span><em>恢复后再工作 →</em></button>}<button className="secondary" onClick={()=>setModal(null)}>← 返回比较其他选择</button></>:modal.type==="paperPlanner"?<><div className="modal-top"><span>AKTIONSWAHL</span><b>行动方案 · 尚未执行</b></div><div className="decision-state optional"><b>现在只是查看方案</b><span>尚未消耗时间，可以返回改选工作、学习、休息或交易。</span></div><h2>这周具体跑什么手续？</h2><p>只有选择下面一项，才会把“处理手续”确定为本周行动并推进一周。</p><div className="paper-tasks">{PAPER_TASKS.map(task=><button key={task.id} onClick={()=>doPaperTask(task)}><b>{task.icon} {task.name}</b><span>{task.sub}</span><em>{Object.entries(task.effect).map(([k,v])=>`${effectNames[k]} ${v>0?"+":""}${v}`).join(" · ")}</em></button>)}</div><button className="secondary" onClick={()=>setModal(null)}>← 返回本周选择 · 不推进时间</button></>:modal.type==="event"?<><div className="modal-top"><span>{modal.event.office}</span><b>周末事件 · 已经发生</b></div><div className="decision-state required"><b>本周行动已经完成</b><span>这个事件必须处理；可以暂时收起查看状态，但不能改选本周行动。</span></div><div className="time-passed">{modal.timeLabel}<small>{modal.actionName}已经用掉一周</small></div><h2>{modal.event.title}</h2><p>{modal.event.text}</p><div className="modal-choices">{modal.event.choices.map(c=><button key={c.label} onClick={()=>chooseEvent(c,modal.event)}><b>{c.label}</b><span>{Object.entries(c.effect||{}).map(([k,v])=>`${effectNames[k]} ${v>0?"+":""}${v}`).join(" · ")}</span></button>)}</div><button className="secondary inspect-state" onClick={()=>setModal({...modal,minimized:true})}>暂时收起查看状态 · 之后仍需处理</button></>:modal.type==="weekResult"?<><div className="modal-top"><span>WOCHENABSCHLUSS</span><b>周结算</b></div><div className="time-passed large">{modal.timeLabel}<small>时间已经推进</small></div><h2>这一周结束了</h2><p>{modal.actionName}已经完成。{modal.monthSummary||"新的市场价格和生活状态已经更新。"}</p><button className="primary" onClick={()=>setModal(null)}>进入新的一周 <span>→</span></button></>:modal.type==="ventureResult"?<><div className="modal-top"><span>NEBENGEWERBE</span><b>经营结算</b></div><div className="holding-period">持有 {modal.ledger.heldWeeks} 周后结算<small>开始和结算本身均不耗时间</small></div><h2>{modal.title}</h2><p>{modal.result}</p><div className="venture-result-numbers"><span>总投入<b>{modal.ledger.invested}€</b><small>本金 {modal.ledger.capital}€ + 渠道 {modal.ledger.fee}€</small></span><span>回收金额<b>{modal.ledger.returned}€</b><small>实际回到账户的价值</small></span><span>净利润<b className={modal.ledger.profit>=0?"profit":"loss"}>{modal.ledger.profit>=0?"+":""}{modal.ledger.profit}€</b><small>回收 − 总投入</small></span></div><button className="primary" onClick={()=>setModal(null)}>完成结算 <span>→</span></button></>:<><div className="modal-top"><span>AUSWIRKUNG</span><b>处理结果</b></div>{modal.timeLabel&&<div className="time-passed">{modal.timeLabel}<small>事件发生在已经消耗的这一周</small></div>}<h2>{modal.choice.label}</h2><p>{modal.choice.result}</p>{modal.languageRelief>0&&<div className="language-relief">🗣️ 德语能力令本次压力额外减少 {modal.languageRelief} 点</div>}<button className="primary" onClick={()=>setModal(null)}>进入新的一周 <span>→</span></button></>}
+      {modal.type==="actionPreview"?<><div className="modal-top"><span>{modal.action.category||"生活安排"}</span><b>本周方案 · 尚未执行</b></div><div className="decision-state optional"><b>现在只是查看方案</b><span>可以返回比较其他选择；确认后才会推进一周。下方已计入每周自然恢复的 10 点精力。</span></div><h2>{modal.action.id==="work"?`工作，还是先恢复精力？`:modal.action.name}</h2><p>{modal.action.id==="work"?`做 ${currentJob.name} 预计获得约 ${currentWage}€；如果撑不住，也可以把这周用于休息。`:modal.action.sub}</p><div className="action-effect-preview">{Object.entries(previewEffect(modal.action)).map(([k,v])=><span key={k}><small>{effectNames[k]}</small><b className={v>=0?"profit":"loss"}>{v>0?"+":""}{v}{k==="money"?"€":""}</b></span>)}</div>{modal.action.risk&&<div className="preview-risk">{modal.action.risk}</div>}<button className="primary" disabled={modal.action.id==="work"&&state.energy<18} onClick={()=>doAction(modal.action,true)}>{modal.action.id==="work"&&state.energy<18?"精力不足，无法工作":"确定执行，推进一周"} <span>→</span></button>{modal.action.id==="work"&&<button className="recovery-choice" onClick={()=>doAction(restAction,true)}><b>🛌 这周休息</b><span>精力共恢复 40 · 健康 +8 · 压力 -10 · 生活支出 18€</span><em>恢复后再工作 →</em></button>}<button className="secondary" onClick={()=>setModal(null)}>← 返回比较其他选择</button></>:modal.type==="paperPlanner"?<><div className="modal-top"><span>AKTIONSWAHL</span><b>行动方案 · 尚未执行</b></div><div className="decision-state optional"><b>现在只是查看方案</b><span>尚未消耗时间，可以返回改选工作、学习、休息或交易。</span></div><h2>这周具体跑什么手续？</h2><p>只有选择下面一项，才会把“处理手续”确定为本周行动并推进一周。</p><div className="paper-tasks">{PAPER_TASKS.map(task=><button key={task.id} onClick={()=>doPaperTask(task)}><b>{task.icon} {task.name}</b><span>{task.sub}</span><em>{Object.entries(task.effect).map(([k,v])=>`${effectNames[k]} ${v>0?"+":""}${v}`).join(" · ")}</em></button>)}</div><button className="secondary" onClick={()=>setModal(null)}>← 返回本周选择 · 不推进时间</button></>:modal.type==="event"?<><div className="modal-top"><span>{modal.event.office}</span><b>周末事件 · 已经发生</b></div><div className="decision-state required"><b>本周行动已经完成</b><span>这个事件必须处理；可以暂时收起查看状态，但不能改选本周行动。</span></div><div className="time-passed">{modal.timeLabel}<small>{modal.actionName}已经用掉一周</small></div><h2>{modal.event.title}</h2><p>{modal.event.text}</p><div className="modal-choices">{modal.event.choices.map(c=><button key={c.label} onClick={()=>chooseEvent(c,modal.event)}><b>{c.label}</b><span>{Object.entries(c.effect||{}).map(([k,v])=>`${effectNames[k]} ${v>0?"+":""}${v}`).join(" · ")}</span></button>)}</div><button className="secondary inspect-state" onClick={()=>setModal({...modal,minimized:true})}>暂时收起查看状态 · 之后仍需处理</button></>:modal.type==="weekResult"?<><div className="modal-top"><span>WOCHENABSCHLUSS</span><b>周结算</b></div><div className="time-passed large">{modal.timeLabel}<small>时间已经推进</small></div><h2>这一周结束了</h2><p>{modal.actionName}已经完成。{modal.monthSummary||"新的市场价格和生活状态已经更新。"}</p><button className="primary" onClick={()=>setModal(null)}>进入新的一周 <span>→</span></button></>:modal.type==="ventureResult"?<><div className="modal-top"><span>NEBENGEWERBE</span><b>经营结算</b></div><div className="holding-period">持有 {modal.ledger.heldWeeks} 周后结算<small>开始和结算本身均不耗时间</small></div><h2>{modal.title}</h2><p>{modal.result}</p><div className="venture-result-numbers"><span>总投入<b>{modal.ledger.invested}€</b><small>本金 {modal.ledger.capital}€ + 渠道 {modal.ledger.fee}€</small></span><span>回收金额<b>{modal.ledger.returned}€</b><small>实际回到账户的价值</small></span><span>净利润<b className={modal.ledger.profit>=0?"profit":"loss"}>{modal.ledger.profit>=0?"+":""}{modal.ledger.profit}€</b><small>回收 − 总投入</small></span></div><button className="primary" onClick={()=>setModal(null)}>完成结算 <span>→</span></button></>:<><div className="modal-top"><span>AUSWIRKUNG</span><b>处理结果</b></div>{modal.timeLabel&&<div className="time-passed">{modal.timeLabel}<small>事件发生在已经消耗的这一周</small></div>}<h2>{modal.choice.label}</h2><p>{modal.choice.result}</p>{modal.languageRelief>0&&<div className="language-relief">🗣️ 德语能力令本次压力额外减少 {modal.languageRelief} 点</div>}<button className="primary" onClick={()=>setModal(null)}>进入新的一周 <span>→</span></button></>}
     </article></div>}
   </main></Localize>;
 }
