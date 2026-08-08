@@ -302,6 +302,34 @@ footer{display:flex;justify-content:space-between;padding:16px 24px;font-size:9p
 #portfolio-spotlight{scroll-margin-top:150px}
 @media(max-width:719px){.portfolio-spotlight>div{grid-template-columns:1fr}.portfolio-spotlight{margin:8px}.portfolio-spotlight h4{font-size:15px}}
 
+/* Lightweight dossier motion: short, one-shot feedback with no image assets. */
+.event-modal{position:relative;isolation:isolate;background-color:var(--paper);background-image:linear-gradient(90deg,#00000008 1px,transparent 1px),linear-gradient(#ffffff38,#ffffff00);background-size:26px 100%,100% 100%}
+.event-modal>*{position:relative;z-index:1}
+.event-modal.event-arrival{animation:dossierIn .32s cubic-bezier(.2,.8,.25,1)}
+.event-modal.event-arrival::after{content:"EINGEGANGEN";position:absolute;z-index:0;right:24px;top:72px;border:3px double #bd3c2f88;color:#bd3c2f72;padding:5px 9px;font:900 11px/1 "Noto Sans SC";letter-spacing:.12em;transform:rotate(-7deg) scale(1);animation:stampIn .38s .12s both;pointer-events:none}
+.event-modal.result-arrival{animation:paperSettle .26s ease-out}
+.event-modal.week-turn .time-passed{animation:weekSheet .38s cubic-bezier(.2,.75,.25,1)}
+.modal-top b{transform-origin:center;animation:stampIn .32s .08s both}
+.stat-number{transform-origin:left center;animation:numberTick .34s ease-out}
+.v2-stat>i em{transition:width .42s cubic-bezier(.2,.75,.25,1),background-color .2s}
+.header-weeks i{transition:background-color .2s,color .2s,transform .2s}.header-weeks i.active{animation:weekDot .4s ease-out}
+.toast{animation:toastSlip .25s ease-out}
+.modal-choices button,.quantity-trade button,.portfolio-spotlight button{transition:transform .12s ease,box-shadow .12s ease,background-color .12s ease}
+.modal-choices button:active,.quantity-trade button:active,.portfolio-spotlight button:active{transform:translate(2px,2px);box-shadow:none}
+.weekly-goods header>em.market-up{animation:quoteUp .45s ease-out}.weekly-goods header>em.market-down{animation:quoteDown .45s ease-out}
+.portfolio-spotlight{animation:holdingReveal .28s ease-out}.portfolio-spotlight article{transition:background-color .2s}.portfolio-spotlight article:has(button:active){background:#fff3c9}
+@keyframes dossierIn{from{opacity:0;transform:translateY(24px) rotate(.35deg)}to{opacity:1;transform:none}}
+@keyframes paperSettle{0%{opacity:.35;transform:translateY(9px)}65%{transform:translateY(-2px)}100%{opacity:1;transform:none}}
+@keyframes stampIn{0%{opacity:0;transform:rotate(-12deg) scale(1.45)}70%{opacity:1;transform:rotate(3deg) scale(.95)}100%{opacity:1;transform:rotate(2deg) scale(1)}}
+@keyframes numberTick{0%{opacity:.25;transform:translateY(-5px) scale(1.12)}60%{transform:translateY(1px) scale(.98)}100%{opacity:1;transform:none}}
+@keyframes weekDot{0%{transform:translateY(-5px) scale(1.2)}100%{transform:none}}
+@keyframes weekSheet{0%{opacity:0;transform:perspective(500px) rotateX(-28deg) translateY(-8px)}100%{opacity:1;transform:none}}
+@keyframes toastSlip{from{opacity:0;transform:translate(-50%,12px)}to{opacity:1;transform:translate(-50%,0)}}
+@keyframes quoteUp{0%{background:#70b67a;color:white;transform:translateY(3px)}100%{transform:none}}
+@keyframes quoteDown{0%{background:#cf5d50;color:white;transform:translateY(-3px)}100%{transform:none}}
+@keyframes holdingReveal{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.event-modal,.event-modal::after,.modal-top b,.stat-number,.header-weeks i,.toast,.weekly-goods header>em,.portfolio-spotlight{animation:none!important}.v2-stat>i em,.modal-choices button,.quantity-trade button,.portfolio-spotlight button{transition:none!important}}
+
 /* Mobile action cockpit: the complete weekly choice set fits in the first view. */
 @media (max-width:799px){
   .sticky-status .academic-strip,.sticky-status .ticker,.sticky-status .time-rule{display:none}
