@@ -166,6 +166,28 @@ const DE_NEWS = [
   "Die Semesterferien beginnen. Der Campus wird leerer, viele ziehen aus."
 ];
 
+const monthlyChallenge=s=>{
+  const mode=(s.month-1)%3;
+  if(mode===0)return {type:"cash",icon:"💶",target:BASE_MONTHLY_COST+250,title:"月末安全垫",de:"Puffer zum Monatsende",value:Math.round(s.money),unit:"€"};
+  if(mode===1)return {type:"ability",icon:"🎓",target:Math.min(82,42+s.month*3),title:"本月留德进度",de:"Bleibeperspektive diesen Monat",value:integrationScore(s),unit:""};
+  return {type:"debt",icon:"🏦",target:Math.max(600,1200-s.month*55),title:"本月压低债务",de:"Schuldenziel diesen Monat",value:Math.round(s.debt),unit:"€"};
+};
+const challengePassed=(s,c)=>c.type==="debt"?s.debt<=c.target:c.type==="ability"?integrationScore(s)>=c.target:s.money>=c.target;
+const strongestMarketSignal=(news,lang="zh")=>{
+  const active=GOODS.filter(g=>g.active!==false&&news?.mods?.[g.id]);
+  if(!active.length)return lang==="de"?"Kein eindeutiges Signal – Preise können trotzdem schwanken.":"没有明确方向，但价格仍会波动。";
+  const good=active.sort((a,b)=>Math.abs((news.mods[b.id]||1)-1)-Math.abs((news.mods[a.id]||1)-1))[0],factor=news.mods[good.id];
+  const name=lang==="de"?(DE_GOODS[good.id]?.name||good.name):good.name;
+  return lang==="de"?`${name}: Signal ${factor>1?"nach oben":"nach unten"} · etwa ${Math.abs(Math.round((factor-1)*100))}%`:`${name}：信号${factor>1?"偏涨":"偏跌"} · 影响约 ${Math.abs(Math.round((factor-1)*100))}%`;
+};
+const nextWeekHook=(s,lang="zh")=>{
+  if(s.flags?.typo&&!s.flags?.insurance)return lang==="de"?"Die falsche Schreibweise könnte bald im nächsten System auftauchen.":"那个拼错的姓名，可能很快会出现在另一个系统里。";
+  if(s.flags?.permit&&!s.flags?.permitDone)return lang==="de"?"Die Arbeitserlaubnis ist unterwegs – aber welches Datum wird gelten?":"工作许可正在路上，但雇主会认哪一个日期？";
+  if(s.flags?.rentFight&&!s.flags?.heatingDone)return lang==="de"?"Die Hausverwaltung hat ein Reparaturfenster angekündigt.":"物业终于给了维修时间，但那是一个整天的时间窗。";
+  const signal=strongestMarketSignal(NEWS[(s.newsIndex+1)%NEWS.length],lang);
+  return lang==="de"?`Nächste Woche beobachten: ${signal}`:`下周值得盯着：${signal}`;
+};
+
 const OPPORTUNITY_EVENTS = [
   {id:"opp-refund",office:"GUTE NACHRICHT",title:"之前整理的材料终于帮你追回了一笔钱",text:"那份几乎被你忘记的退款申请突然获批。看来 Aktenzeichen 偶尔也会通向钱。",choices:[
     {label:"直接存下来准备还债",effect:{money:170,debt:-80,stress:-5},result:"一部分直接抵扣债务，剩下的钱让账户终于有了一点缓冲。"},
@@ -915,6 +937,8 @@ export default function Home() {
   }
 
   const news=state?NEWS[state.newsIndex%NEWS.length]:NEWS[0];
+  const challenge=state?monthlyChallenge(state):null;
+  const marketSignal=state?strongestMarketSignal(news,lang):"";
   const prices=useMemo(()=>state?Object.fromEntries(GOODS.map(g=>[g.id,seededPrice(g,state.totalWeek,news)])): {},[state?.totalWeek,state?.newsIndex]);
   const stockPrices=useMemo(()=>state?Object.fromEntries(STOCKS.map(s=>[s.id,stockPrice(s,state.totalWeek)])): {},[state?.totalWeek]);
 
@@ -968,10 +992,13 @@ export default function Home() {
       if(state.german<75&&next.german>=75){next=applyEffect(next,{stress:-6,reputation:6});progressNotes.push("德语达到75：复杂沟通不再完全依赖运气，社会关系也更稳定。");}
     }
     let log=lang==="de"?`Monat ${state.month}, Woche ${state.week}: ${deText(action.name)}`:`第 ${state.month} 月第 ${state.week} 周：${action.name}`;
-    let nextWeek=state.week+1, nextMonth=state.month, newsIndex=state.newsIndex;
+    let nextWeek=state.week+1, nextMonth=state.month, newsIndex=(state.newsIndex+1)%NEWS.length;
     let monthSummary=progressNotes.join(" ");
     if(nextWeek>4){
-      nextWeek=1; nextMonth+=1; newsIndex+=1;
+      const challenge=monthlyChallenge(next),passed=challengePassed(next,challenge);
+      next=applyEffect(next,passed?{study:2,german:2,stress:-4}:{stress:8,money:-45});
+      monthSummary=`${monthSummary} ${passed?`短期目标“${challenge.title}”完成：留德能力提高，压力下降。`:`短期目标“${challenge.title}”失败：临时支出和压力一起找上门。`}`.trim();
+      nextWeek=1; nextMonth+=1;
       const living=Math.max(950,BASE_MONTHLY_COST-(next.flags.mieterverein?25:0)-(next.flags.rentFight?15:0)-(integrationScore(next)>=70?20:0));
       const interest=Math.ceil(next.debt*.035);
       next=applyEffect(next,{money:-living,debt:interest,stress:next.money<living?12:1,energy:8});
@@ -1010,11 +1037,12 @@ export default function Home() {
     }
     if(commitState(next))return;
     const timeLabel=`${periodLabel(state)} → ${periodLabel(next)}`;
+    const teaser=nextWeekHook(next,lang);
     const event=drawEvent(next);
     const eventRoll=(next.totalWeek*37+next.newsIndex*11+Math.round(next.stress))%100;
     const shouldEvent=next.totalWeek%6===0||eventRoll<62;
-    if(event&&shouldEvent)setModal({type:"event",event,timeLabel,actionName:action.name,monthSummary});
-    else setModal({type:"weekResult",actionName:action.name,timeLabel,monthSummary});
+    if(event&&shouldEvent)setModal({type:"event",event,timeLabel,actionName:action.name,monthSummary,teaser});
+    else setModal({type:"weekResult",actionName:action.name,timeLabel,monthSummary:`${monthSummary||""} ${teaser}`.trim()});
   }
 
   function chooseEvent(choice,event){
@@ -1031,7 +1059,7 @@ export default function Home() {
     next={...next,seen:[...next.seen,event.id],journal:[`${event.office}：${event.title}｜${choice.label}`,...next.journal].slice(0,20)};
     const timeLabel=modal?.timeLabel;
     if(commitState(next))return;
-    setModal({type:"result",choice,event,timeLabel,languageRelief,academicRelief,outcomeEntries:coreEffectEntries(state,adjusted)});
+    setModal({type:"result",choice:{...choice,result:`${choice.result} ${modal?.teaser||nextWeekHook(next,lang)}`},event,timeLabel,languageRelief,academicRelief,outcomeEntries:coreEffectEntries(state,adjusted)});
   }
 
   function choosePrepared(event){
@@ -1226,7 +1254,8 @@ export default function Home() {
       <Stat label={lang==="de"?"🎓 Bleibeperspektive":"🎓 留德能力"} value={ability} hint={ability>=65?(lang==="de"?"Mindestziel erreicht":"已达到最低目标"):(lang==="de"?`Noch ${65-ability} bis zum Ziel`:`距目标还差 ${65-ability}`)}/>
     </section>
     <div className="academic-strip"><b>🎯 {lang==="de"?"Ziele für 48 Wochen":"48周目标"}</b><span>{lang==="de"?"Bleibeperspektive mindestens 65 · Schulden höchstens 600 €":"留德能力至少 65 · 债务降至 600€ 以下"}</span><small>{lang==="de"?"85 Punkte und schuldenfrei: bestes Ende":"留德能力85＋债务清零可达成更好结局"}</small><em>🎓 {ability}/65 · 🏦 {Math.round(state.debt)}/600€</em></div>
-    <div className="ticker"><b>本周消息</b><span>{lang==="de"?DE_NEWS[state.newsIndex]:news.text}</span></div>
+    <div className="ticker market-hook"><b>{lang==="de"?"Wochensignal":"本周可下注线索"}</b><span>{lang==="de"?DE_NEWS[state.newsIndex]:news.text}<strong>↗ {marketSignal}</strong></span></div>
+    <div className={`short-challenge ${challengePassed(state,challenge)?"done":""}`}><span><small>{lang==="de"?"MONATSZIEL":"本月短期目标"}</small><b>{challenge.icon} {lang==="de"?challenge.de:challenge.title}</b></span><em>{challenge.type==="debt"?`${challenge.value} → ≤ ${challenge.target}${challenge.unit}`:`${challenge.value} / ${challenge.target}${challenge.unit}`}</em><strong>{challengePassed(state,challenge)?(lang==="de"?"Geschafft · Bonus am Monatsende":"已达成 · 月末领取奖励"):(lang==="de"?"Noch offen":"还没完成")}</strong></div>
     <div className="time-rule"><b>时间规则</b><span>⏳ 本周行动＝推进 1 周</span><span>{lang==="de"?"○ Ein Marktbesuch sowie Kauf, Verkauf und Jobwechsel kosten keine Zeit":"○ 每周访问一个市场；买卖与换职业不额外耗时"}</span></div>
     <nav className="tabs">{[["actions","本周行动"],["career","成长与职业"],["journal","记录"],["guestbook","留言板"]].map(([id,label])=><button className={tab===id?"active":""} key={id} onClick={()=>setTab(id)}>{label}</button>)}</nav>
     </div>

@@ -330,6 +330,12 @@ footer{display:flex;justify-content:space-between;padding:16px 24px;font-size:9p
 @keyframes holdingReveal{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){.event-modal,.event-modal::after,.modal-top b,.stat-number,.header-weeks i,.toast,.weekly-goods header>em,.portfolio-spotlight{animation:none!important}.v2-stat>i em,.modal-choices button,.quantity-trade button,.portfolio-spotlight button{transition:none!important}}
 
+/* Retention loop: visible bet, short deadline, and a reason to advance. */
+.ticker.market-hook span{display:flex;align-items:center;justify-content:space-between;gap:12px;flex:1}.ticker.market-hook span>strong{color:#234f31;background:#dce8d8;border-left:3px solid #4f7858;padding:5px 8px;font-size:8px;white-space:nowrap}
+.short-challenge{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:12px;padding:7px 12px;background:#f5e7b8;border-bottom:1px solid #c9ad58;border-left:5px solid var(--yellow)}.short-challenge span small,.short-challenge span b{display:block}.short-challenge span small{font-size:7px;letter-spacing:.1em;color:#7d681e;font-weight:900}.short-challenge span b{font-size:10px;margin-top:2px}.short-challenge em{font-style:normal;font-size:12px;font-weight:900}.short-challenge>strong{font-size:8px;color:#9c3329}.short-challenge.done{background:#dfe9dc;border-color:#789278}.short-challenge.done>strong{color:#35623c}
+@media(min-width:800px){.short-challenge{padding:8px 22px}.short-challenge span b{font-size:12px}.short-challenge em{font-size:15px}.short-challenge>strong,.ticker.market-hook span>strong{font-size:9px}}
+@media(max-width:799px){.short-challenge{grid-template-columns:1fr auto;padding:5px 8px;gap:4px 8px}.short-challenge span small{font-size:6px}.short-challenge span b{font-size:8px}.short-challenge em{font-size:10px}.short-challenge>strong{grid-column:1/-1;font-size:7px}.sticky-status .short-challenge{position:relative;z-index:1}}
+
 /* Mobile action cockpit: the complete weekly choice set fits in the first view. */
 @media (max-width:799px){
   .sticky-status .academic-strip,.sticky-status .ticker,.sticky-status .time-rule{display:none}
