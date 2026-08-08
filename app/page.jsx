@@ -360,15 +360,15 @@ const ACTIONS = [
   { id:"work", icon:"💼", name:"做本职工作", sub:"按当前职业结算工资", run:s=>{const job=JOBS.find(j=>j.id===s.jobId)||JOBS[0];const abilityBonus=Math.min(60,Math.max(0,integrationScore(s)-40)*2);const overdrawn=s.energy+job.energy<15||s.health<45;return {money:job.wage+abilityBonus+(s.flags.promotion?45:0),energy:job.energy,health:overdrawn?job.health:0,stress:job.stress,reputation:3};}},
   { id:"gig", icon:"🚲", name:"接一次临时零工", sub:"不改变本职 · 德语越好收入越高", run:s=>({money:190+Math.round(s.german*.9),energy:-19,health:-6,stress:7}) },
   { id:"paper", icon:"🏛️", name:"处理积压手续", sub:"选择一项具体行政任务", planner:true },
-  { id:"learn", icon:"📚", name:"学德语", sub:"解锁好工作 · 费脑", run:()=>({german:7,energy:-11,stress:2,money:-25}) },
-  { id:"study", icon:"🎓", name:"准备课程和考试", sub:"推进学业 · 消耗精力", run:()=>({study:11,energy:-13,stress:3,money:-12}) },
-  { id:"rest", icon:"🛋️", name:"在家休息", sub:"恢复健康和精力", run:()=>({energy:30,health:8,stress:-10,money:-18}) },
-  { id:"drink", icon:"🍺", name:"去酒吧喝酒", sub:"压力大降 · 伤身烧钱", run:()=>({money:-48,stress:-18,health:-7,energy:-3,reputation:4}) },
-  { id:"social", icon:"🤝", name:"参加社区活动", sub:"积累人脉 · 小额花费", run:()=>({money:-22,energy:-4,stress:-7,reputation:8,german:2}) },
-  { id:"tutorial", icon:"🧑‍🎓", name:"参加辅导课和学习小组", sub:"推进学业 · 练德语 · 认识同学", run:()=>({study:9,german:3,reputation:4,energy:-10,stress:1,money:-8}) },
-  { id:"sport", icon:"🏐", name:"参加大学体育课", sub:"恢复健康 · 减轻压力 · 轻度消耗精力", run:()=>({health:11,stress:-9,reputation:5,energy:-6,money:-18}) },
-  { id:"mealprep", icon:"🍲", name:"在 WG 集体做饭", sub:"省生活费 · 恢复精力 · 增进室友情", run:()=>({money:-24,health:6,stress:-6,reputation:7,energy:3}) },
-  { id:"doctor", icon:"🩺", name:"照顾身体", sub:"花钱治疗 · 恢复健康", run:()=>({money:-95,health:18,energy:8,stress:-5}) }
+  { id:"learn", icon:"📚", name:"学德语", sub:"提高留德能力 · 会有点累", run:()=>({german:7,energy:-11,stress:2,money:-25}) },
+  { id:"study", icon:"🎓", name:"准备课程和考试", sub:"提高留德能力 · 会消耗状态", run:()=>({study:11,energy:-13,stress:3,money:-12}) },
+  { id:"rest", icon:"🛋️", name:"在家休息", sub:"明显恢复状态", run:()=>({energy:30,health:8,stress:-10,money:-18}) },
+  { id:"drink", icon:"🍺", name:"去酒吧喝酒", sub:"花钱放松，但未必真休息好", run:()=>({money:-48,stress:-18,health:-7,energy:-3,reputation:4}) },
+  { id:"social", icon:"🤝", name:"参加社区活动", sub:"以后办事更顺 · 小额花费", run:()=>({money:-22,energy:-4,stress:-7,reputation:8,german:2}) },
+  { id:"tutorial", icon:"🧑‍🎓", name:"参加辅导课和学习小组", sub:"提高留德能力，也认识些同学", run:()=>({study:9,german:3,reputation:4,energy:-10,stress:1,money:-8}) },
+  { id:"sport", icon:"🏐", name:"参加大学体育课", sub:"恢复状态 · 认识同学", run:()=>({health:11,stress:-9,reputation:5,energy:-6,money:-18}) },
+  { id:"mealprep", icon:"🍲", name:"在 WG 集体做饭", sub:"省点钱，也让状态好起来", run:()=>({money:-24,health:6,stress:-6,reputation:7,energy:3}) },
+  { id:"doctor", icon:"🩺", name:"照顾身体", sub:"花钱把状态拉回来", run:()=>({money:-95,health:18,energy:8,stress:-5}) }
 ];
 
 const WEEKLY_BETS = [
@@ -394,7 +394,7 @@ function weeklyChoices(state){
 const TRADE_WEEK_ACTION={id:"trade-week",icon:"🛒",name:"完成本周交易",sub:"成交已经发生；推进一周，查看新行情",run:()=>({energy:-9,stress:2,reputation:2})};
 
 const PAPER_TASKS = [
-  { id:"folder", icon:"🗂️", name:"整理个人档案", sub:"补齐文件并建立办事记录，直接提升社会资源", effect:{papers:8,reputation:3,energy:-10,stress:3} },
+  { id:"folder", icon:"🗂️", name:"整理个人档案", sub:"补齐文件并留下记录，以后办事少吃点亏", effect:{papers:8,reputation:3,energy:-10,stress:3} },
   { id:"termin", icon:"📅", name:"抢一次 Behörden-Termin", sub:"预约、复印、排队，同时积累档案与办事关系", effect:{papers:10,reputation:5,energy:-14,stress:6} },
   { id:"refund", icon:"🧾", name:"核对旧账并申请退费", sub:"翻出一笔重复扣款，同时补全往来记录", effect:{money:90,papers:5,energy:-12,stress:4} }
 ];
@@ -402,14 +402,41 @@ const PAPER_TASKS = [
 const clamp = n => Math.max(0, Math.min(100, Math.round(n)));
 const integrationScore=s=>Math.round(((s.study||0)+(s.german||0))/2);
 const socialScore=s=>Math.round(((s.reputation||0)+(s.papers||0))/2);
+const conditionScore=s=>{
+  const energy=clamp(s.energy||0),health=clamp(s.health||0),calm=clamp(100-(s.stress||0));
+  const weighted=Math.round(energy*.4+health*.35+calm*.25);
+  return Math.min(weighted,Math.min(energy,health,calm)+25);
+};
+const projectedState=(state,effect={})=>{
+  const next={...state};
+  Object.entries(effect).forEach(([key,value])=>{next[key]=["money","debt"].includes(key)?Math.max(0,(next[key]||0)+value):clamp((next[key]||0)+value);});
+  return next;
+};
+const coreEffectEntries=(state,effect={})=>{
+  const next=projectedState(state,effect);
+  return [
+    {key:"condition",icon:"❤️",zh:"状态",de:"Verfassung",value:conditionScore(next)-conditionScore(state)},
+    {key:"money",icon:"💶",zh:"钱",de:"Geld",value:(next.money-next.debt)-(state.money-state.debt),suffix:"€"},
+    {key:"ability",icon:"🎓",zh:"留德能力",de:"Bleibeperspektive",value:integrationScore(next)-integrationScore(state)}
+  ];
+};
+const coreEffectText=(state,effect={},lang="zh")=>{
+  const parts=coreEffectEntries(state,effect).filter(item=>item.value!==0).map(item=>`${item.icon} ${lang==="de"?item.de:item.zh} ${item.value>0?"+":""}${item.value}${item.suffix||""}`);
+  if((effect.papers||0)>0||(effect.reputation||0)>0)parts.push(lang==="de"?"Behördengänge werden künftig leichter":"以后办事会更顺");
+  return parts.join(" · ")||(lang==="de"?"Wirkt sich später aus":"会影响后续生活");
+};
 const effectNames = {money:"资金",debt:"债务",energy:"精力",health:"健康",stress:"压力",german:"德语",papers:"档案",packs:"材料包",reputation:"人脉",study:"学业"};
 const effectNamesDe = {money:"Geld",debt:"Schulden",energy:"Energie",health:"Gesundheit",stress:"Stress",german:"Deutsch",papers:"Akte",packs:"Unterlagen",reputation:"Kontakte",study:"Studium"};
 const effectIcons = {money:"💶",debt:"🏦",energy:"⚡",health:"❤️",stress:"🧠",german:"🗣️",papers:"🗂️",packs:"📦",reputation:"🤝",study:"🎓"};
 const periodLabel = s => s.month>12?"年度结束":`第 ${s.month} 月 · 第 ${s.week} 周`;
 
 function EffectBadges({effect,lang="zh"}) {
-  const names=lang==="de"?effectNamesDe:effectNames;
-  return <div className="effect-badges"><strong>{lang==="de"?"Betroffene Werte":"关联数值"}</strong>{Object.keys(effect).map(key=><span key={key}>{effectIcons[key]} {names[key]}</span>)}</div>;
+  const groups=[];
+  if(["energy","health","stress"].some(key=>key in effect))groups.push(["condition","❤️",lang==="de"?"Verfassung":"状态"]);
+  if(["money","debt"].some(key=>key in effect))groups.push(["money","💶",lang==="de"?"Geld":"钱"]);
+  if(["german","study"].some(key=>key in effect))groups.push(["ability","🎓",lang==="de"?"Bleibeperspektive":"留德能力"]);
+  if(["papers","reputation","packs"].some(key=>key in effect))groups.push(["later","○",lang==="de"?"spätere Behördengänge":"后续办事"]);
+  return <div className="effect-badges"><strong>{lang==="de"?"Worauf wirkt das?":"会影响什么"}</strong>{groups.map(([key,icon,label])=><span key={key}>{icon} {label}</span>)}</div>;
 }
 
 const DE_UI = {
@@ -598,6 +625,39 @@ Object.assign(DE_UI,{
   ,"新的市场价格和生活状态已经更新。":"Marktpreise und Lebenssituation wurden aktualisiert."
   ,"这一周结束了":"Die Woche ist vorbei"
   ,"完成结算":"Abrechnung abschließen"
+  ,"状态":"Verfassung"
+  ,"会影响什么":"Worauf wirkt das?"
+  ,"后续办事":"spätere Behördengänge"
+  ,"围绕三个核心数值":"Drei Kernwerte im Blick"
+  ,"留德能力由学业和德语共同构成，直接影响学业检查、工资和职业解锁。人脉与档案改为隐藏的办事积累：多参加社区活动、多处理手续，以后遇到麻烦会更容易一些。":"Die Bleibeperspektive bündelt Studium und Deutsch und beeinflusst Prüfungen, Lohn und Jobzugang. Kontakte und Aktenlage laufen im Hintergrund als Behördenerfahrung weiter: Wer sich einmischt und Dinge erledigt, kommt später leichter durch."
+  ,"办事积累":"Behördenerfahrung"
+  ,"已经比较熟门熟路":"du kennst dich inzwischen aus"
+  ,"开始有人能帮上忙":"erste Leute können dir helfen"
+  ,"还在慢慢积累":"baut sich langsam auf"
+  ,"决定你还能不能继续硬撑":"entscheidet, wie lange du noch durchhältst"
+  ,"明显恢复状态":"Verfassung deutlich verbessern"
+  ,"提高留德能力 · 会有点累":"Bleibeperspektive verbessern · macht müde"
+  ,"提高留德能力 · 会消耗状态":"Bleibeperspektive verbessern · kostet Verfassung"
+  ,"花钱放松，但未必真休息好":"Geld ausgeben und abschalten – echte Erholung ist das nicht unbedingt"
+  ,"以后办事更顺 · 小额花费":"spätere Behördengänge werden leichter · kleine Ausgabe"
+  ,"提高留德能力，也认识些同学":"Bleibeperspektive verbessern und Leute kennenlernen"
+  ,"恢复状态 · 认识同学":"Verfassung verbessern · Leute kennenlernen"
+  ,"省点钱，也让状态好起来":"günstig und gut für deine Verfassung"
+  ,"花钱把状态拉回来":"Geld ausgeben und wieder auf die Beine kommen"
+  ,"状态预估已经计入每周自然恢复。":"Die Schätzung berücksichtigt bereits die natürliche Erholung der Woche."
+  ,"状态明显恢复 · 花费 18€":"Verfassung deutlich besser · kostet 18 €"
+  ,"状态损失因为你的语言能力有所减轻":"Deine Sprachkenntnisse haben den Schaden für deine Verfassung abgefedert"
+  ,"还需要多处理一些手续、认识一些可靠的人。":"Du brauchst noch mehr Behördenerfahrung und verlässliche Kontakte."
+  ,"还需更多办事经历":"mehr Behördenerfahrung nötig"
+  ,"办事时已经有一套自己的办法":"du hast inzwischen deine eigene Routine"
+  ,"多数麻烦能找到人问":"bei den meisten Problemen weißt du, wen du fragen kannst"
+  ,"开始积累可靠经验":"erste verlässliche Erfahrungen"
+  ,"仍在熟悉这里的规则":"du lernst die Regeln noch kennen"
+  ,"复杂沟通已经轻松很多":"komplizierte Gespräche sind deutlich leichter"
+  ,"多数正式沟通能应付":"die meisten formellen Gespräche sind machbar"
+  ,"可以应付首次检查":"für die erste Prüfung ausreichend"
+  ,"40 后更容易通过首次检查":"ab 40 wird die erste Prüfung leichter"
+  ,"补齐文件并留下记录，以后办事少吃点亏":"Unterlagen ergänzen und Spuren hinterlassen, damit du später weniger Ärger hast"
 });
 
 function deText(value){
@@ -621,6 +681,10 @@ function deText(value){
     .replace(/做 (.+) 预计获得约 (\d+)€；如果撑不住，也可以把这周用于休息。/g,"Im Job „$1“ erhältst du voraussichtlich etwa $2 €. Wenn es zu viel wird, kannst du diese Woche zur Erholung nutzen.")
     .replace(/去做 (.+)，大概能拿 (\d+)€。要是已经撑不住，少赚一周也比把身体拖垮强。/g,"Im Job „$1“ bekommst du ungefähr $2 €. Wenn du schon am Limit bist, ist eine Woche weniger Lohn besser, als dich völlig kaputtzumachen.")
     .replace(/周薪 (\d+)€/g,"Wochenlohn $1 €")
+    .replace(/到手周薪 (\d+)€ · 状态消耗约 (\d+)/g,"Netto-Wochenlohn $1 € · Belastung etwa $2")
+    .replace(/状态 (\d+)/g,"Verfassung $1")
+    .replace(/现金 (\d+)€/g,"Geld $1 €")
+    .replace(/尚欠 (\d+)€/g,"noch $1 € Schulden")
     .replace(/社会资源(\d+)后生效/g,"aktiv ab $1 sozialen Ressourcen")
     .replace(/(\d+) 个事件/g,"$1 Ereignisse")
     .replace(/需要留德能力 (\d+)、社会资源 (\d+)/g,"Benötigt Bleibeperspektive $1 und soziale Ressourcen $2")
@@ -710,10 +774,10 @@ function TradeLedger({state,lang,prices}){
 }
 
 function ProgressBenefits({state,lang}){
-  const social=socialScore(state),ability=integrationScore(state);
-  const lossTier=social>=80?"25%":social>=60?"15%":social>=45?"8%":"—";
-  const abilityTier=ability>=75?"事件压力 −4":ability>=60?"事件压力 −2":ability>=40?"可通过首次检查":"40 后通过首次检查";
-  return <div className="progress-benefits career-benefits"><span><b>🤝 社会资源 {social}</b><small>{`整合人脉与档案 · 事件损失${lossTier==="—"?"在45后降低":`降低 ${lossTier}`}`}</small></span><span><b>🎓 留德能力 {ability}</b><small>{`整合学业与德语 · ${abilityTier} · 工资 +${Math.min(80,Math.max(0,ability-40)*2)}€`}</small></span></div>;
+  const social=socialScore(state),ability=integrationScore(state),condition=conditionScore(state);
+  const abilityTier=ability>=75?"复杂沟通已经轻松很多":ability>=60?"多数正式沟通能应付":ability>=40?"可以应付首次检查":"40 后更容易通过首次检查";
+  const socialText=social>=80?"办事时已经有一套自己的办法":social>=60?"多数麻烦能找到人问":social>=45?"开始积累可靠经验":"仍在熟悉这里的规则";
+  return <div className="progress-benefits career-benefits core-benefits"><span><b>❤️ 状态 {condition}</b><small>决定你还能不能继续硬撑</small></span><span><b>💶 现金 {Math.round(state.money)}€</b><small>尚欠 {Math.round(state.debt)}€</small></span><span><b>🎓 留德能力 {ability}</b><small>{`${abilityTier} · 工资 +${Math.min(60,Math.max(0,ability-40)*2)}€`}</small></span><p>○ {socialText}</p></div>;
 }
 
 export default function Home() {
@@ -866,7 +930,7 @@ export default function Home() {
     if(modal&&!force)return;
     if(state.marketVisitWeek===state.totalWeek&&action.id!=="trade-week"){setToast("本周已经发生交易；请完成交易并推进一周。");document.getElementById("weekly-market")?.scrollIntoView({behavior:"smooth",block:"start"});return;}
     const minimumEnergy=["work","gig"].includes(action.id)?18:["learn","study","tutorial","sport","social"].includes(action.id)||action.id.startsWith("paper-")?10:0;
-    if(state.energy<minimumEnergy){setToast(lang==="de"?`Für diese Aktion brauchst du mindestens ${minimumEnergy} Energie.`:`精力至少需要 ${minimumEnergy} 才能进行这项行动。`);setModal(null);return;}
+    if(state.energy<minimumEnergy){setToast(lang==="de"?"Dafür bist du gerade zu erschöpft. Erhol dich erst einmal.":"你现在的状态撑不起这件事，先歇一歇吧。");setModal(null);return;}
     const actionEffect=action.run(state);
     let next=applyEffect(state,actionEffect);
     next=applyEffect(next,{energy:10});
@@ -1007,7 +1071,8 @@ export default function Home() {
   }
 
   function switchJob(job){
-    if(integrationScore(state)<job.abilityReq||socialScore(state)<job.socialReq){setToast(`需要留德能力 ${job.abilityReq}、社会资源 ${job.socialReq}`);return;}
+    if(integrationScore(state)<job.abilityReq){setToast(lang==="de"?`Dafür brauchst du ${job.abilityReq} Punkte Bleibeperspektive.`:`这份工作需要留德能力达到 ${job.abilityReq}。`);return;}
+    if(socialScore(state)<job.socialReq){setToast(lang==="de"?"Dafür fehlen dir noch Behördenerfahrung und verlässliche Kontakte.":"你还需要多处理一些手续、认识一些可靠的人。");return;}
     setState({...state,jobId:job.id});setToast(`下周开始做：${job.name}`);
   }
 
@@ -1110,14 +1175,16 @@ export default function Home() {
     const endingTitle=outcome==="excellent"?"Angekommen?":outcome==="stable"?"Das Leben geht weiter":outcome==="probation"?"Auf Bewährung":"Tschüss Deutschland";
     const net=Math.round(state.money-state.debt+Object.entries(state.inventory).reduce((sum,[id,q])=>sum+(prices[id]||0)*q,0));
     const endingText=lang==="de"
-      ?outcome==="excellent"?"Studium im Plan, schuldenfrei und trotzdem liegt schon der nächste Behördenbrief im Kasten. Angekommen ist vielleicht kein Zustand, sondern eine fortlaufende Akte.":outcome==="stable"?"Du hast 48 Wochen geschafft, den Anschluss gehalten und die Schulden unter Kontrolle gebracht. Das Leben geht weiter.":outcome==="probation"?`Du hast überlebt, aber ${finalAbility<65?"deine Ankommensfähigkeit reicht nicht":"deine Schulden sind noch zu hoch"}. Deutschland gibt dir keine Niederlage, sondern eine weitere Frist.`:state.health<=0?"Dein Körper konnte nicht mehr.":state.stress>=100?"Der Stress hat die Grenze überschritten.":"Das Konto ist leer. Dein Leben in Deutschland endet vorerst hier."
-      :outcome==="excellent"?"留德能力达标、债务清零，信箱里却已经躺着下一封政府来信。所谓安顿下来，也许只是学会继续处理下一份档案。":outcome==="stable"?"你坚持了48周，留德能力达标，也把债务控制在可承受范围内。Das Leben geht weiter。":outcome==="probation"?`你活过了48周，但${finalAbility<65?"留德能力尚未达到要求":"债务仍然过高"}。德国没有立即让你离开，只给了你下一份限期整改通知。`:state.health<=0?"身体先撑不住了。":state.stress>=100?"压力突破了极限。":"账户见底，留德生活暂时在这里结束。";
+      ?outcome==="excellent"?"Studium im Plan, schuldenfrei und trotzdem liegt schon der nächste Behördenbrief im Kasten. Angekommen ist vielleicht kein Zustand, sondern eine fortlaufende Akte.":outcome==="stable"?"Du hast 48 Wochen geschafft, den Anschluss gehalten und die Schulden unter Kontrolle gebracht. Das Leben geht weiter.":outcome==="probation"?`Du hast überlebt, aber ${finalAbility<65?"deine Ankommensfähigkeit reicht nicht":"deine Schulden sind noch zu hoch"}. Deutschland gibt dir keine Niederlage, sondern eine weitere Frist.`:(state.health<=0||state.stress>=100)?"Du konntest einfach nicht mehr.":"Das Konto ist leer. Dein Leben in Deutschland endet vorerst hier."
+      :outcome==="excellent"?"留德能力达标、债务清零，信箱里却已经躺着下一封政府来信。所谓安顿下来，也许只是学会继续处理下一份档案。":outcome==="stable"?"你坚持了48周，留德能力达标，也把债务控制在可承受范围内。Das Leben geht weiter。":outcome==="probation"?`你活过了48周，但${finalAbility<65?"留德能力尚未达到要求":"债务仍然过高"}。德国没有立即让你离开，只给了你下一份限期整改通知。`:(state.health<=0||state.stress>=100)?"整个人终于撑不住了。":"账户见底，留德生活暂时在这里结束。";
     return <Localize lang={lang}><main className={`cinematic departure-scene ${outcome==="excellent"||outcome==="stable"?"continue":"farewell"}`}><div className="departure-sky"><div className="city-silhouette">▥ ▥ ▰ ▥ ▰ ▥</div><span className="departure-plane">✈</span></div><section><small>{survived?"48 WOCHEN GESCHAFFT":"ABFLUG"}</small><h1>{endingTitle}</h1><p>{endingText}</p><div className="score"><span>{lang==="de"?"Nettovermögen":"净资产"}<b>{net}€</b></span><span>{lang==="de"?"Bleibeperspektive":"留德能力"}<b>{finalAbility}</b></span><span>{lang==="de"?"Schulden":"剩余债务"}<b>{Math.round(state.debt)}€</b></span></div><button className="primary" onClick={()=>{clearSavedGame();setPlayerName(state.name||"");}}>{lang==="de"?"Noch einmal einsteigen":"重新登机"} <span>↻</span></button></section></main></Localize>;
   }
 
   const totalInventory=Object.values(state.inventory).reduce((a,b)=>a+b,0);
   const currentJob=JOBS.find(j=>j.id===state.jobId)||JOBS[0];
   const ability=integrationScore(state),social=socialScore(state);
+  const condition=conditionScore(state);
+  const conditionHint=state.energy<18?(lang==="de"?"Zu erschöpft zum Arbeiten":"已经累到不能工作"):condition<35?(lang==="de"?"Du brauchst dringend eine Pause":"真的该歇一歇了"):condition<60?(lang==="de"?"Noch okay, aber nicht endlos":"还能撑，但别硬扛"):(lang==="de"?"Du kommst gut durch die Woche":"这周状态还不错");
   const languageBonus=Math.min(60,Math.max(0,ability-40)*2);
   const currentWage=currentJob.wage+languageBonus+(state.flags.promotion?45:0);
   const featuredChoices=weeklyChoices(state);
@@ -1129,11 +1196,10 @@ export default function Home() {
   return <Localize lang={lang}><main className="v2-game">
     <div className="sticky-status">
     <header className="v2-head"><div className="current-period"><small>LEBENSAKTE · {state.name}</small><b>{lang==="de"?`Monat ${state.month} · Woche ${state.week}`:`第 ${state.month} 月 · 第 ${state.week} 周`}</b><em>{lang==="de"?"Nächste Aktion":"下次行动"} → {nextPeriod}</em></div><div className="head-tools"><div className="deadline"><small>{lang==="de"?"Jahresfortschritt":"年度进度"}</small><b>{Math.min(state.totalWeek,48)}/48</b><div className="header-weeks" aria-label={lang==="de"?"Monatsfortschritt":"本月进度"}>{[1,2,3,4].map(w=><i key={w} className={w<state.week?"done":w===state.week?"active":""}>{w}</i>)}</div></div><div className="lang-switch compact"><button className={lang==="zh"?"active":""} onClick={()=>setLang("zh")}>{lang==="de"?"ZH":"中"}</button><button className={lang==="de"?"active":""} onClick={()=>setLang("de")}>DE</button></div></div></header>
-    <section className="v2-stats"><Stat label={lang==="de"?"Geld":"现金"} value={state.money} type="money"/><Stat label={lang==="de"?"Schulden":"债务"} value={state.debt} type="money" onClick={()=>setModal({type:"debtPay"})} hint={state.debt<=0?(lang==="de"?"Abbezahlt":"已还清"):(lang==="de"?"Zum Tilgen antippen":"点击还款")}/><Stat label={lang==="de"?"❤️ Gesundheit":"❤️ 健康"} value={state.health}/><Stat label={lang==="de"?"🧠 Stress":"🧠 压力"} value={state.stress} bad/></section>
-    <section className="ability-stats" aria-label="能力与行政资源">
-      <div title="行动会消耗精力；低于 18 时不能工作或接零工"><span>⚡ 精力</span><b>{state.energy}</b><small>{state.energy<18?"无法工作":state.energy<35?"需要休息":"可正常行动"}</small></div>
-      <div title="由学业与德语共同构成；影响工资、检查和职业"><span>🎓 留德能力</span><b>{ability}</b><small>{lang==="de"?"Lohn":"工资"} +{languageBonus}€</small></div>
-      <div title="由人脉与档案共同构成；影响事件损失和职业"><span>🤝 社会资源</span><b>{social}</b><small>{social>=45?"事件减损已生效":"45 后降低损失"}</small></div>
+    <section className="v2-stats core-stats" aria-label={lang==="de"?"Drei Kernwerte":"三个核心数值"}>
+      <Stat label={lang==="de"?"❤️ Verfassung":"❤️ 状态"} value={condition} hint={conditionHint}/>
+      <Stat label={lang==="de"?"💶 Geld":"💶 现金"} value={state.money} type="money" onClick={()=>setModal({type:"debtPay"})} hint={state.debt<=0?(lang==="de"?"Schuldenfrei":"债务已还清"):(lang==="de"?`Noch ${Math.round(state.debt)} € Schulden · antippen`:`尚欠 ${Math.round(state.debt)}€ · 点击还款`)}/>
+      <Stat label={lang==="de"?"🎓 Bleibeperspektive":"🎓 留德能力"} value={ability} hint={ability>=65?(lang==="de"?"Mindestziel erreicht":"已达到最低目标"):(lang==="de"?`Noch ${65-ability} bis zum Ziel`:`距目标还差 ${65-ability}`)}/>
     </section>
     <div className="academic-strip"><b>🎯 {lang==="de"?"Ziele für 48 Wochen":"48周目标"}</b><span>{lang==="de"?"Bleibeperspektive mindestens 65 · Schulden höchstens 600 €":"留德能力至少 65 · 债务降至 600€ 以下"}</span><small>{lang==="de"?"85 Punkte und schuldenfrei: bestes Ende":"留德能力85＋债务清零可达成更好结局"}</small><em>🎓 {ability}/65 · 🏦 {Math.round(state.debt)}/600€</em></div>
     <div className="ticker"><b>本周消息</b><span>{lang==="de"?DE_NEWS[state.newsIndex]:news.text}</span></div>
@@ -1157,7 +1223,7 @@ export default function Home() {
         {(state.ventureLedger||[]).length>0&&<div className="venture-ledger"><div className="subhead"><b>最近经营账本</b><span>投入 → 回收 → 净结果</span></div>{state.ventureLedger.slice(0,5).map((l,i)=><p key={i}><span>{l.good}<small>{l.channel}</small></span><b>{l.invested}€ → {l.returned}€</b><em className={l.profit>=0?"profit":"loss"}>{l.profit>=0?"+":""}{l.profit}€</em></p>)}</div>}</div>
       </>}
 
-      {tab==="career"&&<><div className="panel-title"><div><small>ENTWICKLUNG & BERUF</small><h2>成长与职业</h2></div><span>只关注两个成长指标</span></div><p className="career-help">“留德能力”整合学业与德语，“社会资源”整合人脉与档案。它们直接决定事件减损、学业检查、工资成长和职业解锁。</p><ProgressBenefits state={state} lang={lang}/><div className="language-bonus"><span>留德能力工资加成<b>+{languageBonus}€ / 周</b></span><span>事件综合减损<b>{social>=45?"已生效":"社会资源45后生效"}</b></span></div><div className="jobs">{JOBS.map(j=>{const unlocked=ability>=j.abilityReq&&social>=j.socialReq;return <button key={j.id} className={state.jobId===j.id?"selected":""} onClick={()=>switchJob(j)}><i>{j.icon}</i><span><b>{j.name}</b><small>周薪 {j.wage}€ · 精力 {j.energy} · 健康 {j.health} · 压力 {j.stress}{j.abilityReq?` · 留德能力 ${j.abilityReq} · 社会资源 ${j.socialReq}`:" · 无门槛"}</small></span><em>{state.jobId===j.id?"当前本职":unlocked?"设为本职":"未解锁"}</em></button>})}</div><div className="debt-box"><span><small>私人债务</small><b>{Math.round(state.debt)} €</b></span><p>每月增长 3.5%，每月最多偿还一次。不能在同一个月连续清空债务。</p><button onClick={payDebt} disabled={state.lastDebtPaymentMonth===state.month||state.debt<=0}>{state.debt<=0?"债务已还清":state.lastDebtPaymentMonth===state.month?"本月已还款":"本月偿还最多 250€"}</button></div></>}
+      {tab==="career"&&<><div className="panel-title"><div><small>ENTWICKLUNG & BERUF</small><h2>成长与职业</h2></div><span>围绕三个核心数值</span></div><p className="career-help">留德能力由学业和德语共同构成，直接影响学业检查、工资和职业解锁。人脉与档案改为隐藏的办事积累：多参加社区活动、多处理手续，以后遇到麻烦会更容易一些。</p><ProgressBenefits state={state} lang={lang}/><div className="language-bonus"><span>留德能力工资加成<b>+{languageBonus}€ / 周</b></span><span>办事积累<b>{social>=60?"已经比较熟门熟路":social>=45?"开始有人能帮上忙":"还在慢慢积累"}</b></span></div><div className="jobs">{JOBS.map(j=>{const unlocked=ability>=j.abilityReq&&social>=j.socialReq;const toll=Math.max(1,Math.round((-j.energy+Math.max(0,-j.health)+j.stress)/3));return <button key={j.id} className={state.jobId===j.id?"selected":""} onClick={()=>switchJob(j)}><i>{j.icon}</i><span><b>{j.name}</b><small>到手周薪 {j.wage}€ · 状态消耗约 {toll}{j.abilityReq?` · 留德能力 ${j.abilityReq}`:" · 无门槛"}{j.socialReq&&!unlocked&&ability>=j.abilityReq?" · 还需更多办事经历":""}</small></span><em>{state.jobId===j.id?"当前本职":unlocked?"设为本职":"未解锁"}</em></button>})}</div><div className="debt-box"><span><small>私人债务</small><b>{Math.round(state.debt)} €</b></span><p>每月增长 3.5%，每月最多偿还一次。不能在同一个月连续清空债务。</p><button onClick={payDebt} disabled={state.lastDebtPaymentMonth===state.month||state.debt<=0}>{state.debt<=0?"债务已还清":state.lastDebtPaymentMonth===state.month?"本月已还款":"本月偿还最多 250€"}</button></div></>}
 
       {tab==="journal"&&<><div className="panel-title"><div><small>VERLAUF</small><h2>生活记录</h2></div><span>{state.seen.length} 个事件</span></div><div className="journal">{state.journal.length?state.journal.map((j,i)=><p key={i}><i>{String(state.journal.length-i).padStart(2,"0")}</i>{j}</p>):<div className="empty">你的档案目前还很薄。系统会设法改变这一点。</div>}</div></>}
     </section>
@@ -1168,7 +1234,7 @@ export default function Home() {
     {modal?.type==="debtPay"&&<div className="modal-backdrop"><article className="event-modal debt-modal"><div className="modal-top"><span>SCHULDEN</span><b>{lang==="de"?"Schulden tilgen":"偿还债务"}</b></div><h2>{Math.round(state.debt)} €</h2><p>{lang==="de"?"Einmal pro Monat kannst du bis zu 250 € tilgen. Mindestens 200 € müssen für den Alltag auf dem Konto bleiben.":"每月可以还款一次，最多偿还 250€；账户必须至少保留 200€ 生活备用金。"}</p><div className="debt-preview"><span>{lang==="de"?"Verfügbares Geld":"当前现金"}<b>{Math.round(state.money)}€</b></span><span>{lang==="de"?"Tilgung jetzt":"本次可还"}<b>{Math.max(0,Math.round(Math.min(250,state.money-200,state.debt)))}€</b></span></div><button className="primary" onClick={payDebt} disabled={state.lastDebtPaymentMonth===state.month||state.debt<=0||state.money<=200}>{state.debt<=0?(lang==="de"?"Schulden abbezahlt":"债务已还清"):state.lastDebtPaymentMonth===state.month?(lang==="de"?"Diesen Monat bereits getilgt":"本月已经还款"):state.money<=200?(lang==="de"?"Nicht genug Reserve":"现金不足，需保留 200€"):(lang==="de"?"Jetzt tilgen":"立即还款")} <span>→</span></button><button className="secondary" onClick={()=>setModal(null)}>{lang==="de"?"Schließen":"暂不还款"}</button></article></div>}
     {modal?.type==="event"&&modal.minimized&&<button className="pending-event" onClick={()=>setModal({...modal,minimized:false})}><span>{modal.event.office}</span><b>待处理：{modal.event.title}</b><em>继续处理 →</em></button>}
     {modal&&!modal.minimized&&modal.type!=="debtPay"&&<div className="modal-backdrop"><article className="event-modal">
-      {modal.type==="actionPreview"?<><div className="modal-top"><span>{modal.action.category||"生活安排"}</span><b>本周方案 · 尚未执行</b></div><div className="decision-state optional"><b>现在只是查看方案</b><span>可以返回比较其他选择；确认后才会推进一周。下方已计入每周自然恢复的 10 点精力。</span></div><h2>{modal.action.id==="work"?`这周去挣钱，还是先喘口气？`:modal.action.name}</h2><p>{modal.action.id==="work"?`去做 ${currentJob.name}，大概能拿 ${currentWage}€。要是已经撑不住，少赚一周也比把身体拖垮强。`:modal.action.sub}</p><div className="action-effect-preview">{Object.entries(previewEffect(modal.action)).map(([k,v])=><span key={k}><small>{effectNames[k]}</small><b className={v>=0?"profit":"loss"}>{v>0?"+":""}{v}{k==="money"?"€":""}</b></span>)}</div>{modal.action.risk&&<div className="preview-risk">{modal.action.risk}</div>}<button className="primary" disabled={modal.action.id==="work"&&state.energy<18} onClick={()=>doAction(modal.action,true)}>{modal.action.id==="work"?(state.energy<18?"这状态真上不了班":"去上班，推进一周"):"就这么过这一周"} <span>→</span></button>{modal.action.id==="work"&&<button className="recovery-choice" onClick={()=>doAction(restAction,true)}><b>🛌 这周先不硬撑</b><span>精力共恢复 40 · 健康 +8 · 压力 -10 · 生活支出 18€</span><em>睡够了再说 →</em></button>}<button className="secondary" onClick={()=>setModal(null)}>← 返回比较其他选择</button></>:modal.type==="paperPlanner"?<><div className="modal-top"><span>AKTIONSWAHL</span><b>行动方案 · 尚未执行</b></div><div className="decision-state optional"><b>现在只是查看方案</b><span>尚未消耗时间，可以返回改选工作、学习、休息或交易。</span></div><h2>这周具体跑什么手续？</h2><p>只有选择下面一项，才会把“处理手续”确定为本周行动并推进一周。</p><div className="paper-tasks">{PAPER_TASKS.map(task=><button key={task.id} onClick={()=>doPaperTask(task)}><b>{task.icon} {task.name}</b><span>{task.sub}</span><em>{Object.entries(task.effect).map(([k,v])=>`${effectNames[k]} ${v>0?"+":""}${v}`).join(" · ")}</em></button>)}</div><button className="secondary" onClick={()=>setModal(null)}>← 返回本周选择 · 不推进时间</button></>:modal.type==="event"?<><div className="modal-top"><span>{modal.event.office}</span><b>周末事件 · 已经发生</b></div><div className="decision-state required"><b>本周行动已经完成</b><span>这个事件必须处理；可以暂时收起查看状态，但不能改选本周行动。</span></div><div className="time-passed">{modal.timeLabel}<small>{modal.actionName}已经用掉一周</small></div><h2>{modal.event.title}</h2><p>{modal.event.text}</p><div className="modal-choices">{modal.event.choices.map(c=><button key={c.label} onClick={()=>chooseEvent(c,modal.event)}><b>{c.label}</b><span>{Object.entries(c.effect||{}).map(([k,v])=>`${effectNames[k]} ${v>0?"+":""}${v}`).join(" · ")}</span></button>)}</div><button className="secondary inspect-state" onClick={()=>setModal({...modal,minimized:true})}>暂时收起查看状态 · 之后仍需处理</button></>:modal.type==="weekResult"?<><div className="modal-top"><span>WOCHENABSCHLUSS</span><b>周结算</b></div><div className="time-passed large">{modal.timeLabel}<small>时间已经推进</small></div><h2>这一周结束了</h2><p>{modal.actionName}已经完成。{modal.monthSummary||"新的市场价格和生活状态已经更新。"}</p><button className="primary" onClick={()=>setModal(null)}>进入新的一周 <span>→</span></button></>:modal.type==="ventureResult"?<><div className="modal-top"><span>NEBENGEWERBE</span><b>经营结算</b></div><div className="holding-period">持有 {modal.ledger.heldWeeks} 周后结算<small>开始和结算本身均不耗时间</small></div><h2>{modal.title}</h2><p>{modal.result}</p><div className="venture-result-numbers"><span>总投入<b>{modal.ledger.invested}€</b><small>本金 {modal.ledger.capital}€ + 渠道 {modal.ledger.fee}€</small></span><span>回收金额<b>{modal.ledger.returned}€</b><small>实际回到账户的价值</small></span><span>净利润<b className={modal.ledger.profit>=0?"profit":"loss"}>{modal.ledger.profit>=0?"+":""}{modal.ledger.profit}€</b><small>回收 − 总投入</small></span></div><button className="primary" onClick={()=>setModal(null)}>完成结算 <span>→</span></button></>:<><div className="modal-top"><span>AUSWIRKUNG</span><b>处理结果</b></div>{modal.timeLabel&&<div className="time-passed">{modal.timeLabel}<small>事件发生在已经消耗的这一周</small></div>}<h2>{modal.choice.label}</h2><p>{modal.choice.result}</p>{modal.languageRelief>0&&<div className="language-relief">🗣️ 德语能力令本次压力额外减少 {modal.languageRelief} 点</div>}<button className="primary" onClick={()=>setModal(null)}>进入新的一周 <span>→</span></button></>}
+      {modal.type==="actionPreview"?<><div className="modal-top"><span>{modal.action.category||"生活安排"}</span><b>本周方案 · 尚未执行</b></div><div className="decision-state optional"><b>现在只是查看方案</b><span>可以返回比较其他选择；确认后才会推进一周。状态预估已经计入每周自然恢复。</span></div><h2>{modal.action.id==="work"?`这周去挣钱，还是先喘口气？`:modal.action.name}</h2><p>{modal.action.id==="work"?`去做 ${currentJob.name}，大概能拿 ${currentWage}€。要是已经撑不住，少赚一周也比把身体拖垮强。`:modal.action.sub}</p><div className="action-effect-preview core-effect-preview">{coreEffectEntries(state,previewEffect(modal.action)).map(item=><span key={item.key}><small>{item.icon} {lang==="de"?item.de:item.zh}</small><b className={item.value>=0?"profit":"loss"}>{item.value>0?"+":""}{item.value}{item.suffix||""}</b></span>)}</div>{modal.action.risk&&<div className="preview-risk">{modal.action.risk}</div>}<button className="primary" disabled={modal.action.id==="work"&&state.energy<18} onClick={()=>doAction(modal.action,true)}>{modal.action.id==="work"?(state.energy<18?"这状态真上不了班":"去上班，推进一周"):"就这么过这一周"} <span>→</span></button>{modal.action.id==="work"&&<button className="recovery-choice" onClick={()=>doAction(restAction,true)}><b>🛌 这周先不硬撑</b><span>状态明显恢复 · 花费 18€</span><em>睡够了再说 →</em></button>}<button className="secondary" onClick={()=>setModal(null)}>← 返回比较其他选择</button></>:modal.type==="paperPlanner"?<><div className="modal-top"><span>AKTIONSWAHL</span><b>行动方案 · 尚未执行</b></div><div className="decision-state optional"><b>现在只是查看方案</b><span>尚未消耗时间，可以返回改选工作、学习、休息或交易。</span></div><h2>这周具体跑什么手续？</h2><p>只有选择下面一项，才会把“处理手续”确定为本周行动并推进一周。</p><div className="paper-tasks">{PAPER_TASKS.map(task=><button key={task.id} onClick={()=>doPaperTask(task)}><b>{task.icon} {task.name}</b><span>{task.sub}</span><em>{coreEffectText(state,task.effect,lang)}</em></button>)}</div><button className="secondary" onClick={()=>setModal(null)}>← 返回本周选择 · 不推进时间</button></>:modal.type==="event"?<><div className="modal-top"><span>{modal.event.office}</span><b>周末事件 · 已经发生</b></div><div className="decision-state required"><b>本周行动已经完成</b><span>这个事件必须处理；可以暂时收起查看状态，但不能改选本周行动。</span></div><div className="time-passed">{modal.timeLabel}<small>{modal.actionName}已经用掉一周</small></div><h2>{modal.event.title}</h2><p>{modal.event.text}</p><div className="modal-choices">{modal.event.choices.map(c=><button key={c.label} onClick={()=>chooseEvent(c,modal.event)}><b>{c.label}</b><span>{coreEffectText(state,c.effect||{},lang)}</span></button>)}</div><button className="secondary inspect-state" onClick={()=>setModal({...modal,minimized:true})}>暂时收起查看状态 · 之后仍需处理</button></>:modal.type==="weekResult"?<><div className="modal-top"><span>WOCHENABSCHLUSS</span><b>周结算</b></div><div className="time-passed large">{modal.timeLabel}<small>时间已经推进</small></div><h2>这一周结束了</h2><p>{modal.actionName}已经完成。{modal.monthSummary||"新的市场价格和生活状态已经更新。"}</p><button className="primary" onClick={()=>setModal(null)}>进入新的一周 <span>→</span></button></>:modal.type==="ventureResult"?<><div className="modal-top"><span>NEBENGEWERBE</span><b>经营结算</b></div><div className="holding-period">持有 {modal.ledger.heldWeeks} 周后结算<small>开始和结算本身均不耗时间</small></div><h2>{modal.title}</h2><p>{modal.result}</p><div className="venture-result-numbers"><span>总投入<b>{modal.ledger.invested}€</b><small>本金 {modal.ledger.capital}€ + 渠道 {modal.ledger.fee}€</small></span><span>回收金额<b>{modal.ledger.returned}€</b><small>实际回到账户的价值</small></span><span>净利润<b className={modal.ledger.profit>=0?"profit":"loss"}>{modal.ledger.profit>=0?"+":""}{modal.ledger.profit}€</b><small>回收 − 总投入</small></span></div><button className="primary" onClick={()=>setModal(null)}>完成结算 <span>→</span></button></>:<><div className="modal-top"><span>AUSWIRKUNG</span><b>处理结果</b></div>{modal.timeLabel&&<div className="time-passed">{modal.timeLabel}<small>事件发生在已经消耗的这一周</small></div>}<h2>{modal.choice.label}</h2><p>{modal.choice.result}</p>{modal.languageRelief>0&&<div className="language-relief">状态损失因为你的语言能力有所减轻</div>}<button className="primary" onClick={()=>setModal(null)}>进入新的一周 <span>→</span></button></>}
     </article></div>}
   </main></Localize>;
 }
