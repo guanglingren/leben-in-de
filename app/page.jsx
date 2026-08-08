@@ -297,7 +297,7 @@ const BASE_EVENTS = [
     { label:"带点吃的去参加", effect:{money:-28,stress:-13,reputation:14,energy:-3}, result:"你认识了会修自行车的邻居和懂租房法的退休教师。" },
     { label:"太累了，在家休息", effect:{health:5,energy:11,stress:-5}, result:"你睡了一个完整的下午，什么手续也没办。" }
   ]},
-  { id:"promotion", title:"主管暗示有一个更稳定的岗位", office:"ARBEIT", text:"岗位薪水更高，但需要一份额外证书。公司愿意推荐你，课程要占三个周末。", when:s=>s.reputation>=45&&!s.flags.promotion, choices:[
+  { id:"promotion", title:"主管暗示有一个更稳定的岗位", office:"ARBEIT", text:"岗位薪水更高，但需要一份额外证书。公司愿意推荐你，课程要占三个周末。", when:s=>integrationScore(s)>=50&&!s.flags.promotion, choices:[
     { label:"报名培训争取岗位", effect:{money:-120,energy:-14,stress:6,reputation:10,german:5}, flag:"promotion", result:"你拿到了培训名额。未来工作收入提高。" },
     { label:"维持现在的节奏", effect:{stress:-4,health:3}, flag:"promotionSkip", result:"你保住了周末，也暂时放弃了向上流动。" }
   ]},
@@ -384,9 +384,9 @@ const ACTIONS = [
 
 const WEEKLY_BETS = [
   {id:"bet-shift",icon:"🌙",name:"替人顶三晚夜班",sub:"主管暗示会记住你，但没有写进合同",risk:"低风险 · 稳定现金，透支身体",run:s=>({money:380+Math.round(s.german*.8),energy:-27,health:-7,stress:10,reputation:7})},
-  {id:"bet-refund",icon:"🧾",name:"追一笔可能存在的退费",sub:"论坛说同类账单有人拿回了钱，也有人等了半年",risk:"中风险 · 成功会连本带利追回",run:s=>{const roll=(s.totalWeek*23+s.papers*3+s.german)%100;return roll<48+Math.round(s.papers/5)?{money:330,papers:7,energy:-12,stress:-5}:{money:-35,papers:4,energy:-14,stress:9};}},
+  {id:"bet-refund",icon:"🧾",name:"追一笔可能存在的退费",sub:"论坛说同类账单有人拿回了钱，也有人等了半年",risk:"中风险 · 成功会连本带利追回",run:s=>{const ability=integrationScore(s),roll=(s.totalWeek*23+ability*3)%100;return roll<42+Math.round(ability/4)?{money:330,study:2,energy:-12,stress:-5}:{money:-35,study:1,energy:-14,stress:9};}},
   {id:"bet-exam",icon:"🎓",name:"押教授最后一节课的重点",sub:"用一周冲刺三道题，押错就来不及补",risk:"高风险 · 学业可能大幅推进",run:s=>{const roll=(s.totalWeek*31+s.study*2+s.german)%100;return roll<54?{study:20,german:3,energy:-16,stress:-4}:{study:3,energy:-17,stress:15};}},
-  {id:"bet-contact",icon:"🤝",name:"替同学解决一件麻烦事",sub:"没有工资；这份人情也许很快就能变现",risk:"未知回报 · 押人脉",run:s=>{const roll=(s.totalWeek*29+s.reputation*5)%100;return roll<62?{money:180,reputation:14,german:3,energy:-12}:{reputation:8,energy:-14,stress:7,money:-25};}}
+  {id:"bet-contact",icon:"🤝",name:"替同学解决一件麻烦事",sub:"没有工资；这份人情也许很快就能变现",risk:"未知回报 · 押沟通能力",run:s=>{const ability=integrationScore(s),roll=(s.totalWeek*29+ability*5)%100;return roll<55+Math.round(ability/8)?{money:180,german:5,energy:-12}:{german:2,energy:-14,stress:7,money:-25};}}
 ];
 
 function weeklyChoices(state){
@@ -412,7 +412,18 @@ const PAPER_TASKS = [
 
 const clamp = n => Math.max(0, Math.min(100, Math.round(n)));
 const integrationScore=s=>Math.round(((s.study||0)+(s.german||0))/2);
-const socialScore=s=>Math.round(((s.reputation||0)+(s.papers||0))/2);
+// Legacy Akte/Kontakte effects are folded into the visible Bleibeperspektive.
+// From here on, only Verfassung, Geld and Bleibeperspektive drive gameplay.
+const coreOnlyEffect=(effect={})=>{
+  const next={...effect};
+  const studyGain=Math.round((effect.papers||0)/5);
+  const germanGain=Math.round((effect.reputation||0)/7);
+  if(studyGain)next.study=(next.study||0)+studyGain;
+  if(germanGain)next.german=(next.german||0)+germanGain;
+  delete next.papers;delete next.reputation;delete next.packs;
+  return next;
+};
+const socialScore=s=>integrationScore(s);
 const conditionScore=s=>{
   const energy=clamp(s.energy||0),health=clamp(s.health||0),calm=clamp(100-(s.stress||0));
   const weighted=Math.round(energy*.4+health*.35+calm*.25);
@@ -420,7 +431,7 @@ const conditionScore=s=>{
 };
 const projectedState=(state,effect={})=>{
   const next={...state};
-  Object.entries(effect).forEach(([key,value])=>{next[key]=["money","debt"].includes(key)?Math.max(0,(next[key]||0)+value):clamp((next[key]||0)+value);});
+  Object.entries(coreOnlyEffect(effect)).forEach(([key,value])=>{next[key]=["money","debt"].includes(key)?Math.max(0,(next[key]||0)+value):clamp((next[key]||0)+value);});
   return next;
 };
 const coreEffectEntries=(state,effect={})=>{
@@ -433,8 +444,7 @@ const coreEffectEntries=(state,effect={})=>{
 };
 const coreEffectText=(state,effect={},lang="zh")=>{
   const parts=coreEffectEntries(state,effect).filter(item=>item.value!==0).map(item=>`${item.icon} ${lang==="de"?item.de:item.zh} ${item.value>0?"+":""}${item.value}${item.suffix||""}`);
-  if((effect.papers||0)>0||(effect.reputation||0)>0)parts.push(lang==="de"?"Behördengänge werden künftig leichter":"以后办事会更顺");
-  return parts.join(" · ")||(lang==="de"?"Wirkt sich später aus":"会影响后续生活");
+  return parts.join(" · ")||(lang==="de"?"Keine Werteänderung":"无数值变化");
 };
 const effectNames = {money:"资金",debt:"债务",energy:"精力",health:"健康",stress:"压力",german:"德语",papers:"档案",packs:"材料包",reputation:"人脉",study:"学业"};
 const effectNamesDe = {money:"Geld",debt:"Schulden",energy:"Energie",health:"Gesundheit",stress:"Stress",german:"Deutsch",papers:"Akte",packs:"Unterlagen",reputation:"Kontakte",study:"Studium"};
@@ -442,11 +452,11 @@ const effectIcons = {money:"💶",debt:"🏦",energy:"⚡",health:"❤️",stres
 const periodLabel = s => s.month>12?"年度结束":`第 ${s.month} 月 · 第 ${s.week} 周`;
 
 function EffectBadges({effect,lang="zh"}) {
+  effect=coreOnlyEffect(effect);
   const groups=[];
   if(["energy","health","stress"].some(key=>key in effect))groups.push(["condition","❤️",lang==="de"?"Verfassung":"状态"]);
   if(["money","debt"].some(key=>key in effect))groups.push(["money","💶",lang==="de"?"Geld":"钱"]);
   if(["german","study"].some(key=>key in effect))groups.push(["ability","🎓",lang==="de"?"Bleibeperspektive":"留德能力"]);
-  if(["papers","reputation","packs"].some(key=>key in effect))groups.push(["later","○",lang==="de"?"spätere Behördengänge":"后续办事"]);
   return <div className="effect-badges"><strong>{lang==="de"?"Worauf wirkt das?":"会影响什么"}</strong>{groups.map(([key,icon,label])=><span key={key}>{icon} {label}</span>)}</div>;
 }
 
@@ -789,14 +799,11 @@ function TradeLedger({state,lang,prices}){
 }
 
 function ProgressBenefits({state,lang}){
-  const social=socialScore(state),ability=integrationScore(state),condition=conditionScore(state);
+  const ability=integrationScore(state),condition=conditionScore(state);
   const abilityTier=lang==="de"
     ?(ability>=75?"Auch komplizierte Gespräche gehen dir leichter von der Hand":ability>=60?"Mit den meisten offiziellen Schreiben kommst du klar":ability>=40?"Für die erste Prüfung bist du gerüstet":"Ab 40 wird die erste Prüfung leichter")
     :(ability>=75?"复杂沟通已经轻松很多":ability>=60?"多数正式沟通能应付":ability>=40?"可以应付首次检查":"40 后更容易通过首次检查");
-  const socialText=lang==="de"
-    ?(social>=80?"Du kennst inzwischen deine Wege":social>=60?"Bei den meisten Problemen weißt du, wen du fragen kannst":social>=45?"Du sammelst verlässliche Erfahrung":"Du lernst die Regeln noch kennen")
-    :(social>=80?"办事时已经有一套自己的办法":social>=60?"多数麻烦能找到人问":social>=45?"开始积累可靠经验":"仍在熟悉这里的规则");
-  return <div className="progress-benefits career-benefits core-benefits"><span><b>❤️ {lang==="de"?"Verfassung":"状态"} {condition}</b><small>{lang==="de"?"Entscheidet, wie lange du noch durchhältst":"决定你还能不能继续硬撑"}</small></span><span><b>💶 {lang==="de"?"Geld":"现金"} {Math.round(state.money)}€</b><small>{lang==="de"?`Noch ${Math.round(state.debt)} € Schulden`:`尚欠 ${Math.round(state.debt)}€`}</small></span><span><b>🎓 {lang==="de"?"Bleibeperspektive":"留德能力"} {ability}</b><small>{lang==="de"?`${abilityTier} · Lohn +${Math.min(60,Math.max(0,ability-40)*2)} €`:`${abilityTier} · 工资 +${Math.min(60,Math.max(0,ability-40)*2)}€`}</small></span><p>○ {socialText}</p></div>;
+  return <div className="progress-benefits career-benefits core-benefits"><span><b>❤️ {lang==="de"?"Verfassung":"状态"} {condition}</b><small>{lang==="de"?"Entscheidet, wie lange du noch durchhältst":"决定你还能不能继续硬撑"}</small></span><span><b>💶 {lang==="de"?"Geld":"现金"} {Math.round(state.money)}€</b><small>{lang==="de"?`Noch ${Math.round(state.debt)} € Schulden`:`尚欠 ${Math.round(state.debt)}€`}</small></span><span><b>🎓 {lang==="de"?"Bleibeperspektive":"留德能力"} {ability}</b><small>{lang==="de"?`${abilityTier} · Lohn +${Math.min(60,Math.max(0,ability-40)*2)} €`:`${abilityTier} · 工资 +${Math.min(60,Math.max(0,ability-40)*2)}€`}</small></span></div>;
 }
 
 export default function Home() {
@@ -918,6 +925,7 @@ export default function Home() {
   }
 
   function applyEffect(base,effect={}){
+    effect=coreOnlyEffect(effect);
     const next={...base};
     Object.entries(effect).forEach(([k,v])=>{next[k]=["money","debt"].includes(k)?Math.max(0,(next[k]||0)+v):clamp((next[k]||0)+v);});
     return next;
@@ -933,7 +941,7 @@ export default function Home() {
   function drawEvent(current){
     if(current.totalWeek%6===0){
       const opportunities=lang==="de"?DE_OPPORTUNITY_EVENTS:OPPORTUNITY_EVENTS;
-      const opportunityUnlocked=e=>e.id==="opp-refund"?current.papers>=50:e.id==="opp-contact"?current.reputation>=45:e.id==="opp-paperwork"?current.papers>=65:true;
+      const opportunityUnlocked=e=>e.id==="opp-refund"?integrationScore(current)>=45:e.id==="opp-contact"?integrationScore(current)>=50:e.id==="opp-paperwork"?integrationScore(current)>=60:true;
       const unlocked=opportunities.filter(e=>opportunityUnlocked(e)&&!current.seen.slice(-14).includes(e.id));
       if(unlocked.length)return unlocked[(current.totalWeek/6-1)%unlocked.length];
     }
@@ -964,7 +972,7 @@ export default function Home() {
     let monthSummary=progressNotes.join(" ");
     if(nextWeek>4){
       nextWeek=1; nextMonth+=1; newsIndex+=1;
-      const living=Math.max(950,BASE_MONTHLY_COST-(next.flags.mieterverein?25:0)-(next.flags.rentFight?15:0)-(next.reputation>=70?20:0));
+      const living=Math.max(950,BASE_MONTHLY_COST-(next.flags.mieterverein?25:0)-(next.flags.rentFight?15:0)-(integrationScore(next)>=70?20:0));
       const interest=Math.ceil(next.debt*.035);
       next=applyEffect(next,{money:-living,debt:interest,stress:next.money<living?12:1,energy:8});
       log+=`；月末扣除生活费 ${living}€，债务利息 ${interest}€`;
@@ -982,13 +990,13 @@ export default function Home() {
     const riskyGoods=GOODS.filter(g=>g.risk>=30&&(next.inventory?.[g.id]||0)>0);
     if(riskyGoods.length){
       const exposure=riskyGoods.reduce((sum,g)=>sum+g.risk*(next.inventory[g.id]||0),0);
-      const inspectionProtection=(next.papers>=80?8:next.papers>=60?4:0)+(next.german>=75?6:next.german>=60?3:0)+(next.reputation>=80?5:0);
-      const inspectionRoll=(next.totalWeek*29+Math.round(next.money)+next.papers*3)%100;
+      const inspectionProtection=integrationScore(next)>=75?12:integrationScore(next)>=60?6:0;
+      const inspectionRoll=(next.totalWeek*29+Math.round(next.money)+integrationScore(next)*3)%100;
       if(inspectionRoll<Math.max(2,Math.min(42,Math.round(exposure/8)-inspectionProtection))){
         const seized=riskyGoods.reduce((sum,g)=>sum+(next.inventory[g.id]||0),0);
         const inventory={...next.inventory},inventoryCost={...next.inventoryCost};
         riskyGoods.forEach(g=>{inventory[g.id]=0;inventoryCost[g.id]=0;});
-        const fine=Math.max(35,75-(next.german>=75?15:0)-(next.papers>=80?10:0));
+        const fine=Math.max(35,75-(integrationScore(next)>=75?25:integrationScore(next)>=60?12:0));
         next=applyEffect({...next,inventory,inventoryCost},{money:-fine,stress:14,papers:-6,reputation:-5});
         monthSummary=`${monthSummary} 平台审核与市场监管同时出现：${seized} 件高风险库存被扣，并收到 ${fine}€ 处理费用。`.trim();
       }
@@ -1012,14 +1020,12 @@ export default function Home() {
   function chooseEvent(choice,event){
     const languageRelief=integrationScore(state)>=75?4:integrationScore(state)>=60?2:0;
     const academicOffice=["UNIVERSITÄT","PRÜFUNGSAMT","SEMINAR","BIBLIOTHEK"].includes(event.office);
-    const ability=integrationScore(state),social=socialScore(state);
+    const ability=integrationScore(state);
     const academicRelief=academicOffice?(ability>=75?4:ability>=60?2:0):0;
     const adjusted={...choice.effect};
     if(adjusted.stress>0)adjusted.stress=Math.max(0,adjusted.stress-languageRelief-academicRelief);
-    if(adjusted.energy<0&&social>=45)adjusted.energy=Math.round(adjusted.energy*(social>=80?.65:social>=60?.8:.92));
-    if(adjusted.papers>0&&state.papers>=60)adjusted.papers=Math.max(1,Math.round(adjusted.papers*(state.papers>=80?.35:.65)));
-    if(adjusted.money<0&&social>=45)adjusted.money=Math.round(adjusted.money*(social>=80?.75:social>=60?.88:.95));
-    if(adjusted.stress>0&&state.reputation>=80)adjusted.stress=Math.max(0,adjusted.stress-2);
+    if(adjusted.energy<0&&ability>=45)adjusted.energy=Math.round(adjusted.energy*(ability>=80?.65:ability>=60?.8:.92));
+    if(adjusted.money<0&&ability>=45)adjusted.money=Math.round(adjusted.money*(ability>=80?.75:ability>=60?.88:.95));
     let next=applyEffect(state,adjusted);
     if(choice.flag)next={...next,flags:{...next.flags,[choice.flag]:true}};
     next={...next,seen:[...next.seen,event.id],journal:[`${event.office}：${event.title}｜${choice.label}`,...next.journal].slice(0,20)};
@@ -1091,7 +1097,6 @@ export default function Home() {
 
   function switchJob(job){
     if(integrationScore(state)<job.abilityReq){setToast(lang==="de"?`Dafür brauchst du ${job.abilityReq} Punkte Bleibeperspektive.`:`这份工作需要留德能力达到 ${job.abilityReq}。`);return;}
-    if(socialScore(state)<job.socialReq){setToast(lang==="de"?"Dafür fehlen dir noch Behördenerfahrung und verlässliche Kontakte.":"你还需要多处理一些手续、认识一些可靠的人。");return;}
     setState({...state,jobId:job.id});setToast(`下周开始做：${job.name}`);
   }
 
@@ -1242,7 +1247,7 @@ export default function Home() {
         {(state.ventureLedger||[]).length>0&&<div className="venture-ledger"><div className="subhead"><b>最近经营账本</b><span>投入 → 回收 → 净结果</span></div>{state.ventureLedger.slice(0,5).map((l,i)=><p key={i}><span>{l.good}<small>{l.channel}</small></span><b>{l.invested}€ → {l.returned}€</b><em className={l.profit>=0?"profit":"loss"}>{l.profit>=0?"+":""}{l.profit}€</em></p>)}</div>}</div>
       </>}
 
-      {tab==="career"&&<><div className="panel-title"><div><small>ENTWICKLUNG & BERUF</small><h2>{lang==="de"?"Entwicklung und Beruf":"成长与职业"}</h2></div><span>{lang==="de"?"Drei Werte, die wirklich zählen":"围绕三个核心数值"}</span></div><p className="career-help">{lang==="de"?"Die Bleibeperspektive bündelt Studium und Deutsch und beeinflusst Prüfungen, Lohn und Jobzugang. Kontakte und Aktenlage laufen im Hintergrund als Behördenerfahrung weiter: Wer sich einmischt und Dinge erledigt, kommt später leichter durch.":"留德能力由学业和德语共同构成，直接影响学业检查、工资和职业解锁。人脉与档案改为隐藏的办事积累：多参加社区活动、多处理手续，以后遇到麻烦会更容易一些。"}</p><ProgressBenefits state={state} lang={lang}/><div className="language-bonus"><span>{lang==="de"?"Lohnbonus durch Bleibeperspektive":"留德能力工资加成"}<b>+{languageBonus}€ / {lang==="de"?"Woche":"周"}</b></span><span>{lang==="de"?"Behördenerfahrung":"办事积累"}<b>{lang==="de"?(social>=60?"du kennst dich schon ziemlich gut aus":social>=45?"du weißt langsam, wen du fragen kannst":"baut sich langsam auf"):(social>=60?"已经比较熟门熟路":social>=45?"开始有人能帮上忙":"还在慢慢积累")}</b></span></div><div className="jobs">{JOBS.map(j=>{const unlocked=ability>=j.abilityReq&&social>=j.socialReq;const toll=Math.max(1,Math.round((-j.energy+Math.max(0,-j.health)+j.stress)/3));return <button key={j.id} className={state.jobId===j.id?"selected":""} onClick={()=>switchJob(j)}><i>{j.icon}</i><span><b>{j.name}</b><small>{lang==="de"?`Netto-Wochenlohn ${j.wage} € · Belastung etwa ${toll}${j.abilityReq?` · Bleibeperspektive ${j.abilityReq}`:" · Keine Voraussetzung"}${j.socialReq&&!unlocked&&ability>=j.abilityReq?" · Mehr Behördenerfahrung nötig":""}`:`到手周薪 ${j.wage}€ · 状态消耗约 ${toll}${j.abilityReq?` · 留德能力 ${j.abilityReq}`:" · 无门槛"}${j.socialReq&&!unlocked&&ability>=j.abilityReq?" · 还需更多办事经历":""}`}</small></span><em>{lang==="de"?(state.jobId===j.id?"Aktueller Job":unlocked?"Als Job wählen":"Gesperrt"):(state.jobId===j.id?"当前本职":unlocked?"设为本职":"未解锁")}</em></button>})}</div><div className="debt-box"><span><small>{lang==="de"?"Private Schulden":"私人债务"}</small><b>{Math.round(state.debt)} €</b></span><p>{lang==="de"?"Monatlich 3,5 % Zinsen; Tilgung ist nur einmal pro Monat möglich.":"每月增长 3.5%，每月最多偿还一次。不能在同一个月连续清空债务。"}</p><button onClick={payDebt} disabled={state.lastDebtPaymentMonth===state.month||state.debt<=0}>{lang==="de"?(state.debt<=0?"Schulden abbezahlt":state.lastDebtPaymentMonth===state.month?"Diesen Monat bereits getilgt":"Diesen Monat bis zu 250 € tilgen"):(state.debt<=0?"债务已还清":state.lastDebtPaymentMonth===state.month?"本月已还款":"本月偿还最多 250€")}</button></div></>}
+      {tab==="career"&&<><div className="panel-title"><div><small>ENTWICKLUNG & BERUF</small><h2>{lang==="de"?"Entwicklung und Beruf":"成长与职业"}</h2></div><span>{lang==="de"?"Drei Werte, die wirklich zählen":"围绕三个核心数值"}</span></div><p className="career-help">{lang==="de"?"Verfassung, Geld und Bleibeperspektive sind die einzigen Werte mit spielerischer Wirkung. Erfahrung mit Behörden, Studium und Deutsch fließen sichtbar in die Bleibeperspektive ein.":"状态、钱和留德能力是仅有的三个有效数值。办手续、学习和使用德语获得的成长，都会直接显示为留德能力。"}</p><ProgressBenefits state={state} lang={lang}/><div className="language-bonus"><span>{lang==="de"?"Lohnbonus durch Bleibeperspektive":"留德能力工资加成"}<b>+{languageBonus}€ / {lang==="de"?"Woche":"周"}</b></span><span>{lang==="de"?"Schutz bei Ereignissen":"事件减损"}<b>{ability>=75?"-4":ability>=60?"-2":"0"} {lang==="de"?"Verfassung":"状态"}</b></span></div><div className="jobs">{JOBS.map(j=>{const unlocked=ability>=j.abilityReq;const toll=Math.max(1,Math.round((-j.energy+Math.max(0,-j.health)+j.stress)/3));return <button key={j.id} className={state.jobId===j.id?"selected":""} onClick={()=>switchJob(j)}><i>{j.icon}</i><span><b>{j.name}</b><small>{lang==="de"?`Netto-Wochenlohn ${j.wage} € · Belastung etwa ${toll}${j.abilityReq?` · Bleibeperspektive ${j.abilityReq}`:" · Keine Voraussetzung"}`:`到手周薪 ${j.wage}€ · 状态消耗约 ${toll}${j.abilityReq?` · 留德能力 ${j.abilityReq}`:" · 无门槛"}`}</small></span><em>{lang==="de"?(state.jobId===j.id?"Aktueller Job":unlocked?"Als Job wählen":"Gesperrt"):(state.jobId===j.id?"当前本职":unlocked?"设为本职":"未解锁")}</em></button>})}</div><div className="debt-box"><span><small>{lang==="de"?"Private Schulden":"私人债务"}</small><b>{Math.round(state.debt)} €</b></span><p>{lang==="de"?"Monatlich 3,5 % Zinsen; Tilgung ist nur einmal pro Monat möglich.":"每月增长 3.5%，每月最多偿还一次。不能在同一个月连续清空债务。"}</p><button onClick={payDebt} disabled={state.lastDebtPaymentMonth===state.month||state.debt<=0}>{lang==="de"?(state.debt<=0?"Schulden abbezahlt":state.lastDebtPaymentMonth===state.month?"Diesen Monat bereits getilgt":"Diesen Monat bis zu 250 € tilgen"):(state.debt<=0?"债务已还清":state.lastDebtPaymentMonth===state.month?"本月已还款":"本月偿还最多 250€")}</button></div></>}
 
       {tab==="journal"&&<><div className="panel-title"><div><small>VERLAUF</small><h2>生活记录</h2></div><span>{state.seen.length} 个事件</span></div><div className="journal">{state.journal.length?state.journal.map((j,i)=><p key={i}><i>{String(state.journal.length-i).padStart(2,"0")}</i>{j}</p>):<div className="empty">你的档案目前还很薄。系统会设法改变这一点。</div>}</div></>}
     </section>
