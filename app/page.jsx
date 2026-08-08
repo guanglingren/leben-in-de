@@ -72,7 +72,7 @@ const DE_EVENTS = [
   ]},
   {id:"de-parcelshop",title:"Der Paketshop ist offen – nur Pakete gehen heute nicht",office:"PAKETSHOP",text:"Der Laden ist geöffnet, der Inhaber ist da. Nur der Kollege, der sich mit dem Paketsystem auskennt, hat heute frei.",choices:[
     {label:"Morgen wiederkommen",effect:{energy:-5,stress:4},result:"Morgen wird das System gewartet, übermorgen ist Sonntag."},
-    {label:"Das Gerät gemeinsam untersuchen",effect:{energy:-9,reputation:5,papers:3},result:"Du startest das Gerät neu und leistest kostenlos zehn Minuten IT-Support."}
+    {label:"Das Gerät gemeinsam untersuchen",effect:{energy:-16,stress:8,german:3,reputation:5,papers:3},result:"Du arbeitest dich auf Deutsch durch die Fehlermeldungen, startest das Gerät neu und leistest kostenlos IT-Support. Das kostet deutlich mehr Kraft, bringt dich aber weiter."}
   ]},
   {id:"de-internet",title:"Das Internetproblem lässt sich nur online melden",office:"INTERNETANBIETER",text:"Die Leitung ist ausgefallen. Die Hotline verweist auf den Onlinechat; der Onlinechat verlangt eine Verbindung mit deinem Heim-WLAN.",choices:[
     {label:"Mit mobilen Daten einen Hotspot öffnen",effect:{money:-24,energy:-8,stress:6,study:8,papers:4},result:"Die Rechnung steigt, aber Onlinekurs und fristgebundene Unterlagen sind gerettet. Die Diagnose bestätigt lediglich, dass dein Internet nicht funktioniert."},
@@ -339,7 +339,7 @@ const BASE_EVENTS = [
   ]},
   { id:"paketshop", title:"包裹店营业，但负责包裹的人不在", office:"PAKETSHOP", text:"便利店开着，老板也在，但“会操作包裹系统的同事”今天不上班。", choices:[
     { label:"明天再来", effect:{energy:-5,stress:4}, result:"明天系统维护，后天是周日。" },
-    { label:"现场研究机器", effect:{energy:-9,german:3,reputation:5,papers:3}, result:"你一边用德语读报错信息，一边帮老板重启设备，并免费做了十分钟 IT 支持。" }
+    { label:"现场研究机器", effect:{energy:-16,stress:8,german:3,reputation:5,papers:3}, result:"你一边用德语读报错信息，一边帮老板重启设备并免费做 IT 支持。明显更累，但留德能力和办事经验都会增长。" }
   ]},
   { id:"tuv", title:"TÜV 认为警示灯亮着；车认为没有", office:"TÜV", text:"检测时仪表盘短暂亮灯。复检时灯灭了，但复检需要证明第一次的问题已经维修。", choices:[
     { label:"请修理厂出具证明", effect:{money:-95,papers:9,stress:4}, result:"修理厂证明他们没有修任何东西，因为东西没有坏。" },
