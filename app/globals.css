@@ -193,7 +193,7 @@ footer{display:flex;justify-content:space-between;padding:16px 24px;font-size:9p
 
 /* Desktop readability — larger type without restoring oversized navigation */
 @media (min-width:800px){
-  .sticky-status .v2-head small{font-size:11px}.sticky-status .v2-head b{font-size:23px}.current-period em{font-size:10px}
+  .sticky-status .v2-head{height:76px;padding-block:8px}.sticky-status .v2-head small{font-size:11px}.sticky-status .v2-head b{font-size:23px;line-height:1.2}.current-period em{font-size:10px;line-height:1.25;margin-top:3px}
   .sticky-status .deadline small{font-size:10px}.sticky-status .deadline b{font-size:20px}
   .sticky-status .v2-stat>span{font-size:11px}.sticky-status .v2-stat>b{font-size:18px}
   .sticky-status .ability-stats span{font-size:11px}.sticky-status .ability-stats b{font-size:18px}.sticky-status .ability-stats small{font-size:10px}
