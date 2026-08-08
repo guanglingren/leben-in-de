@@ -60,7 +60,7 @@ const DE_EVENTS = [
   ]},
   {id:"de-termin2",title:"Dieser Termin dient nur dazu, einen anderen Termin zu buchen",office:"BÜRGERBÜRO",text:"Am Schalter erfährst du, dass heute nur deine Identität geprüft wird. Für den eigentlichen Vorgang brauchst du eine neue Wartenummer.",choices:[
     {label:"Höflich eine neue Nummer nehmen",effect:{energy:-9,stress:8,papers:7},result:"Der neue Termin ist in acht Wochen – im selben Gebäude, am selben Schalter."},
-    {label:"Darauf bestehen, es heute zu erledigen",effect:{energy:-14,stress:12,papers:16,reputation:-2},result:"Der Streit ist unangenehm, doch die Leitung nimmt deine Unterlagen schließlich an. Du bist weiter – und am Schalter bekannt."}
+    {label:"Darauf bestehen, es heute zu erledigen",effect:{energy:-14,stress:12,german:4,papers:16,reputation:-2},result:"Der Streit ist unangenehm, doch die Leitung nimmt deine Unterlagen schließlich an. Es ist intensives Behördendeutsch – und nun kennt man dich am Schalter."}
   ]},
   {id:"de-letter",title:"Ein Brief kündigt an, dass ein weiterer Brief kommt",office:"VERSICHERUNG",text:"Seite eins erklärt, der eigentliche Bescheid werde separat verschickt. Seite zwei erklärt, gegen diese Mitteilung solle kein Widerspruch eingelegt werden.",choices:[
     {label:"Einen neuen Aktenordner dafür anlegen",effect:{money:-6,papers:8,stress:4},result:"Der Ordnerrücken lautet: Noch nicht erhalten, aber aufbewahrungspflichtig."},
@@ -311,7 +311,7 @@ const BASE_EVENTS = [
   ]},
   { id:"termin-for-termin", title:"这个 Termin 只用于预约另一个 Termin", office:"BÜRGERBÜRO", text:"你准时到达窗口，却得知今天的预约只用于身份核验。真正办事需要现场领取新的预约号码。", choices:[
     { label:"礼貌地领取新号码", effect:{energy:-9,stress:8,papers:7}, result:"新预约在八周后，地点是同一栋楼同一个窗口。" },
-    { label:"坚持问能否今天办完", effect:{energy:-14,stress:12,papers:16,reputation:-2}, result:"争论很难看，但主管最终把材料收进了系统。你解决得更彻底，也给窗口留下了印象。" }
+    { label:"坚持问能否今天办完", effect:{energy:-14,stress:12,german:4,papers:16,reputation:-2}, result:"争论很难看，但主管最终把材料收进了系统。你练了一场高强度行政德语，也给窗口留下了印象。" }
   ]},
   { id:"pfandbon", title:"价值 8.25 欧元的 Pfandbon 消失了", office:"SUPERMARKT", text:"你退了整袋瓶子，机器打印的小票却从口袋里失踪。它突然显得比现金更像现金。", choices:[
     { label:"沿原路寻找小票", effect:{energy:-7,stress:4,money:8}, result:"你在面包柜旁找到了它，并像保护护照一样攥紧。" },
@@ -323,11 +323,11 @@ const BASE_EVENTS = [
   ]},
   { id:"ruhezeit", title:"星期日，你的吸尘器引发了外交危机", office:"HAUSORDNUNG", text:"你下午两点吸尘。楼下邻居立刻按门铃，并带来一份标有 Ruhezeit 的 Hausordnung。", choices:[
     { label:"立即停止并道歉", effect:{stress:5,reputation:3,energy:-3}, result:"邻居接受道歉，并补充讲解玻璃瓶应该在哪些时段投放。" },
-    { label:"指出规则没禁止吸尘", effect:{stress:9,reputation:-8,papers:4}, result:"第二天公告栏出现了一份专门禁止吸尘的新补充规定。" }
+    { label:"指出规则没禁止吸尘", effect:{stress:9,german:4,reputation:-8,papers:4}, result:"你用德语逐条争辩。第二天公告栏出现了一份专门禁止吸尘的新补充规定。" }
   ]},
   { id:"arzt-urlaub", title:"医生正在休假，代班医生也在休假", office:"HAUSARZT", text:"诊所门口贴着代班地址。你赶到代班诊所，门上贴着另一张纸，指向第一家诊所。", choices:[
     { label:"回家喝茶观察", effect:{health:-5,stress:3,energy:-5}, result:"你完成了一次医疗系统闭环旅行。" },
-    { label:"去急诊排队", effect:{energy:-14,health:8,stress:7}, result:"五小时后医生确认：这确实不是急症。" }
+    { label:"去急诊排队", effect:{money:-55,energy:-12,health:12,stress:5}, result:"交通和等候期间的开销不便宜，但你当天得到了检查。五小时后医生确认：这确实不是急症。" }
   ]},
   { id:"briefankundigung", title:"你收到一封信，通知另一封信将要寄来", office:"VERSICHERUNG", text:"第一页说明正式决定将在单独信件中发送；第二页说明不要就本通知提出异议。", choices:[
     { label:"建立一个新文件夹保存", effect:{money:-6,papers:8,stress:4}, result:"文件夹标签是：尚未收到但必须保存。" },
@@ -339,7 +339,7 @@ const BASE_EVENTS = [
   ]},
   { id:"paketshop", title:"包裹店营业，但负责包裹的人不在", office:"PAKETSHOP", text:"便利店开着，老板也在，但“会操作包裹系统的同事”今天不上班。", choices:[
     { label:"明天再来", effect:{energy:-5,stress:4}, result:"明天系统维护，后天是周日。" },
-    { label:"现场研究机器", effect:{energy:-9,reputation:5,papers:3}, result:"你帮老板重启了设备，并免费做了十分钟 IT 支持。" }
+    { label:"现场研究机器", effect:{energy:-9,german:3,reputation:5,papers:3}, result:"你一边用德语读报错信息，一边帮老板重启设备，并免费做了十分钟 IT 支持。" }
   ]},
   { id:"tuv", title:"TÜV 认为警示灯亮着；车认为没有", office:"TÜV", text:"检测时仪表盘短暂亮灯。复检时灯灭了，但复检需要证明第一次的问题已经维修。", choices:[
     { label:"请修理厂出具证明", effect:{money:-95,papers:9,stress:4}, result:"修理厂证明他们没有修任何东西，因为东西没有坏。" },
