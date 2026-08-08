@@ -60,22 +60,22 @@ const DE_EVENTS = [
   ]},
   {id:"de-termin2",title:"Dieser Termin dient nur dazu, einen anderen Termin zu buchen",office:"BÜRGERBÜRO",text:"Am Schalter erfährst du, dass heute nur deine Identität geprüft wird. Für den eigentlichen Vorgang brauchst du eine neue Wartenummer.",choices:[
     {label:"Höflich eine neue Nummer nehmen",effect:{energy:-9,stress:8,papers:7},result:"Der neue Termin ist in acht Wochen – im selben Gebäude, am selben Schalter."},
-    {label:"Fragen, ob es heute gleich erledigt werden kann",effect:{energy:-14,stress:12,reputation:-2},result:"Man erklärt dir gewissenhaft, warum „gleich miterledigen“ kein Begriff des Verwaltungsrechts ist."}
+    {label:"Darauf bestehen, es heute zu erledigen",effect:{energy:-14,stress:12,papers:16,reputation:-2},result:"Der Streit ist unangenehm, doch die Leitung nimmt deine Unterlagen schließlich an. Du bist weiter – und am Schalter bekannt."}
   ]},
   {id:"de-letter",title:"Ein Brief kündigt an, dass ein weiterer Brief kommt",office:"VERSICHERUNG",text:"Seite eins erklärt, der eigentliche Bescheid werde separat verschickt. Seite zwei erklärt, gegen diese Mitteilung solle kein Widerspruch eingelegt werden.",choices:[
     {label:"Einen neuen Aktenordner dafür anlegen",effect:{money:-6,papers:8,stress:4},result:"Der Ordnerrücken lautet: Noch nicht erhalten, aber aufbewahrungspflichtig."},
-    {label:"Den Brief erst einmal auf den Stapel legen",effect:{stress:7,papers:-4},result:"Drei Wochen später kommt der Bescheid. Nun fehlt die Nummer aus dem Ankündigungsbrief."}
+    {label:"Den Brief erst einmal auf den Stapel legen",effect:{energy:7,stress:5,papers:-4},result:"Heute sparst du dir das Sortieren. Drei Wochen später kommt der Bescheid – und die Nummer aus dem Ankündigungsbrief fehlt."}
   ]},
   {id:"de-bio",title:"Dein Biomüllbeutel ist nicht bio genug",office:"ABFALLBERATUNG",text:"Die Stadt empfiehlt kompostierbare Beutel. Der Entsorger erklärt, seine Anlage könne genau diese Beutel nicht erkennen.",choices:[
     {label:"Küchenabfälle in Zeitungspapier wickeln",effect:{energy:-4,papers:3,reputation:4},result:"Auf der Zeitung steht, dass die Stadt papierlos werden will."},
-    {label:"Amtlich anerkannte Papiertüten kaufen",effect:{money:-12,stress:3},result:"Die Tüte ist undicht, bevor du den Müllraum erreichst."}
+    {label:"Amtlich anerkannte Papiertüten kaufen",effect:{money:-12,energy:4,stress:2},result:"Du musst die widersprüchlichen Regeln nicht weiter studieren. Die Tüte ist allerdings undicht, bevor du den Müllraum erreichst."}
   ]},
   {id:"de-parcelshop",title:"Der Paketshop ist offen – nur Pakete gehen heute nicht",office:"PAKETSHOP",text:"Der Laden ist geöffnet, der Inhaber ist da. Nur der Kollege, der sich mit dem Paketsystem auskennt, hat heute frei.",choices:[
     {label:"Morgen wiederkommen",effect:{energy:-5,stress:4},result:"Morgen wird das System gewartet, übermorgen ist Sonntag."},
     {label:"Das Gerät gemeinsam untersuchen",effect:{energy:-9,reputation:5,papers:3},result:"Du startest das Gerät neu und leistest kostenlos zehn Minuten IT-Support."}
   ]},
   {id:"de-internet",title:"Das Internetproblem lässt sich nur online melden",office:"INTERNETANBIETER",text:"Die Leitung ist ausgefallen. Die Hotline verweist auf den Onlinechat; der Onlinechat verlangt eine Verbindung mit deinem Heim-WLAN.",choices:[
-    {label:"Mit mobilen Daten einen Hotspot öffnen",effect:{money:-24,energy:-8,stress:6},result:"Die Diagnose bestätigt, dass deine Internetverbindung nicht funktioniert."},
+    {label:"Mit mobilen Daten einen Hotspot öffnen",effect:{money:-24,energy:-8,stress:6,study:8,papers:4},result:"Die Rechnung steigt, aber Onlinekurs und fristgebundene Unterlagen sind gerettet. Die Diagnose bestätigt lediglich, dass dein Internet nicht funktioniert."},
     {label:"Den Router zehn Sekunden vom Strom trennen",effect:{energy:-3,stress:-2},result:"Es funktioniert tatsächlich. Kurz darauf kommt die Zufriedenheitsumfrage."}
   ]}
 ];
@@ -210,8 +210,8 @@ const BASE_EVENTS = [
     { label:"给老师说明情况", effect:{german:3,reputation:-3,stress:7,study:4}, result:"老师建议你们先在小组内部培养跨文化沟通能力。" }
   ]},
   { id:"name-typo", title:"姓氏少了一个字母", office:"BÜRGERAMT", text:"新证件上的姓拼错了。柜台承认是录入错误，但修改错误需要重新提交出生证明。", when:s=>!s.flags.typo, choices:[
-    { label:"重新预约并提交原件", effect:{energy:-10,stress:7,papers:10}, flag:"typo", result:"你抢到了六周后的预约。错误暂时成为了合法记录。" },
-    { label:"现场等主管盖章", effect:{energy:-18,stress:12,papers:16}, flag:"typoFixed", result:"等了两小时，主管盖了一个刚才据说不存在的章。" }
+    { label:"重新预约并提交原件", effect:{energy:-10,stress:7,papers:8}, flag:"typo", result:"你抢到了六周后的预约。眼下少受点罪，但错误暂时成为合法记录，还可能牵连其他手续。" },
+    { label:"现场等主管盖章", effect:{energy:-18,stress:10,papers:24,german:4}, flag:"typoFixed", result:"等了两小时，主管终于彻底修正记录。代价很累，但也避免了姓名错误继续传到其他系统。" }
   ]},
   { id:"insurance-chain", title:"医保系统不认识你", office:"KRANKENKASSE", text:"医保卡失效。保险公司发现身份证拼写与档案不一致，请你先证明你就是你。", when:s=>s.flags.typo&&!s.flags.insurance, choices:[
     { label:"自费看病，以后报销", effect:{money:-180,health:8,stress:4}, flag:"insurance", result:"病看完了。报销需要一份医生已经不能补开的证明。" },
@@ -262,8 +262,8 @@ const BASE_EVENTS = [
     { label:"接受涨租避免冲突", effect:{money:-120,stress:-3}, result:"灯换好了，亮十秒后自动熄灭。" }
   ]},
   { id:"school", title:"学校临时停课，但通知寄到了旧地址", office:"SCHULE", text:"孩子在校门口才知道教师培训停课。学校系统里地址是旧的，尽管市政府半年前已经更新。", when:s=>s.profileId==="single", choices:[
-    { label:"请假一天照顾孩子", effect:{money:-95,energy:-11,stress:5}, result:"雇主理解，但系统记为一次短期缺勤。" },
-    { label:"拜托邻居帮忙", effect:{money:-30,reputation:10,stress:-4}, result:"邻居答应了。社区关系比跨部门数据同步可靠。" }
+    { label:"请假一天照顾孩子", effect:{money:-95,energy:-5,health:4,stress:-4}, result:"收入少了，但你不用临时协调任何人，也和孩子安稳过完了一天。" },
+    { label:"拜托邻居帮忙", effect:{money:-30,energy:-12,reputation:10,stress:8}, result:"邻居答应了。钱省下不少，也欠下了一份要认真还的人情。" }
   ]},
   { id:"contract", title:"你的手机合同自动续了两年", office:"KUNDENSERVICE", text:"运营商称解约信晚到一天，因此合同自动延长。你有寄出凭证，但客服只能看到收到日期。", choices:[
     { label:"接受优惠继续用", effect:{money:-80,stress:-3}, result:"优惠只有六个月，合同还有二十四个月。" },
@@ -287,7 +287,7 @@ const BASE_EVENTS = [
   ]},
   { id:"jobref", title:"雇主需要一张已经不存在的证明", office:"PERSONALABTEILUNG", text:"人事部门要求纸质税卡。税务局表示纸质税卡十多年前已取消，但人事系统的必填项还在。", choices:[
     { label:"打印官网说明交上去", effect:{energy:-6,papers:8,reputation:5}, result:"人事把官网说明扫描成“税卡替代件”。" },
-    { label:"等两个部门自行沟通", effect:{money:-110,stress:9}, result:"两个部门都没有对方的直线电话。" }
+    { label:"等两个部门自行沟通", effect:{money:-110,energy:9,stress:3}, result:"两个部门都没有对方的直线电话。你损失了一班工资，但至少没再替他们跑腿。" }
   ]},
   { id:"overpay-return", title:"多发的 47 欧元终于被追缴", office:"JOBCENTER", text:"七个月后，追缴通知来了：47 欧元本金、5 欧元邮费和 10 欧元管理费。", when:s=>s.flags.overpay&&!s.flags.overpayDone, choices:[
     { label:"立即付款结案", effect:{money:-62,stress:-6}, flag:"overpayDone", result:"你支付了系统犯错的管理成本，案件正式结案。" },
@@ -311,7 +311,7 @@ const BASE_EVENTS = [
   ]},
   { id:"termin-for-termin", title:"这个 Termin 只用于预约另一个 Termin", office:"BÜRGERBÜRO", text:"你准时到达窗口，却得知今天的预约只用于身份核验。真正办事需要现场领取新的预约号码。", choices:[
     { label:"礼貌地领取新号码", effect:{energy:-9,stress:8,papers:7}, result:"新预约在八周后，地点是同一栋楼同一个窗口。" },
-    { label:"问能否今天顺便办完", effect:{energy:-14,stress:12,reputation:-2}, result:"工作人员认真解释了为什么“顺便”不是行政法概念。" }
+    { label:"坚持问能否今天办完", effect:{energy:-14,stress:12,papers:16,reputation:-2}, result:"争论很难看，但主管最终把材料收进了系统。你解决得更彻底，也给窗口留下了印象。" }
   ]},
   { id:"pfandbon", title:"价值 8.25 欧元的 Pfandbon 消失了", office:"SUPERMARKT", text:"你退了整袋瓶子，机器打印的小票却从口袋里失踪。它突然显得比现金更像现金。", choices:[
     { label:"沿原路寻找小票", effect:{energy:-7,stress:4,money:8}, result:"你在面包柜旁找到了它，并像保护护照一样攥紧。" },
@@ -331,11 +331,11 @@ const BASE_EVENTS = [
   ]},
   { id:"briefankundigung", title:"你收到一封信，通知另一封信将要寄来", office:"VERSICHERUNG", text:"第一页说明正式决定将在单独信件中发送；第二页说明不要就本通知提出异议。", choices:[
     { label:"建立一个新文件夹保存", effect:{money:-6,papers:8,stress:4}, result:"文件夹标签是：尚未收到但必须保存。" },
-    { label:"先放到那叠信上面", effect:{stress:7,papers:-4}, result:"三周后正式决定到了，但你找不到预告信要求保留的编号。" }
+    { label:"先放到那叠信上面", effect:{energy:7,stress:5,papers:-4}, result:"你今天省下了整理力气；三周后正式决定到了，但预告信要求保留的编号找不到了。" }
   ]},
   { id:"biomuell", title:"你的 Bio 垃圾袋不够 Bio", office:"ABFALLBERATUNG", text:"市政网站推荐可降解垃圾袋，垃圾公司却贴出通知说处理设备无法识别这种袋子。", choices:[
     { label:"改用报纸包厨余", effect:{energy:-4,papers:3,reputation:4}, result:"报纸写着本市正在推进无纸化。" },
-    { label:"买官方认可的纸袋", effect:{money:-12,stress:3}, result:"纸袋在你走到垃圾房前已经漏了。" }
+    { label:"买官方认可的纸袋", effect:{money:-12,energy:4,stress:2}, result:"不用再研究互相矛盾的规定，虽然纸袋在你走到垃圾房前已经漏了。" }
   ]},
   { id:"paketshop", title:"包裹店营业，但负责包裹的人不在", office:"PAKETSHOP", text:"便利店开着，老板也在，但“会操作包裹系统的同事”今天不上班。", choices:[
     { label:"明天再来", effect:{energy:-5,stress:4}, result:"明天系统维护，后天是周日。" },
@@ -346,7 +346,7 @@ const BASE_EVENTS = [
     { label:"预约再次检测", effect:{money:-42,energy:-8,stress:7}, result:"新预约一个月后。检测员建议你开车时不要让灯再亮。" }
   ]},
   { id:"internet", title:"网速问题只能通过在线客服解决", office:"INTERNETANBIETER", text:"网络断了。电话语音要求你登录在线客服；在线客服要求你连接家庭 Wi-Fi 完成线路检测。", choices:[
-    { label:"用手机流量开热点", effect:{money:-24,energy:-8,stress:6}, result:"检测结果显示：你的互联网连接不可用。" },
+    { label:"用手机流量开热点", effect:{money:-24,energy:-8,stress:6,study:8,papers:4}, result:"网络账单增加了，但你保住了线上课程和必须当天提交的材料。检测结果则显示：你的互联网连接不可用。" },
     { label:"拔掉路由器等十秒", effect:{energy:-3,stress:-2}, result:"它居然好了。客服随后发来满意度调查。" }
   ]},
   { id:"brot", title:"你只是想买面包，却被问了七个问题", office:"BÄCKEREI", text:"全麦、裸麦、混合麦；切片或整条；薄片或厚片；是否需要袋子；现金还是 Girocard。队伍安静地等着你。", choices:[
@@ -363,7 +363,7 @@ const BASE_EVENTS = [
   ]},
   { id:"heating-followup", title:"暖气维修终于来了，但你必须全天在家", office:"HAUSVERWALTUNG", text:"维修时间仍是08:00–18:00。师傅在17:42到达，并问为什么没人早点告诉他故障原因。", when:s=>s.flags.rentFight&&!s.flags.heatingDone, choices:[
     { label:"请假等维修完成", effect:{money:-70,health:8,stress:-7}, flag:"heatingDone", result:"暖气恢复了。你第一次觉得书面限期也可能产生热量。" },
-    { label:"请室友代为开门", effect:{reputation:8,health:6,energy:5}, flag:"heatingDone", result:"室友帮了忙，你答应下次替他等一个没有具体时段的包裹。" }
+    { label:"请室友代为开门", effect:{money:-25,reputation:-5,health:6,energy:5,stress:5}, flag:"heatingDone", result:"你保住了这天的时间，也请室友吃饭道谢；这份人情以后还得还。" }
   ]}
 ];
 
