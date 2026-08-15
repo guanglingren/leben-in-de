@@ -482,6 +482,24 @@ function EffectBadges({effect,lang="zh"}) {
   return <div className="effect-badges"><strong>{lang==="de"?"Worauf wirkt das?":"会影响什么"}</strong>{groups.map(([key,icon,label])=><span key={key}>{icon} {label}</span>)}</div>;
 }
 
+const ARRIVAL_HOUSING=[
+  {id:"hostel",icon:"🛏️",title:"先住青旅，今晚睡踏实",deTitle:"Erst einmal ins Hostel",text:"离车站近，价格肉疼，但明早能清醒地开始。",deText:"Nah am Bahnhof und schmerzhaft teuer – dafür startest du morgen ausgeschlafen.",effect:{money:-65,energy:12,stress:-8}},
+  {id:"wg",icon:"🗝️",title:"拖着箱子去看 WG",deTitle:"Mit dem Koffer zur WG-Besichtigung",text:"省下房钱，顺便练德语；如果对方没临时放鸽子。",deText:"Du sparst Geld und übst Deutsch – falls die Besichtigung nicht spontan ausfällt.",effect:{money:-20,energy:-13,stress:7,german:4,study:2}},
+  {id:"sofa",icon:"🛋️",title:"借住学长的沙发",deTitle:"Auf dem Sofa eines Kommilitonen schlafen",text:"最便宜，也能问清几件事，只是很难真正休息。",deText:"Am billigsten, und du bekommst ein paar Tipps. Wirklich erholsam wird die Nacht aber nicht.",effect:{money:-10,energy:-5,stress:2,german:2,study:2}}
+];
+
+function ArrivalStory({state,lang,onAdvance,onChoose,onFinish}){
+  const stage=state.arrivalStage||"messages",selected=ARRIVAL_HOUSING.find(item=>item.id===state.arrivalChoice),zh=lang!=="de";
+  return <main className={`arrival-story arrival-${stage}`}>
+    <div className="arrival-airport" aria-hidden="true"><div className="arrival-skyline"><span className="arrival-plane">✈</span><i/><i/><i/></div><div className="terminal-sign"><b>ANKUNFT</b><span>ARRIVALS · GEPÄCKAUSGABE 4</span></div><div className="terminal-window"><span/><span/><span/><span/></div><div className="luggage-belt"><span>🧳</span><span>🎒</span><span>🧳</span></div><div className="arrival-you"><span>🧍</span><small>{state.name}</small></div></div>
+    <section className="arrival-panel"><header><small>ANKUNFT · WOCHE 1</small><b>{zh?"抵德第一天":"Dein erster Tag in Deutschland"}</b></header>
+      {stage==="messages"&&<div className="arrival-stage arrival-messages"><h1>{zh?<>飞机落地了。<br/>生活已经开始催你。</>:<>Gelandet.<br/>Das Leben wartet nicht.</>}</h1><p>{zh?"行李转盘还没动，手机先震了三次。":"Das Gepäckband steht noch still. Dein Handy vibriert schon zum dritten Mal."}</p><div className="arrival-phone"><article><i>🏫</i><span><b>{zh?"大学":"Universität"}</b><small>{zh?"学籍材料仍不完整":"Unterlagen zur Immatrikulation fehlen"}</small></span><time>16:42</time></article><article><i>🏠</i><span><b>{zh?"房东":"Vermieter"}</b><small>{zh?"“钥匙今天拿不了，明天再说。”":"„Schlüssel heute doch nicht. Morgen vielleicht.“"}</small></span><time>16:44</time></article><article><i>🏥</i><span><b>{zh?"保险公司":"Krankenkasse"}</b><small>{zh?"欢迎信需要你签字确认收到":"Bitte bestätigen Sie den Erhalt des Begrüßungsschreibens"}</small></span><time>16:45</time></article></div><button className="primary arrival-next" onClick={onAdvance}>{zh?"先解决今晚住哪里":"Erst klären, wo du heute schläfst"} <span>→</span></button></div>}
+      {stage==="housing"&&<div className="arrival-stage arrival-housing"><h1>{zh?"天快黑了，箱子还在手上。":"Es wird dunkel. Der Koffer steht noch neben dir."}</h1><p>{zh?"今晚怎么落脚？每个选择都只影响三个看得见的数值。":"Wo schläfst du heute? Jede Wahl wirkt nur auf deine drei sichtbaren Werte."}</p><div className="arrival-choices">{ARRIVAL_HOUSING.map(item=><button key={item.id} onClick={()=>onChoose(item)}><i>{item.icon}</i><span><b>{zh?item.title:item.deTitle}</b><small>{zh?item.text:item.deText}</small><em>{coreEffectText(state,item.effect,lang)}</em></span><strong>→</strong></button>)}</div></div>}
+      {stage==="result"&&selected&&<div className="arrival-stage arrival-result"><div className="arrival-result-icon">{selected.icon}<span>✓</span></div><small>{zh?"今晚有着落了":"Für heute ist die Nacht geklärt"}</small><h1>{zh?selected.title:selected.deTitle}</h1><p>{zh?"你把箱子安顿下来。明早开始，大学、工作、账单和德国式手续都会正式找上门。":"Der Koffer ist abgestellt. Ab morgen warten Uni, Job, Rechnungen und der ganz normale deutsche Papierkram."}</p><div className="arrival-deltas">{coreEffectEntries(projectedState(state,Object.fromEntries(Object.entries(selected.effect).map(([k,v])=>[k,-v]))),selected.effect).filter(item=>item.value!==0).map(item=><span key={item.key}><small>{item.icon} {zh?item.zh:item.de}</small><b className={item.value>=0?"profit":"loss"}>{item.value>0?"+":""}{item.value}{item.suffix||""}</b></span>)}</div><button className="primary arrival-next" onClick={onFinish}>{zh?"进入第一周":"In die erste Woche"} <span>→</span></button></div>}
+    </section>
+  </main>;
+}
+
 const DE_UI = {
   "现金":"Geld","债务":"Schulden","❤️ 健康":"❤️ Gesundheit","🧠 压力":"🧠 Stress","⚡ 精力":"⚡ Energie","🗣️ 德语":"🗣️ Deutsch","🤝 人脉":"🤝 Kontakte","🗂️ 档案":"🗂️ Akte","📦 材料包":"📦 Unterlagen","🎓 学业":"🎓 Studium",
   "可正常行动":"handlungsfähig","需要休息":"Erholung nötig","无法工作":"arbeitsunfähig","解锁职业":"schaltet Jobs frei","事件减损":"Schutz bei Ereignissen","课程进度":"Studienfortschritt","本周消息":"Diese Woche","时间规则":"ZEITREGEL","⏳ 本周行动＝推进 1 周":"⏳ Wochenaktion = 1 Woche","○ 商品、股票、经营批次、换职业＝不耗时间":"○ Handel, Anlage und Jobwechsel kosten keine Zeit",
@@ -944,7 +962,7 @@ export default function Home() {
 
   function start(profile,name=playerName){
     const cleanName=name.trim()||(lang==="de"?"Mia Chen":"林安");
-    setState({...profile,name:cleanName,profileId:profile.id,month:1,week:1,totalWeek:0,jobId:"shift",inventory:{},inventoryCost:{},tradeLedger:[],marketVisitWeek:-1,marketLocation:null,stocks:{},stockCost:{},activeVenture:null,ventureLedger:[],packs:0,flags:{},seen:[],journal:[],newsIndex:0,capacity:6,businessRuns:0,lastDebtPaymentMonth:0,academicWarnings:0});
+    setState({...profile,name:cleanName,profileId:profile.id,month:1,week:1,totalWeek:0,jobId:"shift",inventory:{},inventoryCost:{},tradeLedger:[],marketVisitWeek:-1,marketLocation:null,stocks:{},stockCost:{},activeVenture:null,ventureLedger:[],packs:0,flags:{},seen:[],journal:[],newsIndex:0,capacity:6,businessRuns:0,lastDebtPaymentMonth:0,academicWarnings:0,arrivalStage:"messages",arrivalChoice:null});
     setScreen("arrival"); setTab("actions"); setModal(null);
   }
 
@@ -953,6 +971,11 @@ export default function Home() {
     const next={...base};
     Object.entries(effect).forEach(([k,v])=>{next[k]=["money","debt"].includes(k)?Math.max(0,(next[k]||0)+v):clamp((next[k]||0)+v);});
     return next;
+  }
+
+  function chooseArrival(option){
+    const updated=applyEffect(state,option.effect);
+    setState({...updated,arrivalStage:"result",arrivalChoice:option.id,journal:[`${lang==="de"?option.deTitle:option.title} · ${coreEffectText(state,option.effect,lang)}`,...(updated.journal||[])].slice(0,20)});
   }
 
   const hasEnded=s=>s.health<=0||s.stress>=100||s.money<=0||s.month>12;
@@ -1216,7 +1239,7 @@ export default function Home() {
     <footer><span>{lang==="de"?"Kein Studienfach nötig":"无需预选专业"}</span><span>👁 {visitCount===null?"—":visitCount} {lang==="de"?"Besuche":"次访问"}</span><span>{lang==="de"?"Jede Woche formt dein Leben":"留德生活由每周选择形成"}</span></footer>
   </main></Localize>;
 
-  if(screen==="arrival")return <Localize lang={lang}><main className="cinematic arrival-scene"><div className="sky"><span className="cloud c1">☁</span><span className="cloud c2">☁</span><span className="flying-plane">✈</span><div className="germany-line"><i/><i/><i/></div></div><section><small>ANKUNFT · WOCHE 1</small><h1>Willkommen<br/>in Deutschland</h1><p>{lang==="de"?"Das Flugzeug ist gelandet. Das Gepäckband steht noch still, aber Universität, Krankenkasse und Bürgeramt haben dir bereits geschrieben.":"飞机落地。行李转盘还没动，你已经收到大学、保险公司和市政厅的三封邮件。"}</p><button className="primary" onClick={()=>setScreen("game")}>{lang==="de"?"Leben in Deutschland beginnen":"开始德国生活"} <span>→</span></button></section></main></Localize>;
+  if(screen==="arrival")return <ArrivalStory state={state} lang={lang} onAdvance={()=>setState({...state,arrivalStage:"housing"})} onChoose={chooseArrival} onFinish={()=>setScreen("game")}/>;
 
   if(screen==="end"){
     const survived=state.month>12&&state.health>0&&state.stress<100&&state.money>0;
